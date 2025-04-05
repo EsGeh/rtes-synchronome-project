@@ -1,11 +1,11 @@
 # Synchronome Project
 
+*Short Description*:
+This project is an exercise in realtime embedded engineering.
+An embedded computer connected to a camera periodically takes pictures of a ticking clock and saves them to persistent memory (Flash).
+The program outputs one image each second, each showing a still image of the seconds hand in one stationary position
+(or one image each 1/10th of a second if the clock displays 1/10ths of a second).
+In order to achieve that, the process of taking/picking pictures needs to be carefully synchronized with the external clock.
+
 This project is the [fourth part](https://www.coursera.org/learn/real-time-project-embedded-systems) of the [Realtime Embedded Systems Specialization](https://www.coursera.org/specializations/real-time-embedded-systems) by the *University of Colorado Boulder* via Coursera.
-
-Course Description:
-
-> The final course emphasizes hands-on building of an application using real-time machine vision and multiple real-time services to synchronize the internal state of Linux with an external clock via observation.
-> 
-> - Outcome 1: Decompose a problem and set of basic real-time requirements into software modules and Linux POSIX real-time threads
-> - Outcome 2: Analyze services in terms of C (execution time), T (request period), and D (deadlines for completion) to establish feasibility and margin for meeting requirements
-> - Outcome 3: Design and construct a solution for a native Linux system equipped with a webcam to verify and demonstrate system synchronization using machine vision processing
+According to the [course description](https://www.coursera.org/learn/real-time-project-embedded-systems) successful completion of this project proofs advanced level applied knowledge about realtime embedded engineering.
