@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="600mm"
+   height="600mm"
+   viewBox="0 0 600 600"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   sodipodi:docname="Clock.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="0.15434027"
+     inkscape:cx="126.34421"
+     inkscape:cy="971.87853"
+     inkscape:window-width="1600"
+     inkscape:window-height="900"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1">
+    <inkscape:grid
+       id="grid9"
+       units="mm"
+       originx="2.77556e-16"
+       originy="0"
+       spacingx="9.9999999"
+       spacingy="9.9999999"
+       empcolor="#3f3fff"
+       empopacity="0.25098039"
+       color="#3f3fff"
+       opacity="0.1254902"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath14">
+      <path
+         style="display:inline;fill:#696969;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;paint-order:markers fill stroke"
+         sodipodi:type="inkscape:offset"
+         inkscape:radius="0"
+         inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+         xlink:href="#path1"
+         id="path14"
+         inkscape:href="#path1"
+         d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath17">
+      <path
+         style="display:inline;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         sodipodi:type="inkscape:offset"
+         inkscape:radius="0"
+         inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+         xlink:href="#path1"
+         id="path18"
+         inkscape:href="#path1"
+         d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z"
+         inkscape:label="mask" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath50">
+      <circle
+         style="fill:none;fill-opacity:1;stroke:none;stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+         id="circle50"
+         cx="300"
+         cy="300"
+         r="300" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath60">
+      <path
+         style="display:inline;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         sodipodi:type="inkscape:offset"
+         inkscape:radius="0"
+         inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+         xlink:href="#path1"
+         id="path60"
+         inkscape:href="#path1"
+         inkscape:label="mask"
+         d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z" />
+    </clipPath>
+  </defs>
+  <g
+     id="g50"
+     clip-path="url(#clipPath50)"
+     inkscape:label="Clock_motion-blur">
+    <circle
+       style="display:inline;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       id="path1"
+       cx="300"
+       cy="300"
+       inkscape:label="ring"
+       r="300" />
+    <path
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:48;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       sodipodi:type="inkscape:offset"
+       inkscape:radius="0"
+       inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+       xlink:href="#path1"
+       id="path15"
+       inkscape:href="#path1"
+       d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z"
+       clip-path="url(#clipPath60)"
+       inkscape:label="ring-contour"
+       mask="none" />
+    <g
+       id="g41"
+       inkscape:label="ticks">
+      <g
+         id="g31"
+         style="display:inline">
+        <use
+           x="0"
+           y="0"
+           xlink:href="#rect19"
+           id="use30"
+           transform="translate(105)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#use30"
+           id="use31"
+           transform="matrix(-1,0,0,1,600,0)" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g31"
+         id="use32"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use32"
+         id="use33"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use33"
+         id="use34"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use34"
+         id="use35"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use35"
+         id="use36"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <rect
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:12;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         id="rect19"
+         width="50"
+         height="20.000002"
+         x="-105"
+         y="290"
+         ry="10.000001"
+         rx="10.000001"
+         inkscape:label="orig" />
+    </g>
+    <g
+       id="g40"
+       inkscape:label="hands">
+      <g
+         id="g43"
+         transform="rotate(-15,300,300)"
+         inkscape:label="hand3">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect38"
+           width="160"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10"
+           inkscape:label="hand3"
+           rx="10" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect42"
+           width="160"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10"
+           inkscape:label="hand3-copy"
+           rx="10"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g42"
+         transform="rotate(75,300,300)"
+         inkscape:label="hand2">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect37"
+           width="280"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2"
+           rx="10.000001" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect41"
+           width="280"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2-copy"
+           rx="10.000001"
+           transform="scale(-1,1)" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g48"
+         id="use49"
+         transform="rotate(-6,299.68238,299.80424)"
+         inkscape:label="hand1-prev2" />
+      <g
+         id="g48"
+         inkscape:label="hand1-prev1"
+         transform="rotate(-65.999999,300.19052,300.05457)"
+         style="fill:#777777;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-width:2">
+        <path
+           style="fill:#777777;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-width:2"
+           d="m 290,290 c 0,0 290,0 300,10 -10.90965,10.05095 -300,10.00001 -300,10.00001 z"
+           id="path48"
+           inkscape:label="hand1"
+           sodipodi:nodetypes="cccc"
+           transform="translate(8.2365202e-6)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path36"
+           id="use48"
+           inkscape:label="hand1-copy"
+           transform="matrix(-1,0,0,1,600.38219,0.10981034)"
+           style="display:none;fill:#777777;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-opacity:1" />
+      </g>
+      <g
+         id="g39"
+         inkscape:label="hand1"
+         transform="rotate(-60,300.19111,300.05491)"
+         style="fill:#ff0000;fill-opacity:1">
+        <path
+           style="fill-opacity:1;fill:#ff0000"
+           d="m 290,290 c 0,0 290,0 300,10 -10.90965,10.05095 -300,10.00001 -300,10.00001 z"
+           id="path36"
+           inkscape:label="hand1"
+           sodipodi:nodetypes="cccc"
+           transform="translate(8.2365202e-6)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path36"
+           id="use47"
+           inkscape:label="hand1-copy"
+           transform="matrix(-1,0,0,1,600.38219,0.10981034)"
+           style="display:none;fill:#ff0000;fill-opacity:1" />
+      </g>
+    </g>
+  </g>
+  <g
+     id="g16"
+     clip-path="url(#clipPath50)"
+     inkscape:label="Clock_t=0"
+     transform="translate(650)">
+    <circle
+       style="display:none;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       id="circle1"
+       cx="300"
+       cy="300"
+       inkscape:label="ring"
+       r="300" />
+    <path
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:48;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       sodipodi:type="inkscape:offset"
+       inkscape:radius="0"
+       inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+       xlink:href="#path1"
+       id="path2"
+       inkscape:href="#path1"
+       d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z"
+       clip-path="url(#clipPath17)"
+       inkscape:label="ring-contour" />
+    <g
+       id="g8"
+       inkscape:label="ticks">
+      <g
+         id="g3"
+         style="display:inline">
+        <use
+           x="0"
+           y="0"
+           xlink:href="#rect19"
+           id="use2"
+           transform="translate(105)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#use30"
+           id="use3"
+           transform="matrix(-1,0,0,1,600,0)" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g31"
+         id="use4"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use32"
+         id="use5"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use33"
+         id="use6"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use34"
+         id="use7"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use35"
+         id="use8"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <rect
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:12;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         id="rect8"
+         width="50"
+         height="20.000002"
+         x="-105"
+         y="290"
+         ry="10.000001"
+         rx="10.000001"
+         inkscape:label="orig" />
+    </g>
+    <g
+       id="g15"
+       inkscape:label="hands">
+      <g
+         id="g10"
+         transform="rotate(-15,300,300)"
+         inkscape:label="hand3">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect9"
+           width="160"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10"
+           inkscape:label="hand3"
+           rx="10" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect10"
+           width="160"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10"
+           inkscape:label="hand3-copy"
+           rx="10"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g12"
+         transform="rotate(75,300,300)"
+         inkscape:label="hand2">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect11"
+           width="280"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2"
+           rx="10.000001" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect12"
+           width="280"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2-copy"
+           rx="10.000001"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g14"
+         inkscape:label="hand1"
+         transform="rotate(-60,300.19111,300.05491)"
+         style="fill:#ff0000;fill-opacity:1">
+        <path
+           style="fill:#ff0000;fill-opacity:1"
+           d="m 290,290 c 0,0 290,0 300,10 -10.90965,10.05095 -300,10.00001 -300,10.00001 z"
+           id="path13"
+           inkscape:label="hand1"
+           sodipodi:nodetypes="cccc"
+           transform="translate(8.2365202e-6)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path36"
+           id="use14"
+           inkscape:label="hand1-copy"
+           transform="matrix(-1,0,0,1,600.38219,0.10981034)"
+           style="display:none;fill:#ff0000;fill-opacity:1" />
+      </g>
+    </g>
+  </g>
+  <g
+     id="g29"
+     clip-path="url(#clipPath50)"
+     inkscape:label="Clock_t=-1"
+     transform="translate(650,-650.19238)">
+    <circle
+       style="display:none;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       id="circle16"
+       cx="300"
+       cy="300"
+       inkscape:label="ring"
+       r="300" />
+    <path
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:48;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       sodipodi:type="inkscape:offset"
+       inkscape:radius="0"
+       inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+       xlink:href="#path1"
+       id="path16"
+       inkscape:href="#path1"
+       d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z"
+       clip-path="url(#clipPath17)"
+       inkscape:label="ring-contour" />
+    <g
+       id="g22"
+       inkscape:label="ticks">
+      <g
+         id="g17"
+         style="display:inline">
+        <use
+           x="0"
+           y="0"
+           xlink:href="#rect19"
+           id="use16"
+           transform="translate(105)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#use30"
+           id="use17"
+           transform="matrix(-1,0,0,1,600,0)" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g31"
+         id="use18"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use32"
+         id="use19"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use33"
+         id="use20"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use34"
+         id="use21"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use35"
+         id="use22"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <rect
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:12;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         id="rect22"
+         width="50"
+         height="20.000002"
+         x="-105"
+         y="290"
+         ry="10.000001"
+         rx="10.000001"
+         inkscape:label="orig" />
+    </g>
+    <g
+       id="g28"
+       inkscape:label="hands">
+      <g
+         id="g24"
+         transform="rotate(-15,300,300)"
+         inkscape:label="hand3">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect23"
+           width="160"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10"
+           inkscape:label="hand3"
+           rx="10" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect24"
+           width="160"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10"
+           inkscape:label="hand3-copy"
+           rx="10"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g26"
+         transform="rotate(75,300,300)"
+         inkscape:label="hand2">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect25"
+           width="280"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2"
+           rx="10.000001" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect26"
+           width="280"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2-copy"
+           rx="10.000001"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g27"
+         inkscape:label="hand1"
+         transform="rotate(-66,300.19052,300.05457)"
+         style="fill:#ff0000;fill-opacity:1">
+        <path
+           style="fill:#ff0000;fill-opacity:1"
+           d="m 290,290 c 0,0 290,0 300,10 -10.90965,10.05095 -300,10.00001 -300,10.00001 z"
+           id="path26"
+           inkscape:label="hand1"
+           sodipodi:nodetypes="cccc"
+           transform="translate(8.2365202e-6)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path36"
+           id="use26"
+           inkscape:label="hand1-copy"
+           transform="matrix(-1,0,0,1,600.38219,0.10981034)"
+           style="display:none;fill:#ff0000;fill-opacity:1" />
+      </g>
+    </g>
+  </g>
+  <g
+     id="g53"
+     clip-path="url(#clipPath50)"
+     inkscape:label="Clock_t=1"
+     transform="translate(650.00001,650.00001)">
+    <circle
+       style="display:none;fill:none;stroke:#000000;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       id="circle29"
+       cx="300"
+       cy="300"
+       inkscape:label="ring"
+       r="300" />
+    <path
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:48;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       sodipodi:type="inkscape:offset"
+       inkscape:radius="0"
+       inkscape:original="M 300 0 A 300 300 0 0 0 0 300 A 300 300 0 0 0 300 600 A 300 300 0 0 0 600 300 A 300 300 0 0 0 300 0 z "
+       xlink:href="#path1"
+       id="path29"
+       inkscape:href="#path1"
+       d="M 300,0 A 300,300 0 0 0 0,300 300,300 0 0 0 300,600 300,300 0 0 0 600,300 300,300 0 0 0 300,0 Z"
+       clip-path="url(#clipPath17)"
+       inkscape:label="ring-contour" />
+    <g
+       id="g44"
+       inkscape:label="ticks">
+      <g
+         id="g37"
+         style="display:inline">
+        <use
+           x="0"
+           y="0"
+           xlink:href="#rect19"
+           id="use29"
+           transform="translate(105)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#use30"
+           id="use37"
+           transform="matrix(-1,0,0,1,600,0)" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g31"
+         id="use38"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use32"
+         id="use39"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use33"
+         id="use40"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use34"
+         id="use41"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use35"
+         id="use42"
+         transform="rotate(-30,300,300)"
+         style="display:inline" />
+      <rect
+         style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:12;stroke-linecap:square;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         id="rect43"
+         width="50"
+         height="20.000002"
+         x="-105"
+         y="290"
+         ry="10.000001"
+         rx="10.000001"
+         inkscape:label="orig" />
+    </g>
+    <g
+       id="g52"
+       inkscape:label="hands">
+      <g
+         id="g45"
+         transform="rotate(-15,300,300)"
+         inkscape:label="hand3">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect44"
+           width="160"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10"
+           inkscape:label="hand3"
+           rx="10" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect45"
+           width="160"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10"
+           inkscape:label="hand3-copy"
+           rx="10"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g47"
+         transform="rotate(75,300,300)"
+         inkscape:label="hand2">
+        <rect
+           style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect46"
+           width="280"
+           height="20.000002"
+           x="290"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2"
+           rx="10.000001" />
+        <rect
+           style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:24;stroke-linecap:square;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+           id="rect47"
+           width="280"
+           height="20.000002"
+           x="-310"
+           y="290"
+           ry="10.000001"
+           inkscape:label="hand2-copy"
+           rx="10.000001"
+           transform="scale(-1,1)" />
+      </g>
+      <g
+         id="g51"
+         inkscape:label="hand1"
+         transform="rotate(-54,300.19202,300.05553)"
+         style="fill:#ff0000;fill-opacity:1">
+        <path
+           style="fill:#ff0000;fill-opacity:1"
+           d="m 290,290 c 0,0 290,0 300,10 -10.90965,10.05095 -300,10.00001 -300,10.00001 z"
+           id="path47"
+           inkscape:label="hand1"
+           sodipodi:nodetypes="cccc"
+           transform="translate(8.2365202e-6)" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#path36"
+           id="use50"
+           inkscape:label="hand1-copy"
+           transform="matrix(-1,0,0,1,600.38219,0.10981034)"
+           style="display:none;fill:#ff0000;fill-opacity:1" />
+      </g>
+    </g>
+  </g>
+</svg>
