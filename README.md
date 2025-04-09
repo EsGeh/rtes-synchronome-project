@@ -1,6 +1,8 @@
 # Synchronome Project
 
-*REMARK*: This project is under rapid development.
+*REMARK*:
+This project is under rapid development.
+Some functionality might still be missing or incomplete.
 
 ![system block diagram](./doc/imgs/diagrams/1_block-diagram.svg)
 
@@ -17,3 +19,9 @@ This project is the [fourth part](https://www.coursera.org/learn/real-time-proje
 According to the [course description](https://www.coursera.org/learn/real-time-project-embedded-systems) successful completion of this project proofs advanced level applied knowledge about realtime embedded engineering.
 
 For details about grading and requirements for passing this course, see `./doc/requirements/`.
+
+## Run Tests
+
+*Prerequisit*: install the [check](https://libcheck.github.io/check/) test framework
+
+    $ ./scripts/test.fish
