@@ -9,7 +9,8 @@ BUILD_DIR=build
 CONFIG=debug
 
 CC=gcc
-CFLAGS=-O0 -Wall -Wextra -pedantic -g
+CFLAGS=-O0 -Wall -Wextra -pedantic -g \
+ -fprofile-arcs -ftest-coverage
 OUT_DIR=$(BUILD_DIR)/$(CONFIG)
 OBJ_DIR=$(OUT_DIR)/objs
 
