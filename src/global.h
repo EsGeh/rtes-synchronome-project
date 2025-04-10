@@ -9,4 +9,9 @@
 
 typedef enum { false, true } bool;
 
+typedef enum {
+	RET_SUCCESS,
+	RET_FAILURE
+} ret_t;
+
 #endif

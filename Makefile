@@ -27,6 +27,7 @@ clean:
 
 $(OUT_DIR)/run_tests: \
 		$(OBJ_DIR)/run_tests.o \
+		$(OBJ_DIR)/camera.o \
 		$(OBJ_DIR)/time.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
@@ -34,12 +35,21 @@ $(OUT_DIR)/run_tests: \
 
 $(OBJ_DIR)/run_tests.o: \
 		$(TEST_DIR)/run_tests.c \
+		$(TEST_DIR)/test_camera.c \
+		$(SRC_DIR)/camera.h \
 		$(SRC_DIR)/time.h \
 		$(SRC_DIR)/output.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
 # library / units:
+
+$(OBJ_DIR)/camera.o: \
+		$(SRC_DIR)/camera.c $(SRC_DIR)/camera.h \
+		$(SRC_DIR)/output.h \
+		$(SRC_DIR)/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/output.o: \
 		$(SRC_DIR)/output.c $(SRC_DIR)/output.h \

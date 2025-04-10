@@ -1,3 +1,4 @@
+#include "test_camera.c"
 #include "global.h"
 
 #include <check.h>
@@ -5,45 +6,6 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-
-START_TEST(test_dummy) {
-	ck_assert_int_eq( true, true );
-}
-END_TEST
-
-START_TEST(test_dummy_2) {
-	ck_assert_int_ne( true, false );
-}
-END_TEST
-
-START_TEST(test_c2_dummy) {
-	ck_assert_int_eq( true, true );
-}
-END_TEST
-
-START_TEST(test_c2_dummy_2) {
-	ck_assert_int_ne( true, false );
-}
-END_TEST
-
-Suite* dummy_suite() {
-	Suite* suite = suite_create("dummy");
-	// case 1:
-	{
-		TCase* test_case = tcase_create("case 1");
-		tcase_add_test(test_case, test_dummy);
-		tcase_add_test(test_case, test_dummy_2);
-		suite_add_tcase(suite, test_case);
-	}
-	// case 2:
-	{
-		TCase* test_case = tcase_create("case 2");
-		tcase_add_test(test_case, test_c2_dummy);
-		tcase_add_test(test_case, test_c2_dummy_2);
-		suite_add_tcase(suite, test_case);
-	}
-	return suite;
-}
 
 const char short_options[] = "h";
 const  struct option long_options[] = {
@@ -71,7 +33,7 @@ int main(
 	SRunner* runner = srunner_create(NULL);
 	// test suites:
 	{
-		srunner_add_suite( runner, dummy_suite() );
+		srunner_add_suite( runner, camera_suite() );
 	}
 	char* suite_name = NULL;
 	char* case_name = NULL;
