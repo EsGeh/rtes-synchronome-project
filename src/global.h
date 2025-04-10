@@ -14,4 +14,11 @@ typedef enum {
 	RET_FAILURE
 } ret_t;
 
+#define FREE( PTR ) {\
+	if( PTR != NULL ) { \
+		free( PTR ); \
+		PTR = NULL; \
+	} \
+}
+
 #endif
