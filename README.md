@@ -25,3 +25,9 @@ For details about grading and requirements for passing this course, see `./doc/r
 *Prerequisit*: install the [check](https://libcheck.github.io/check/) test framework
 
     $ ./scripts/test.fish
+
+## Developer Notes
+
+Auto run tests before every commit:
+
+    $ git config core.hooksPath hooks

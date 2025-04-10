@@ -8,6 +8,7 @@ set COVERAGE_DIR "$BIN_DIR/coverage"
 
 source "$SCRIPTS_DIR/utils.fish"
 
+run_cmd -- make --directory "'$BASE_DIR'" clean
 run_cmd -- make --directory "'$BASE_DIR'"
 run_cmd -- mkdir --parents "'$COVERAGE_DIR'"
 

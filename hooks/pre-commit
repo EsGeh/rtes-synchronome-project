@@ -1,0 +1,18 @@
+#!/bin/env fish
+
+set BASE_DIR (realpath (status dirname)/..)
+
+# reject if working dir is not clean
+# that means: there are unstaged/untracked files
+set files (git ls-files . -m)
+and test -z "$files"
+and set files (git ls-files . --exclude-standard --others)
+and test -z "$files"
+or begin
+	echo "Working directory is not clean."
+	echo "Please stash unstaged changes first"
+	echo "  (or move them somewhere else)"
+	git status
+	exit 1
+end
+and $BASE_DIR/scripts/test.fish
