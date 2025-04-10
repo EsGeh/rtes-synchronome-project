@@ -160,6 +160,124 @@ ret_t camera_exit(
 		FREE( camera->buffer_container.buffers );
 		camera->buffer_container.count = 0;
 	}
+	return ret;
+}
+
+ret_t camera_stream_start(
+		camera_t* camera
+)
+{
+	// "enqueue" all buffers, so
+	// they can be filled by the camera
+	for (unsigned int i = 0; i < camera->buffer_container.count; ++i)
+	{
+		struct v4l2_buffer buffer;
+
+		memset(&buffer, 0, sizeof( buffer ));
+		buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buffer.memory = V4L2_MEMORY_MMAP;
+		buffer.index = i;
+
+		if (-1 == ioctl_helper(camera->dev_file, VIDIOC_QBUF, &buffer)) {
+			DEV_ERROR(
+					"VIDIOC_QBUF error: %d, %s\n",
+					errno,
+					strerror( errno )
+			);
+			return RET_FAILURE;
+		}
+	}
+	// start streaming:
+	enum v4l2_buf_type type;
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_STREAMON, &type)) {
+		DEV_ERROR(
+				"VIDIOC_STREAMON error: %d, %s\n",
+				errno,
+				strerror( errno )
+		);
+		return RET_FAILURE;
+	}
+	return RET_SUCCESS;
+}
+
+ret_t camera_stream_stop(
+		camera_t* camera
+)
+{
+	enum v4l2_buf_type type;
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_STREAMOFF, &type)) {
+		DEV_ERROR(
+				"VIDIOC_STREAMOFF error: %d, %s\n",
+				errno,
+				strerror( errno )
+		);
+		return RET_FAILURE;
+	}
+	return RET_SUCCESS;
+}
+
+ret_t camera_get_frame(
+		camera_t* camera,
+		frame_buffer_t* buffer
+)
+{
+	// wait for the device to get ready:
+	{
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(camera->dev_file, &fds);
+		int r = select(camera->dev_file + 1, &fds, NULL, NULL, NULL);
+		if (-1 == r)
+		{
+			DEV_ERROR(
+					"select error: %d, %s\n",
+					errno,
+					strerror(errno)
+			);
+		}
+	}
+	// request 1 frame:
+	struct v4l2_buffer buffer_descr;
+	memset(&buffer_descr, 0, sizeof(buffer_descr) );
+	buffer_descr.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buffer_descr.memory = V4L2_MEMORY_MMAP;
+	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_DQBUF, &buffer_descr)) {
+		DEV_ERROR(
+				"VIDIOC_DQBUF error: %d, %s\n",
+				errno,
+				strerror( errno )
+		);
+		return RET_FAILURE;
+	}
+	assert(buffer_descr.index < camera->buffer_container.count);
+	buffer->data = camera->buffer_container.buffers[buffer_descr.index].data;
+	buffer->size = buffer_descr.bytesused;
+	buffer->index = buffer_descr.index;
+	return RET_SUCCESS;
+}
+
+ret_t camera_return_frame(
+		camera_t* camera,
+		frame_buffer_t* buffer
+)
+{
+	struct v4l2_buffer buffer_descr;
+	memset(&buffer_descr, 0, sizeof(buffer_descr) );
+	buffer_descr.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	buffer_descr.memory = V4L2_MEMORY_MMAP;
+	buffer_descr.index = buffer->index;
+	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_QBUF, &buffer_descr)) {
+		DEV_ERROR(
+				"VIDIOC_DQBUF error: %d, %s\n",
+				errno,
+				strerror( errno )
+		);
+		return RET_FAILURE;
+	}
+	buffer->data = NULL;
+	buffer->size = 0;
 	return RET_SUCCESS;
 }
 

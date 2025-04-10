@@ -7,6 +7,11 @@
 #include <getopt.h>
 
 
+#define CHECK_CAMERA_SUCCESS( CALL ) \
+	if( CALL != RET_SUCCESS ) { \
+		ck_abort_msg( "'" #CALL "' failed with: %s", camera_error() ); \
+	}
+
 /***********************
  * positve tests:
 ***********************/
@@ -15,8 +20,7 @@ START_TEST(test_camera_init) {
 	camera_t camera;
 	const char dev_name[] = "/dev/video0";
 	{
-		ret_t ret = camera_init(&camera, dev_name );
-		ck_assert_int_eq( ret, RET_SUCCESS );
+		CHECK_CAMERA_SUCCESS( camera_init(&camera, dev_name ) );
 		ck_assert_str_eq( camera.dev_name, dev_name );
 		ck_assert_int_ge( camera.dev_file, 0 );
 		ck_assert_int_gt( camera.buffer_container.count, 0 );
@@ -27,12 +31,45 @@ START_TEST(test_camera_init) {
 		}
 	}
 	{
-		ret_t ret = camera_exit(&camera);
-		ck_assert_int_eq( ret, RET_SUCCESS );
+		CHECK_CAMERA_SUCCESS( camera_exit(&camera) );
 		ck_assert_int_eq( camera.dev_file, -1 );
 		ck_assert_int_eq( camera.buffer_container.count, 0 );
 		ck_assert_ptr_eq( camera.buffer_container.buffers, NULL );
 	}
+}
+END_TEST
+
+START_TEST(test_camera_streaming) {
+	camera_t camera;
+	const char dev_name[] = "/dev/video0";
+	camera_init(&camera, dev_name );
+	{
+		CHECK_CAMERA_SUCCESS( camera_stream_start(&camera) );
+	}
+	{
+		CHECK_CAMERA_SUCCESS( camera_stream_stop(&camera) );
+	}
+	camera_exit(&camera);
+}
+END_TEST
+
+START_TEST(test_camera_get_frame) {
+	camera_t camera;
+	const char dev_name[] = "/dev/video0";
+	camera_init(&camera, dev_name );
+	camera_stream_start( &camera );
+	frame_buffer_t frame;
+	{
+		CHECK_CAMERA_SUCCESS( camera_get_frame( &camera, &frame ) );
+		ck_assert_ptr_nonnull( frame.data );
+		ck_assert_int_gt( frame.size, 0 );
+	}
+	{
+		CHECK_CAMERA_SUCCESS( camera_return_frame( &camera, &frame ) );
+		ck_assert_ptr_null( frame.data );
+	}
+	camera_stream_stop( &camera );
+	camera_exit(&camera);
 }
 END_TEST
 
@@ -99,6 +136,12 @@ Suite* camera_suite() {
 		tcase_add_test(test_case, test_camera_exit_null_fails);
 		tcase_add_test(test_case, test_camera_init_non_existent_device);
 		tcase_add_test(test_case, test_camera_init_wrong_device);
+		suite_add_tcase(suite, test_case);
+	}
+	{
+		TCase* test_case = tcase_create("streaming");
+		tcase_add_test(test_case, test_camera_streaming);
+		tcase_add_test(test_case, test_camera_get_frame);
 		suite_add_tcase(suite, test_case);
 	}
 	return suite;
