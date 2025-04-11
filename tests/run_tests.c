@@ -15,7 +15,7 @@ const  struct option long_options[] = {
 
 
 void print_cmd_line_info(
-		int argc,
+		// int argc,
 		char* argv[]
 );
 int parse_cmd_line_args(
@@ -45,12 +45,12 @@ int main(
 		);
 		// --help:
 		if( ret == -1 ) {
-			print_cmd_line_info( argc, argv );
+			print_cmd_line_info( /*argc,*/ argv );
 			return EXIT_SUCCESS;
 		}
 		// error parsing cmd line args:
 		else if( ret != 0 ) {
-			print_cmd_line_info( argc, argv );
+			print_cmd_line_info( /*argc,*/ argv );
 			return EXIT_FAILURE;
 		}
 	}
@@ -84,7 +84,7 @@ int main(
 }
 
 void print_cmd_line_info(
-		int argc,
+		// int argc,
 		char* argv[]
 )
 {
