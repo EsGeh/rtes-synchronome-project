@@ -15,8 +15,6 @@
 #include <assert.h>
 
 
-const unsigned int buffer_count = 10;
-
 /************************
  * private utils decl
 *************************/
@@ -41,8 +39,16 @@ ret_t negotiate_caps(
 		camera_t* camera
 );
 
-ret_t init_frame_buffer(
+ret_t reset_cropping(
 		camera_t* camera
+);
+
+ret_t negotiate_format(
+		camera_t* camera,
+		const unsigned int min_width,
+		const unsigned int min_height,
+		const __u32* format,
+		const bool format_required
 );
 
 /************************
@@ -54,10 +60,7 @@ ret_t camera_init(
 		const char* dev_name
 )
 {
-	if( camera == NULL ) {
-		DEV_ERROR( "'camera_init' camera == NULL\n" );
-		return RET_FAILURE;
-	}
+	assert( camera != NULL );
 	// init data:
 	(*camera) = (camera_t){
 		.dev_file = -1,
@@ -67,22 +70,28 @@ ret_t camera_init(
 		},
 	};
 	strncpy( camera->dev_name, dev_name, STR_BUFFER_SIZE );
-	struct stat st;
-	if (-1 == stat(dev_name, &st)) {
-		private_camera_exit( camera );
-		DEV_ERROR(
-				"'%s': %s\n",
-				dev_name, strerror(errno)
-		);
-		return RET_FAILURE;
-	}
-	if (!S_ISCHR(st.st_mode)) {
-		private_camera_exit( camera );
-		DEV_ERROR(
-				"'%s' is no device\n",
-				dev_name
-		);
-		return RET_FAILURE;
+	// sanity check dev file info:
+	{
+		struct stat st;
+		if (-1 == stat(dev_name, &st)) {
+			private_camera_exit( camera );
+			DEV_ERROR(
+					"'%s': %s\n",
+					dev_name, strerror(errno)
+			);
+			return RET_FAILURE;
+		}
+		// check if char device:
+		if (
+				!S_ISCHR(st.st_mode)
+		) {
+			private_camera_exit( camera );
+			DEV_ERROR(
+					"'%s' is no device\n",
+					dev_name
+			);
+			return RET_FAILURE;
+		}
 	}
 	camera->dev_file = open(dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
 	if( camera->dev_file == -1 ) {
@@ -105,7 +114,7 @@ ret_t camera_init(
 		}
 	}
 	{
-		ret_t ret = init_frame_buffer(
+		ret_t ret = reset_cropping(
 				camera
 		);
 		if( ret != RET_SUCCESS ) {
@@ -120,53 +129,183 @@ ret_t camera_exit(
 		camera_t* camera
 )
 {
-	ret_t ret = RET_SUCCESS;
-	if( camera == NULL ) {
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
 		DEV_ERROR(
-			"'camera_exit' camera == NULL\n"
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	return private_camera_exit(camera);
+}
+
+ret_t camera_list_formats(
+		camera_t* camera,
+		format_descriptions_t* formats
+)
+{
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	unsigned int i=0;
+	for( ; i<BUFFER_SIZE; i++ ) {
+		struct v4l2_fmtdesc format_descr;
+		memset( &format_descr, 0, sizeof(format_descr) );
+		format_descr.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		format_descr.index = i;
+		if (-1 == ioctl_helper(camera->dev_file, VIDIOC_ENUM_FMT, &format_descr)) {
+			if( errno == EINVAL ) {
+				break;
+			}
+			DEV_ERROR(
+					"VIDIOC_ENUM_FMT error: %d, %s\n",
+					errno,
+					strerror( errno )
+			);
+			return RET_FAILURE;
+		}
+		formats->format_descrs[i] = format_descr;
+	}
+	formats->count = i;
+	return RET_SUCCESS;
+}
+
+ret_t camera_set_format(
+		camera_t* camera,
+		// const unsigned int buffer_count,
+		const unsigned int min_width,
+		const unsigned int min_height,
+		const __u32* requested_format,
+		const bool format_required
+)
+{
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
 		);
 		return RET_FAILURE;
 	}
 	{
-		int ret = close( camera->dev_file );
-		if( ret != 0 ) {
-			DEV_ERROR(
-					"'close' error %d, %s\n",
+		ret_t ret = negotiate_format(
+				camera,
+				min_width, min_height,
+				requested_format, format_required
+		);
+		if( ret != RET_SUCCESS ) {
+			return ret;
+		}
+	}
+	return RET_SUCCESS;
+}
+
+ret_t camera_init_buffer(
+		camera_t* camera,
+		const unsigned int buffer_count
+)
+{
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	// request buffers:
+	struct v4l2_requestbuffers reqbuf;
+	memset(&reqbuf, 0, sizeof(reqbuf));
+	reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	reqbuf.memory = V4L2_MEMORY_MMAP;
+	reqbuf.count = buffer_count;
+
+	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_REQBUFS, &reqbuf)) {
+		if (errno == EINVAL) {
+			DEV_ERROR( "Video capturing or mmap-streaming is not supported\\n" );
+			return RET_FAILURE;
+		}
+		else {
+			DEV_ERROR( "VIDIOC_REQBUFS: error %d, %s\n",
 					errno,
-					strerror(errno)
+					strerror( errno )
 			);
-			ret = RET_FAILURE;
+			return RET_FAILURE;
 		}
-		camera->dev_file = -1;
 	}
-	if( camera->buffer_container.buffers != NULL ) {
-		for(unsigned int i = 0; i < camera->buffer_container.count; i++ ) {
-			if(  camera->buffer_container.buffers[i].data != NULL ) {
-				int ret = munmap(
-						camera->buffer_container.buffers[i].data,
-						camera->buffer_container.buffers[i].size
-				);
-				if( ret == -1 ) {
-					DEV_ERROR(
-							"'munmap' error %d, %s\n",
-							errno,
-							strerror(errno)
-					);
-					ret = RET_FAILURE;
-				}
-				camera->buffer_container.buffers[i].data = NULL;
-			}
+	if( reqbuf.count < buffer_count ) {
+		DEV_ERROR( "failed to request %d buffers (only got %d buffers)\n",
+				buffer_count,
+				reqbuf.count
+		);
+		return RET_FAILURE;
+	}
+	camera->buffer_container.buffers = calloc(reqbuf.count, sizeof(*camera->buffer_container.buffers));
+	assert( camera->buffer_container.buffers != NULL );
+
+	// init camera struct
+	camera->buffer_container.count = reqbuf.count;
+	for(unsigned int i = 0; i < reqbuf.count; i++ ) {
+		camera->buffer_container.buffers[i].data = NULL;
+	}
+
+	// acquire buffers:
+	for(unsigned int i = 0; i < reqbuf.count; i++ ) {
+		struct v4l2_buffer buffer;
+		memset(&buffer, 0, sizeof(buffer));
+		buffer.type = reqbuf.type;
+		buffer.memory = V4L2_MEMORY_MMAP;
+		buffer.index = i;
+
+		if (-1 == ioctl_helper(camera->dev_file, VIDIOC_QUERYBUF, &buffer)) {
+			DEV_ERROR( "VIDIOC_QUERYBUF: error %d, %s\n",
+					errno,
+					strerror( errno )
+			);
+			return RET_FAILURE;
 		}
-		FREE( camera->buffer_container.buffers );
-		camera->buffer_container.count = 0;
-	}
-	return ret;
+		camera->buffer_container.buffers[i].size = buffer.length;
+		camera->buffer_container.buffers[i].data = mmap(
+				NULL,
+				buffer.length,
+				PROT_READ | PROT_WRITE, /* recommended */
+				MAP_SHARED,             /* recommended */
+				camera->dev_file,
+				buffer.m.offset
+		);
+
+		if (MAP_FAILED == camera->buffer_container.buffers[i].data) {
+			camera->buffer_container.buffers[i].data = NULL;
+			camera->buffer_container.buffers[i].size = 0;
+			DEV_ERROR( "mmap: error %d, %s\n",
+					errno,
+					strerror( errno )
+			);
+			return RET_FAILURE;
+		}
+	}	
+	return RET_SUCCESS;
 }
 
 ret_t camera_stream_start(
 		camera_t* camera
 )
 {
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	if( camera->buffer_container.buffers == NULL ) {
+		DEV_ERROR(
+			"'camera_exit': camera is not ready\n"
+		);
+		return RET_FAILURE;
+	}
 	// "enqueue" all buffers, so
 	// they can be filled by the camera
 	for (unsigned int i = 0; i < camera->buffer_container.count; ++i)
@@ -205,6 +344,19 @@ ret_t camera_stream_stop(
 		camera_t* camera
 )
 {
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	if( camera->buffer_container.buffers == NULL ) {
+		DEV_ERROR(
+			"'camera_exit': camera is not ready\n"
+		);
+		return RET_FAILURE;
+	}
 	enum v4l2_buf_type type;
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (-1 == ioctl_helper(camera->dev_file, VIDIOC_STREAMOFF, &type)) {
@@ -223,6 +375,19 @@ ret_t camera_get_frame(
 		frame_buffer_t* buffer
 )
 {
+	assert( camera != NULL );
+	if( camera->dev_file == -1 ) {
+		DEV_ERROR(
+			"'camera_exit': camera is uninitialized\n"
+		);
+		return RET_FAILURE;
+	}
+	if( camera->buffer_container.buffers == NULL ) {
+		DEV_ERROR(
+			"'camera_exit': camera is not ready\n"
+		);
+		return RET_FAILURE;
+	}
 	// wait for the device to get ready:
 	{
 		fd_set fds;
@@ -298,6 +463,11 @@ ret_t private_camera_exit( camera_t* camera ) {
 	if( camera->dev_file != -1 ) {
 		int temp = close( camera->dev_file );
 		if( temp != 0 ) {
+			DEV_ERROR(
+					"'close' error %d, %s\n",
+					errno,
+					strerror(errno)
+			);
 			ret = RET_FAILURE;
 		}
 	}
@@ -305,10 +475,18 @@ ret_t private_camera_exit( camera_t* camera ) {
 	if( camera->buffer_container.buffers != NULL ) {
 		for(unsigned int i = 0; i < camera->buffer_container.count; i++ ) {
 			if(  camera->buffer_container.buffers[i].data != NULL ) {
-				munmap(
+				int temp = munmap(
 						camera->buffer_container.buffers[i].data,
 						camera->buffer_container.buffers[i].size
 				);
+				if( temp == -1 ) {
+					DEV_ERROR(
+							"'munmap' error %d, %s\n",
+							errno,
+							strerror(errno)
+					);
+					ret = RET_FAILURE;
+				}
 				camera->buffer_container.buffers[i].data = NULL;
 			}
 		}
@@ -355,82 +533,119 @@ ret_t negotiate_caps(
 	return RET_SUCCESS;
 }
 
-ret_t init_frame_buffer(
+ret_t reset_cropping(
 		camera_t* camera
 )
 {
-	// printf( "init_frame_buffer\n" );
-	// request buffers:
-	struct v4l2_requestbuffers reqbuf;
-	memset(&reqbuf, 0, sizeof(reqbuf));
-	reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	reqbuf.memory = V4L2_MEMORY_MMAP;
-	reqbuf.count = buffer_count;
-
-	if (-1 == ioctl (camera->dev_file, VIDIOC_REQBUFS, &reqbuf)) {
-		if (errno == EINVAL) {
-			DEV_ERROR( "Video capturing or mmap-streaming is not supported\\n" );
-			return RET_FAILURE;
+	struct v4l2_cropcap cropcap;
+	memset( &cropcap, 0, sizeof(cropcap) );
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	{
+		int ret = ioctl_helper( camera->dev_file, VIDIOC_CROPCAP, &cropcap );
+		// cropping is not supported:
+		if( errno == EINVAL ) {
+			return RET_SUCCESS;
 		}
-		else {
-			DEV_ERROR( "VIDIOC_REQBUFS: error %d, %s\n",
+		if( ret == -1 ) {
+			DEV_ERROR( "'VIDIOC_CROPCAP' error %d, %s\n",
 					errno,
-					strerror( errno )
+					strerror(errno)
 			);
 			return RET_FAILURE;
 		}
 	}
-	if( reqbuf.count < buffer_count ) {
-		DEV_ERROR( "failed to request %d buffers (only got %d buffers)\n",
-				buffer_count,
-				reqbuf.count
+	struct v4l2_crop crop;
+	memset( &crop, 0, sizeof(crop) );
+	crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	crop.c = cropcap.defrect;
+
+	// try to reset cropping to default:
+	if( -1 == ioctl_helper(camera->dev_file, VIDIOC_S_CROP, &crop) && errno != EINVAL ) {
+		// ignore errors...
+	}
+	return RET_SUCCESS;
+}
+
+ret_t negotiate_format(
+		camera_t* camera,
+		const unsigned int min_width,
+		const unsigned int min_height,
+		const __u32* requested_format,
+		const bool format_required
+)
+{
+	struct v4l2_pix_format current_format;
+	// Query Format:
+	{
+		struct v4l2_format format;
+		format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		if( -1 == ioctl_helper( camera->dev_file, VIDIOC_G_FMT, &format ) ) {
+			DEV_ERROR( "'VIDIOC_G_FMT' error %d, %s\n",
+					errno,
+					strerror(errno)
+			)
+			return RET_FAILURE;
+		}
+		current_format = format.fmt.pix;
+	}
+	// Check format
+	if(
+			current_format.width >= min_width
+			&& current_format.height >= min_height
+			&& (
+				requested_format == NULL
+			)
+	) {
+		// format fulfills requirements:
+		return RET_SUCCESS;
+	}
+	// try to force format:
+	{
+		struct v4l2_format format;
+		format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		if(
+				current_format.width < min_width
+				|| current_format.height < min_height
+		) {
+			format.fmt.pix.width = min_width;
+			format.fmt.pix.height = min_height;
+		}
+		if( requested_format != NULL ) {
+			format.fmt.pix.pixelformat = (*requested_format);
+		}
+		if( -1 == ioctl_helper( camera->dev_file, VIDIOC_S_FMT, &format ) ) {
+			DEV_ERROR( "'VIDIOC_S_FMT' error %d, %s\n",
+					errno,
+					strerror(errno)
+			)
+			return RET_FAILURE;
+		}
+		current_format = format.fmt.pix;
+	}
+	// fail, if we didn't succeed negotiating
+	// the requirements
+	if(
+			current_format.width < min_width
+			|| current_format.height < min_height
+	) {
+		DEV_ERROR(
+				"device does not support required size: required: %dx%d, supported: %dx%d",
+				min_height, min_height,
+				current_format.width, current_format.height
 		);
 		return RET_FAILURE;
 	}
-	camera->buffer_container.buffers = calloc(reqbuf.count, sizeof(*camera->buffer_container.buffers));
-	assert( camera->buffer_container.buffers != NULL );
-
-	// init camera struct
-	camera->buffer_container.count = reqbuf.count;
-	for(unsigned int i = 0; i < reqbuf.count; i++ ) {
-		camera->buffer_container.buffers[i].data = NULL;
-	}
-
-	// acquire buffers:
-	for(unsigned int i = 0; i < reqbuf.count; i++ ) {
-		struct v4l2_buffer buffer;
-		memset(&buffer, 0, sizeof(buffer));
-		buffer.type = reqbuf.type;
-		buffer.memory = V4L2_MEMORY_MMAP;
-		buffer.index = i;
-
-		if (-1 == ioctl (camera->dev_file, VIDIOC_QUERYBUF, &buffer)) {
-			DEV_ERROR( "VIDIOC_QUERYBUF: error %d, %s\n",
-					errno,
-					strerror( errno )
-			);
-			return RET_FAILURE;
-		}
-		camera->buffer_container.buffers[i].size = buffer.length;
-		camera->buffer_container.buffers[i].data = mmap(
-				NULL,
-				buffer.length,
-				PROT_READ | PROT_WRITE, /* recommended */
-				MAP_SHARED,             /* recommended */
-				camera->dev_file,
-				buffer.m.offset
+	if(
+			format_required
+			&& current_format.pixelformat != (*requested_format)
+	) {
+		DEV_ERROR(
+				"device does not support required format: required: %d, supported: %d",
+				current_format.pixelformat,
+				(*requested_format)
 		);
-
-		if (MAP_FAILED == camera->buffer_container.buffers[i].data) {
-			camera->buffer_container.buffers[i].data = NULL;
-			camera->buffer_container.buffers[i].size = 0;
-			DEV_ERROR( "mmap: error %d, %s\n",
-					errno,
-					strerror( errno )
-			);
-			return RET_FAILURE;
-		}
-	}	
+		return RET_FAILURE;
+	}
 	return RET_SUCCESS;
 }
 
