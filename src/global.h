@@ -9,6 +9,10 @@
 
 typedef enum { false, true } bool;
 
+typedef unsigned char byte_t;
+
+typedef unsigned int uint;
+
 typedef enum {
 	RET_SUCCESS,
 	RET_FAILURE

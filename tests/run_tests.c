@@ -1,4 +1,5 @@
 #include "test_camera.c"
+#include "test_image.c"
 #include "global.h"
 
 #include <check.h>
@@ -34,6 +35,7 @@ int main(
 	// test suites:
 	{
 		srunner_add_suite( runner, camera_suite() );
+		srunner_add_suite( runner, image_suite() );
 	}
 	char* suite_name = NULL;
 	char* case_name = NULL;

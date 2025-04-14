@@ -4,7 +4,6 @@
 #include <check.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 
 
 #define CHECK_CAMERA_SUCCESS( CALL ) \

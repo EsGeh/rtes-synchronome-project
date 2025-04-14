@@ -35,6 +35,7 @@ $(OUT_DIR)/platform_info: \
 $(OUT_DIR)/run_tests: \
 		$(OBJ_DIR)/run_tests.o \
 		$(OBJ_DIR)/camera.o \
+		$(OBJ_DIR)/image.o \
 		$(OBJ_DIR)/time.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
@@ -51,6 +52,7 @@ $(OBJ_DIR)/run_tests.o: \
 		$(TEST_DIR)/run_tests.c \
 		$(TEST_DIR)/test_camera.c \
 		$(SRC_DIR)/camera.h \
+		$(SRC_DIR)/image.h \
 		$(SRC_DIR)/time.h \
 		$(SRC_DIR)/output.h \
 		| init_dirs
@@ -60,6 +62,13 @@ $(OBJ_DIR)/run_tests.o: \
 
 $(OBJ_DIR)/camera.o: \
 		$(SRC_DIR)/camera.c $(SRC_DIR)/camera.h \
+		$(SRC_DIR)/output.h \
+		$(SRC_DIR)/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/image.o: \
+		$(SRC_DIR)/image.c $(SRC_DIR)/image.h \
 		$(SRC_DIR)/output.h \
 		$(SRC_DIR)/global.h \
 		| init_dirs
