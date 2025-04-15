@@ -296,7 +296,7 @@
 
 
 #define CONVERT_PIXEL(FORMAT,SRC_BUFFER,DST_BUFFER) { \
-	for( uint i=0; i< size; i++ ) { \
+	for( uint i=0; i< size/GET_SIZE(FORMAT); i++ ) { \
 		const byte_t* current_pixel = &SRC_BUFFER[i*GET_SIZE(FORMAT)]; \
 		DST_BUFFER[i*3+0] = GET_RED(FORMAT,current_pixel); \
 		DST_BUFFER[i*3+1] = GET_GREEN(FORMAT,current_pixel); \

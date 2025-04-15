@@ -21,6 +21,7 @@
 
 START_TEST(test_image_save_ppm_RGB332) {
 	const char* filename = "/tmp/test.ppm";
+	const uint format_size = 1;
 	const byte_t RED = 7 << 5; // 0b11100000
 	const byte_t GREEN = 7 << 2; // 0b00011100
 	const byte_t BLUE = 3; // 0b00000011
@@ -36,7 +37,7 @@ START_TEST(test_image_save_ppm_RGB332) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6,
+			6*format_size,
 			format,
 			filename
 	);
@@ -64,6 +65,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_XRGB444) {
 	const char* filename = "/tmp/test_xrgb444.ppm";
+	const uint format_size = 2;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -80,7 +82,7 @@ START_TEST(test_image_save_ppm_XRGB444) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*2,
+			6*format_size,
 			format,
 			filename
 	);
@@ -109,6 +111,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_XRGB555) {
 	const char* filename = "/tmp/test_xrgb555.ppm";
+	const uint format_size = 2;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -123,7 +126,7 @@ START_TEST(test_image_save_ppm_XRGB555) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*2,
+			6*format_size,
 			format,
 			filename
 	);
@@ -152,6 +155,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_RGB565) {
 	const char* filename = "/tmp/test_rgb565.ppm";
+	const uint format_size = 2;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -166,7 +170,7 @@ START_TEST(test_image_save_ppm_RGB565) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*2,
+			6*format_size,
 			format,
 			filename
 	);
@@ -195,6 +199,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_XRGB555X) {
 	const char* filename = "/tmp/test_XRGB555X.ppm";
+	const uint format_size = 2;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -209,7 +214,7 @@ START_TEST(test_image_save_ppm_XRGB555X) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*2,
+			6*format_size,
 			format,
 			filename
 	);
@@ -238,6 +243,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_RGB565X) {
 	const char* filename = "/tmp/test_RGB565X.ppm";
+	const uint format_size = 2;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -252,7 +258,7 @@ START_TEST(test_image_save_ppm_RGB565X) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*2,
+			6*format_size,
 			format,
 			filename
 	);
@@ -281,6 +287,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_BGR24) {
 	const char* filename = "/tmp/test_BGR24.ppm";
+	const uint format_size = 3;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -293,7 +300,7 @@ START_TEST(test_image_save_ppm_BGR24) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*3,
+			6*format_size,
 			format,
 			filename
 	);
@@ -321,6 +328,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_RGB24) {
 	const char* filename = "/tmp/test_rgb24.ppm";
+	const uint format_size = 3;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -333,7 +341,7 @@ START_TEST(test_image_save_ppm_RGB24) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*3,
+			6*format_size,
 			format,
 			filename
 	);
@@ -361,6 +369,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_BGR666) {
 	const char* filename = "/tmp/test_BGR666.ppm";
+	const uint format_size = 3;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -375,7 +384,7 @@ START_TEST(test_image_save_ppm_BGR666) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*3,
+			6*format_size,
 			format,
 			filename
 	);
@@ -403,6 +412,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_XBGR32) {
 	const char* filename = "/tmp/test_XBGR32.ppm";
+	const uint format_size = 4;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -417,7 +427,7 @@ START_TEST(test_image_save_ppm_XBGR32) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*3,
+			6*format_size,
 			format,
 			filename
 	);
@@ -445,6 +455,7 @@ END_TEST
 
 START_TEST(test_image_save_ppm_XRGB32) {
 	const char* filename = "/tmp/test_XRGB32.ppm";
+	const uint format_size = 4;
 	const img_format_t format = {
 		.width = 3,
 		.height = 2,
@@ -459,7 +470,7 @@ START_TEST(test_image_save_ppm_XRGB32) {
 	image_save_ppm(
 			"hello world",
 			buffer,
-			6*3,
+			6*format_size,
 			format,
 			filename
 	);
