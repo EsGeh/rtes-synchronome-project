@@ -1,0 +1,35 @@
+{
+  "configurations": {
+    "Vim - run a test": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "type":    "cppdbg",
+        "request": "launch",
+        "program": "${workspaceRoot}/build/debug/run_tests",
+        "args": [ "image" ],
+        "cwd": "${workspaceRoot}",
+        "env": {
+					"CK_FORK": "no"
+				},
+        "externalConsole": true,
+        "stopAtEntry": true,
+        "MIMode": "gdb",
+				"setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ],
+        "logging": {
+          "engineLogging": false
+        }
+      },
+			"breakpoints": {
+				"exception": {
+					"all": ""
+				}
+			}
+		}
+  }
+}
