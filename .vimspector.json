@@ -29,10 +29,10 @@
 				}
 			}
 		},
-		"run platform_info" : {
+		"run statistics" : {
 			"extends": "run capture",
 			"configuration": {
-        "program": "${workspaceRoot}/build/debug/platform_info",
+        "program": "${workspaceRoot}/build/debug/statistics",
         "args": []
 			}
 		},

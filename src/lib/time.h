@@ -14,6 +14,7 @@
 // MICROSECONDS ( = 10^(-6) s )
 typedef long int USEC;
 typedef long long int NSEC;
+typedef struct timespec timeval_t;
 
 /***********************
  * Measure elapsed time

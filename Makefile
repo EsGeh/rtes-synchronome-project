@@ -23,7 +23,7 @@ OBJ_DIR=$(OUT_DIR)/objs
 all: \
 	$(OUT_DIR)/capture \
 	$(OUT_DIR)/run_tests \
-	$(OUT_DIR)/platform_info
+	$(OUT_DIR)/statistics
 
 clean:
 	rm -rf $(OUT_DIR)
@@ -36,9 +36,11 @@ $(OUT_DIR)/capture: \
 		| init_dirs
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(OUT_DIR)/platform_info: \
-		$(OBJ_DIR)/platform_info.o \
+$(OUT_DIR)/statistics: \
+		$(OBJ_DIR)/statistics.o \
 		$(OBJ_DIR)/camera.o \
+		$(OBJ_DIR)/image.o \
+		$(OBJ_DIR)/time.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
 	$(CC) $(CFLAGS) -o $@ $^
@@ -60,9 +62,10 @@ $(OBJ_DIR)/capture.o: \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
-$(OBJ_DIR)/platform_info.o: \
-		$(SRC_DIR)/exe/platform_info.c \
+$(OBJ_DIR)/statistics.o: \
+		$(SRC_DIR)/exe/statistics.c \
 		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/time.h \
 		$(SRC_DIR)/lib/output.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<

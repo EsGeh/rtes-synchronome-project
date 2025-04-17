@@ -28,6 +28,10 @@ For details about grading and requirements for passing this course, see `./doc/r
 
     $ ./scripts/run_capture.fish
 
+## Measure Timing / Statistics
+
+    $ ./scripts/run_statistics.fish
+
 ## Run Tests
 
 *Prerequisit*: install the [check](https://libcheck.github.io/check/) test framework
