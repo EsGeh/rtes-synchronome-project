@@ -55,7 +55,7 @@ int parse_cmd_line_args(
 
 #define CAMERA_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		fprintf(stderr, "ERROR: %s\n", camera_error() ); \
+		log_error("ERROR: %s\n", camera_error() ); \
 		return EXIT_FAILURE; \
 	} \
 }
@@ -86,7 +86,11 @@ int main(
 			return EXIT_FAILURE;
 		}
 	}
-	log_init(argv[0]);
+	log_init(
+			argv[0],
+			true, false,
+			true, true
+	);
 	// run:
 	{
 		runtime_data_t data = {
@@ -96,7 +100,7 @@ int main(
 		camera_zero( &data.camera );
 		ret_t ret = run_capture( &data );
 		do_exit( &data );
-		log_init("");
+		log_exit();
 
 		if( RET_SUCCESS != ret ) {
 			return EXIT_FAILURE;

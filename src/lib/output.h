@@ -13,16 +13,23 @@
  ***********************/
 
 // Infos to stderr/syslog:
+/*
 #define INFO(STR) \
 	INFO_FMT("%s",STR)
-#define INFO_FMT(FMT_STR, ...) \
-	_LOG_RAW( LOG_INFO, FMT_STR, ## __VA_ARGS__ )
+#define INFO_FMT(FMT_STR, ...) { \
+	PRINT_INFO_FMT( FMT_STR, ## __VA_ARGS__ ); \
+	LOG_INFO_FMT( FMT_STR, ## __VA_ARGS__ ); \
+}
 
 #define PRINT_INFO(STR) \
 	PRINT_INFO_FMT("%s",STR)
+#define LOG_INFO(STR) \
+	LOG_INFO_FMT("%s",STR)
 
 #define PRINT_INFO_FMT(FMT_STR, ...) \
 	_PRINT_RAW( stdout, LOG_INFO, FMT_STR, ## __VA_ARGS__ )
+#define LOG_INFO_FMT(FMT_STR, ...) \
+	_LOG_RAW( LOG_INFO, FMT_STR, ## __VA_ARGS__ )
 
 // ERRORS to stderr/syslog:
 #define ERROR(MSG) { \
@@ -50,12 +57,29 @@
 
 #define _LOG_RAW(PRIO, FMT_STR, ...) \
 	syslog(PRIO, FMT_STR, ## __VA_ARGS__ )
+*/
 
 /***********************
  * Function Declarations
  ***********************/
 
 void log_init(
-		const char* prefix
+		const char* prefix,
+
+		bool info_enable_print,
+		bool info_enable_log,
+
+		bool error_enable_print,
+		bool error_enable_log
 );
 void log_exit();
+
+void log_info(
+		char* fmt,
+		...
+);
+
+void log_error(
+		char* fmt,
+		...
+);

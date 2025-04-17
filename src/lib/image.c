@@ -337,7 +337,7 @@ ret_t image_save_ppm(
 )
 {
 	if( !(buffer_size >= image_rgb_size(width,height)) ) {
-		ERROR( "buffer size too small!\n" );
+		log_error( "buffer size too small!\n" );
 		return RET_FAILURE;
 	}
 	FILE* fd = fopen( filename, "w+" );
@@ -379,7 +379,7 @@ ret_t image_convert_to_rgb(
 	}
 	// check if dst size is sufficient:
 	if( dst_size < image_rgb_size( src_format.width, src_format.height ) ) {
-		ERROR( "buffer size does not correspond to format size\n" );
+		log_error( "buffer size does not correspond to format size\n" );
 		return RET_FAILURE;
 	}
 	const byte_t* input_buffer = CAST_TO_BYTE_PTR( src_buffer );
@@ -546,32 +546,32 @@ ret_t check_format(
 			|| format.pixelformat == V4L2_PIX_FMT_ARGB32 || format.pixelformat == V4L2_PIX_FMT_XRGB32
 			|| format.pixelformat == V4L2_PIX_FMT_YUYV
 	) ) {
-		ERROR( "format not supported\n" );
+		log_error( "format not supported\n" );
 		return RET_FAILURE;
 	}
 	if(
 			!( format.bytesperline * format.height <= format.sizeimage )
 	) {
-		ERROR( "condition not fulfilled: (format.bytesperline * format.height <= format.sizeimage)\n" );
+		log_error( "condition not fulfilled: (format.bytesperline * format.height <= format.sizeimage)\n" );
 		return RET_FAILURE;
 	}
 	if(
 			!( format.width*format_pixel_size(format) <= format.bytesperline )
 	) {
-		ERROR( "condition not fulfilled: (format.width*format_pixel_size(format) <= format.bytesperline)\n" );
+		log_error( "condition not fulfilled: (format.width*format_pixel_size(format) <= format.bytesperline)\n" );
 		return RET_FAILURE;
 	}
 	/*
 	if( format.xfer_func != V4L2_XFER_FUNC_DEFAULT ) {
-		ERROR( "xfer_func: non-standard color transfer functions not supported\n" );
+		log_error( "xfer_func: non-standard color transfer functions not supported\n" );
 		return RET_FAILURE;
 	}
 	if( format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT ) {
-		ERROR( "ycbcr_enc: non-standard color encodings not supported\n" );
+		log_error( "ycbcr_enc: non-standard color encodings not supported\n" );
 		return RET_FAILURE;
 	}
 	if( format.quantization != V4L2_QUANTIZATION_DEFAULT ) {
-		ERROR( "quantization: non-standard color quantizations not supported\n" );
+		log_error( "quantization: non-standard color quantizations not supported\n" );
 		return RET_FAILURE;
 	}
 	*/
