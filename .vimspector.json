@@ -1,26 +1,24 @@
 {
   "configurations": {
-    "Vim - run a test": {
+    "run capture": {
       "adapter": "vscode-cpptools",
       "configuration": {
         "type":    "cppdbg",
         "request": "launch",
-        "program": "${workspaceRoot}/build/debug/run_tests",
-        "args": [ "image" ],
+        "program": "${workspaceRoot}/build/debug/capture",
+        "args": [],
         "cwd": "${workspaceRoot}",
-        "env": {
-					"CK_FORK": "no"
-				},
+        "environment": [],
         "externalConsole": true,
         "stopAtEntry": true,
         "MIMode": "gdb",
 				"setupCommands": [
-            {
-                "description": "Enable pretty-printing for gdb",
-                "text": "-enable-pretty-printing",
-                "ignoreFailures": true
-            }
-        ],
+					{
+						"description": "Enable pretty-printing for gdb",
+						"text": "-enable-pretty-printing",
+						"ignoreFailures": true
+					}
+				],
         "logging": {
           "engineLogging": false
         }
@@ -29,6 +27,24 @@
 				"exception": {
 					"all": ""
 				}
+			}
+		},
+		"run platform_info" : {
+			"extends": "run capture",
+			"configuration": {
+        "program": "${workspaceRoot}/build/debug/platform_info",
+        "args": []
+			}
+		},
+		"run tests" : {
+			"extends": "run capture",
+			"configuration": {
+        "program": "${workspaceRoot}/build/debug/run_tests",
+        "args": [ "camera" ],
+        "environment": [{
+					"name": "CK_FORK",
+					"value": "no"
+				}]
 			}
 		}
   }
