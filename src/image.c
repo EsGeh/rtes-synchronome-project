@@ -1,4 +1,5 @@
 #include "image.h"
+#include "camera.h"
 #include "output.h"
 #include "global.h"
 #include <linux/videodev2.h>
@@ -17,6 +18,8 @@
 
 #define GET_CHANNEL_SIMPLE(FORMAT,CHANNEL,PIXEL) \
 	GET_CHANNEL(*(PIXEL+CAT2(FORMAT,CHANNEL,_BYTE)),CAT2(FORMAT,CHANNEL,_SIZE),CAT2(FORMAT,CHANNEL,_POS))
+
+#define clamp(x,min,max) ((x)<(min) ? (min) : ((x)>(max) ? (max) : (x)))
 
 /*****************
  * RGB332
@@ -263,6 +266,12 @@
 #define XRGB32_GET_BLUE(PIXEL) GET_CHANNEL_SIMPLE(XRGB32,_BLUE,PIXEL)
 
 /*****************
+ * YUYV
+ *****************/
+
+#define YUYV_SIZE 2
+
+/*****************
  * Utils
  *****************/
 
@@ -305,51 +314,30 @@
 	} \
 }
 
+/************************
+ * private utils decl
+*************************/
+
+uint format_pixel_size(img_format_t format);
 ret_t check_format(
-		const void* buffer,
 		const img_format_t format
-) {
-	if( !(
-			format.pixelformat == V4L2_PIX_FMT_RGB332
-			|| format.pixelformat == V4L2_PIX_FMT_ARGB444 || format.pixelformat == V4L2_PIX_FMT_XRGB444
-			|| format.pixelformat == V4L2_PIX_FMT_ARGB555 || format.pixelformat == V4L2_PIX_FMT_XRGB555
-			|| format.pixelformat == V4L2_PIX_FMT_RGB565
-			|| format.pixelformat == V4L2_PIX_FMT_ARGB555X || format.pixelformat == V4L2_PIX_FMT_XRGB555X
-			|| format.pixelformat == V4L2_PIX_FMT_RGB565X
-			|| format.pixelformat == V4L2_PIX_FMT_BGR24
-			|| format.pixelformat == V4L2_PIX_FMT_RGB24
-			|| format.pixelformat == V4L2_PIX_FMT_BGR666
-			|| format.pixelformat == V4L2_PIX_FMT_ABGR32 || format.pixelformat == V4L2_PIX_FMT_XBGR32
-			|| format.pixelformat == V4L2_PIX_FMT_ARGB32 || format.pixelformat == V4L2_PIX_FMT_XRGB32
-	) ) {
-		ERROR( "format not supported\n" );
-		return RET_FAILURE;
-	}
-	if(
-			format.sizeimage < format.bytesperline * format.height
-			|| format.bytesperline < format.width 
-	) {
-		ERROR( "inconsistent format sizes\n" );
-		return RET_FAILURE;
-	}
-	if(
-			format.sizeimage < format.bytesperline * format.height
-			// format.sizeimage < format.width * format.height * format_size(format)
-	) {
-		ERROR( "src buffer size too small\n" );
-		return RET_FAILURE;
-	}
-	return RET_SUCCESS;
-}
+);
+
+/************************
+ * API implementation
+*************************/
 
 ret_t image_save_ppm(
+		const char* filename,
 		const char* comment,
 		const void* buffer,
-		const img_format_t format,
-		const char* filename
+		const uint buffer_size,
+		const uint width,
+		const uint height
 )
 {
-	if( RET_SUCCESS != check_format( buffer, format ) ) {
+	if( !(buffer_size >= image_rgb_size(width,height)) ) {
+		ERROR( "buffer size too small!\n" );
 		return RET_FAILURE;
 	}
 	FILE* fd = fopen( filename, "w+" );
@@ -362,25 +350,11 @@ ret_t image_save_ppm(
 			fprintf( fd, "#%s\n", comment );
 		}
 		fprintf( fd, "%d %d 255\n",
-				format.width,
-				format.height
+				width,
+				height
 		);
-		const uint write_buffer_size = format.width * format.height * 3;
-		byte_t write_buffer[write_buffer_size];
-		{
-			if( RET_SUCCESS != image_convert_to_rgb(
-					format,
-					buffer,
-					write_buffer,
-					write_buffer_size
-			) ) {
-				fclose( fd );
-				return RET_FAILURE;
-			}
-		}
-
-		for( uint i=0; i< format.width * format.height; i++ ) {
-			size_t ret = fwrite( &write_buffer[i*3], 1, 3, fd );
+		for( uint i=0; i< width * height; i++ ) {
+			size_t ret = fwrite( &((byte_t* )buffer)[i*3], 1, 3, fd );
 			if( ret != 3 ) {
 				fclose( fd );
 				return RET_FAILURE;
@@ -393,13 +367,6 @@ ret_t image_save_ppm(
 	return RET_SUCCESS;
 }
 
-size_t rgb_size(
-		const img_format_t src_format
-)
-{
-	return src_format.width * src_format.height * 3;
-}
-
 ret_t image_convert_to_rgb(
 		const img_format_t src_format,
 		const void* src_buffer,
@@ -407,11 +374,11 @@ ret_t image_convert_to_rgb(
 		const size_t dst_size
 )
 {
-	if( RET_SUCCESS != check_format( src_buffer, src_format ) ) {
+	if( RET_SUCCESS != check_format( src_format ) ) {
 		return RET_FAILURE;
 	}
 	// check if dst size is sufficient:
-	if( dst_size < rgb_size( src_format ) ) {
+	if( dst_size < image_rgb_size( src_format.width, src_format.height ) ) {
 		ERROR( "buffer size does not correspond to format size\n" );
 		return RET_FAILURE;
 	}
@@ -467,5 +434,147 @@ ret_t image_convert_to_rgb(
 	) {
 		CONVERT_PIXEL(XRGB32,input_buffer,output_buffer,src_format)
 	}
+	else if(
+			/* 16 YUV 4:2:2*/
+			src_format.pixelformat == V4L2_PIX_FMT_YUYV
+	) {
+		// 4 bytes is 2 pixels (side by side):
+		// with same U,V
+		// but Y0/Y1 for left/right pixel
+		//
+		// | Y0 | U | Y1 | U |
+		//
+		// =>
+		//
+		// |Pixel 0|Pixel 1|
+		// |Y0,U,V |Y1,U,V |
+		for( uint y_pos=0; y_pos<src_format.height; y_pos++ ) {
+		for( uint x_pos=0; x_pos<src_format.width/2; x_pos++ ) {
+			const byte_t* read_pos = &input_buffer[
+				y_pos*src_format.bytesperline
+				+ x_pos*4
+			];
+			const uint write_pos = (
+				(y_pos*src_format.width + x_pos*2) * 3
+				);
+			// transform:
+			float y0 = read_pos[0];
+			float u = read_pos[1];
+			float y1 = read_pos[2];
+			float v = read_pos[3];
+			u -= 128;
+			v -= 128;
+			/*
+			y0 -= 16;
+			y1 -= 16;
+			*/
+			// left pixel:
+			const float left_r = 1*y0 + 0*u + 1.402*v;
+			const float left_g = 1*y0 - 0.344136*u - 0.714136*v;
+			const float left_b = 1*y0 + 1.772*u + 0*v;
+			// right pixel:
+			const float right_r = 1*y1 + 0*u + 1.402*v;
+			const float right_g = 1*y1 - 0.344136*u - 0.714136*v;
+			const float right_b = 1*y1 + 1.772*u + 0*v;
+			// write:
+			output_buffer[write_pos+0] = clamp( left_r, 0,255.0 );
+			output_buffer[write_pos+1] = clamp( left_g, 0,255.0 );
+			output_buffer[write_pos+2] = clamp( left_b, 0,255.0 );
+			output_buffer[write_pos+3] = clamp( right_r, 0,255.0 );
+			output_buffer[write_pos+4] = clamp( right_g, 0,255.0 );
+			output_buffer[write_pos+5] = clamp( right_b, 0,255.0 );
+		}
+		}
+	}
 	return RET_SUCCESS;
 }
+
+size_t image_rgb_size(
+		const uint width,
+		const uint height
+)
+{
+	return width * height * 3;
+}
+
+/************************
+ * private utils impl
+*************************/
+
+uint format_pixel_size(img_format_t format) {
+	if( format.pixelformat == V4L2_PIX_FMT_RGB332 )
+		return GET_SIZE( RGB332 );
+	else if( format.pixelformat == V4L2_PIX_FMT_ARGB444 || format.pixelformat == V4L2_PIX_FMT_XRGB444 )
+		return GET_SIZE( XRGB444 );
+	else if( format.pixelformat == V4L2_PIX_FMT_ARGB555 || format.pixelformat == V4L2_PIX_FMT_XRGB555 )
+		return GET_SIZE( XRGB555 );
+	else if( format.pixelformat == V4L2_PIX_FMT_RGB565 )
+		return GET_SIZE( RGB565 );
+	else if( format.pixelformat == V4L2_PIX_FMT_ARGB555X || format.pixelformat == V4L2_PIX_FMT_XRGB555X )
+		return GET_SIZE( XRGB555X );
+	else if( format.pixelformat == V4L2_PIX_FMT_RGB565X )
+		return GET_SIZE( RGB565X );
+	else if( format.pixelformat == V4L2_PIX_FMT_BGR24 )
+		return GET_SIZE( BGR24 );
+	else if( format.pixelformat == V4L2_PIX_FMT_RGB24 )
+		return GET_SIZE( RGB24 );
+	else if( format.pixelformat == V4L2_PIX_FMT_BGR666 )
+		return GET_SIZE( BGR666 );
+	else if( format.pixelformat == V4L2_PIX_FMT_ABGR32 || format.pixelformat == V4L2_PIX_FMT_XBGR32 )
+		return GET_SIZE( XBGR32 );
+	else if( format.pixelformat == V4L2_PIX_FMT_ARGB32 || format.pixelformat == V4L2_PIX_FMT_XRGB32 )
+		return GET_SIZE( XRGB32 );
+	else if( format.pixelformat == V4L2_PIX_FMT_YUYV )
+		return GET_SIZE( YUYV );
+	return 0;
+}
+
+ret_t check_format(
+		const img_format_t format
+) {
+	if( !(
+			format.pixelformat == V4L2_PIX_FMT_RGB332
+			|| format.pixelformat == V4L2_PIX_FMT_ARGB444 || format.pixelformat == V4L2_PIX_FMT_XRGB444
+			|| format.pixelformat == V4L2_PIX_FMT_ARGB555 || format.pixelformat == V4L2_PIX_FMT_XRGB555
+			|| format.pixelformat == V4L2_PIX_FMT_RGB565
+			|| format.pixelformat == V4L2_PIX_FMT_ARGB555X || format.pixelformat == V4L2_PIX_FMT_XRGB555X
+			|| format.pixelformat == V4L2_PIX_FMT_RGB565X
+			|| format.pixelformat == V4L2_PIX_FMT_BGR24
+			|| format.pixelformat == V4L2_PIX_FMT_RGB24
+			|| format.pixelformat == V4L2_PIX_FMT_BGR666
+			|| format.pixelformat == V4L2_PIX_FMT_ABGR32 || format.pixelformat == V4L2_PIX_FMT_XBGR32
+			|| format.pixelformat == V4L2_PIX_FMT_ARGB32 || format.pixelformat == V4L2_PIX_FMT_XRGB32
+			|| format.pixelformat == V4L2_PIX_FMT_YUYV
+	) ) {
+		ERROR( "format not supported\n" );
+		return RET_FAILURE;
+	}
+	if(
+			!( format.bytesperline * format.height <= format.sizeimage )
+	) {
+		ERROR( "condition not fulfilled: (format.bytesperline * format.height <= format.sizeimage)\n" );
+		return RET_FAILURE;
+	}
+	if(
+			!( format.width*format_pixel_size(format) <= format.bytesperline )
+	) {
+		ERROR( "condition not fulfilled: (format.width*format_pixel_size(format) <= format.bytesperline)\n" );
+		return RET_FAILURE;
+	}
+	/*
+	if( format.xfer_func != V4L2_XFER_FUNC_DEFAULT ) {
+		ERROR( "xfer_func: non-standard color transfer functions not supported\n" );
+		return RET_FAILURE;
+	}
+	if( format.ycbcr_enc != V4L2_YCBCR_ENC_DEFAULT ) {
+		ERROR( "ycbcr_enc: non-standard color encodings not supported\n" );
+		return RET_FAILURE;
+	}
+	if( format.quantization != V4L2_QUANTIZATION_DEFAULT ) {
+		ERROR( "quantization: non-standard color quantizations not supported\n" );
+		return RET_FAILURE;
+	}
+	*/
+	return RET_SUCCESS;
+}
+

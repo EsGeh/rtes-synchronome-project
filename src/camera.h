@@ -1,3 +1,9 @@
+/****************************
+ * High Level Camera Access
+ *
+ * *REMARK*:
+ * handling of 
+ ***************************/
 #ifndef CAMERA_H
 #define CAMERA_H
 
@@ -43,6 +49,7 @@ typedef struct {
 	char dev_name[STR_BUFFER_SIZE];
 	int dev_file;
 	buffer_container_t buffer_container;
+	img_format_t format;
 } camera_t;
 
 typedef struct {
@@ -53,6 +60,8 @@ typedef struct {
 /********************
  * Functions
 ********************/
+
+void camera_zero( camera_t* camera );
 
 // camera: uninitialized -> initialized
 ret_t camera_init(

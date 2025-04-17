@@ -2,6 +2,7 @@
 #include "global.h"
 
 #include <check.h>
+#include <linux/videodev2.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -26,6 +27,7 @@ const unsigned int buffer_count = 10;
 // camera: uninitialized -> initialized
 START_TEST(test_camera_init) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	{
 		CHECK_CAMERA_SUCCESS( camera_init(
@@ -34,6 +36,8 @@ START_TEST(test_camera_init) {
 		) );
 		ck_assert_str_eq( camera.dev_name, dev_name );
 		ck_assert_int_ge( camera.dev_file, 0 );
+		ck_assert_int_gt( camera.format.width, 0 );
+		ck_assert_int_gt( camera.format.height, 0 );
 		ck_assert_ptr_null( camera.buffer_container.buffers );
 		ck_assert_int_eq( camera.buffer_container.count, 0 );
 	}
@@ -49,6 +53,7 @@ END_TEST
 // camera: initialized -> ready
 START_TEST(test_camera_init_buffer) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	const unsigned int buffer_count= 10;
 	camera_init(
@@ -76,6 +81,7 @@ START_TEST(test_camera_init_buffer) {
 START_TEST(test_camera_init_buffer_uninitialized) {
 	const char dev_name[] = "/dev/video0";
 	camera_t camera;
+	camera_zero( &camera );
 	camera_init(
 			&camera,
 			dev_name
@@ -96,6 +102,7 @@ END_TEST
 START_TEST(test_camera_exit_uninitialized) {
 	const char dev_name[] = "/dev/video0";
 	camera_t camera;
+	camera_zero( &camera );
 	camera_init(
 			&camera,
 			dev_name
@@ -113,6 +120,7 @@ END_TEST
 
 START_TEST(test_camera_init_non_existent_device) {
 	camera_t camera;
+	camera_zero( &camera );
 	ret_t ret = camera_init(
 			&camera,
 			"/dev/nonexistent"
@@ -128,6 +136,7 @@ END_TEST
 
 START_TEST(test_camera_init_non_char_device) {
 	camera_t camera;
+	camera_zero( &camera );
 	ret_t ret = camera_init(
 			&camera,
 			"/proc/cpuinfo"
@@ -143,6 +152,7 @@ END_TEST
 
 START_TEST(test_camera_init_wrong_device) {
 	camera_t camera;
+	camera_zero( &camera );
 	ret_t ret = camera_init(
 			&camera,
 			"/dev/null"
@@ -162,6 +172,7 @@ END_TEST
 
 START_TEST(test_camera_list_formats) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -184,6 +195,7 @@ START_TEST(test_camera_list_formats) {
 
 START_TEST(test_camera_set_format_default) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -205,6 +217,7 @@ START_TEST(test_camera_set_format_default) {
 
 START_TEST(test_camera_set_format) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -217,12 +230,13 @@ START_TEST(test_camera_set_format) {
 	);
 	ck_assert_int_gt( format_descriptions.count, 0 );
 	for( unsigned int i=0; i< format_descriptions.count; i++ ) {
+		const struct v4l2_fmtdesc* format_descr = &format_descriptions.format_descrs[i];
 		CHECK_CAMERA_SUCCESS( camera_set_format(
 					&camera,
 					0, 0,
-					&format_descriptions.format_descrs[i].pixelformat, true
+					&(format_descr->pixelformat), true
 		));
-		// TODO: check what has been set
+		ck_assert_int_eq( camera.format.pixelformat, format_descr->pixelformat );
 		// camera still initialized:
 		ck_assert_int_ge( camera.dev_file, 0 );
 		ck_assert_ptr_null( camera.buffer_container.buffers );
@@ -235,6 +249,7 @@ START_TEST(test_camera_set_format) {
 
 START_TEST(test_camera_list_formats_uninitialized) {
 	camera_t camera;
+	camera_zero( &camera );
 	format_descriptions_t format_descriptions;
 	CHECK_CAMERA_FAILURE( camera_list_formats(
 			&camera,
@@ -245,6 +260,7 @@ END_TEST
 
 START_TEST(test_camera_set_format_uninitialized) {
 	camera_t camera;
+	camera_zero( &camera );
 	{
 		CHECK_CAMERA_FAILURE( camera_set_format(
 				&camera,
@@ -258,6 +274,7 @@ END_TEST
 START_TEST(test_camera_set_format_too_large) {
 	const char dev_name[] = "/dev/video0";
 	camera_t camera;
+	camera_zero( &camera );
 	camera_init(
 			&camera,
 			dev_name
@@ -283,6 +300,7 @@ END_TEST
 // camera: ready -> capturing
 START_TEST(test_camera_streaming) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -305,6 +323,7 @@ START_TEST(test_camera_streaming) {
 
 START_TEST(test_camera_get_frame) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -334,6 +353,7 @@ END_TEST
 
 START_TEST(test_camera_stream_start_uninitialized) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -351,6 +371,7 @@ START_TEST(test_camera_stream_start_uninitialized) {
 
 START_TEST(test_camera_stream_start_not_ready) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -365,6 +386,7 @@ START_TEST(test_camera_stream_start_not_ready) {
 
 START_TEST(test_camera_stream_stop_uninitialized) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -379,6 +401,7 @@ START_TEST(test_camera_stream_stop_uninitialized) {
 
 START_TEST(test_camera_stream_stop_not_ready) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -396,6 +419,7 @@ START_TEST(test_camera_stream_stop_not_ready) {
 
 START_TEST(test_camera_get_frame_uninitialized) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,
@@ -415,6 +439,7 @@ START_TEST(test_camera_get_frame_uninitialized) {
 
 START_TEST(test_camera_get_frame_not_ready) {
 	camera_t camera;
+	camera_zero( &camera );
 	const char dev_name[] = "/dev/video0";
 	camera_init(
 			&camera,

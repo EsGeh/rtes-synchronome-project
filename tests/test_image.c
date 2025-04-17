@@ -3,6 +3,7 @@
 
 #include <check.h>
 #include <linux/videodev2.h>
+#include <string.h>
 
 #define CHECK_IMAGE_SUCCESS( CALL ) \
 	if( CALL != RET_SUCCESS ) { \
@@ -22,12 +23,6 @@ const byte_t expected[] =
 	"\xff\x0\x0" "\x0\xff\x0" "\x0\x0\xff"
 	"\xff\xff\x0" "\xff\xff\xff" "\x0\x0\x0"
 ;
-
-const img_format_t def_format = {
-	.width = 3,
-	.height = 2,
-	.pixelformat = 0, // <- overwrite in test
-};
 
 typedef struct {
 	img_format_t format;
@@ -229,6 +224,27 @@ test_args_t test_args_XRGB32() {
 	};
 }
 
+const byte_t expected_YUYV[] = {
+	0xFF,0,0, 0xFF,0,0, 0,0xFF,0, 0,0xFF,0,
+	0,0,0xFF, 0,0,0xFF, 0xFF,0xFF,0xFF, 0xFF,0xFF,0xFF
+	// 0,0,0, 0,0,0, 0,0,0, 0,0,0
+};
+
+test_args_t test_args_YUYV() {
+	return (test_args_t){
+		.format = {
+			.width = 4, .height = 2,
+			.pixelformat = V4L2_PIX_FMT_YUYV,
+			.sizeimage = 16,
+			.bytesperline = 8 // 
+		},
+		.src_buffer = {
+			76, 84, 76, 255, /**/ 149, 43, 149, 21,
+			29, 255, 29, 107, /**/ 255, 128, 255, 128
+		},
+	};
+}
+
 test_args_t test_args_RGB332_padding() {
 	const byte_t RED = 7 << 5; // 0b11100000
 	const byte_t GREEN = 7 << 2; // 0b00011100
@@ -423,6 +439,40 @@ START_TEST(test_image_convert_XRGB32) {
 }
 END_TEST
 
+START_TEST(test_image_convert_YUYV) {
+	const test_args_t args = test_args_YUYV();
+	byte_t dst_buffer[args.format.width * args.format.height * 3];
+	memset(dst_buffer, 0, sizeof(dst_buffer));
+	{
+		ret_t ret = image_convert_to_rgb(
+				args.format,
+				args.src_buffer,
+				dst_buffer, sizeof(dst_buffer)
+		);
+		ck_assert( ret == RET_SUCCESS );
+	}
+	for( uint i=0; i<sizeof(dst_buffer); ++i ) {
+		if( abs((int )expected_YUYV[i] - (int )dst_buffer[i]) > 1 ) {
+			char str_buf[STR_BUFFER_SIZE] = "";
+			for( uint j=0; j<sizeof(dst_buffer); ++j ) {
+				sprintf( &str_buf[strlen(str_buf)], "%x", dst_buffer[j] );
+			}
+			sprintf( &str_buf[strlen(str_buf)], " = " );
+			for( uint j=0; j<sizeof(expected_YUYV); ++j ) {
+				sprintf( &str_buf[strlen(str_buf)], "%x", expected_YUYV[j] );
+			}
+			ck_abort_msg(
+				"failed '%s' - differs at pos %d: %x != %x",
+				str_buf,
+				i,
+				dst_buffer[i],
+				expected_YUYV[i]
+		);
+		}
+	}
+}
+END_TEST
+
 
 START_TEST(test_image_convert_1byte_padding) {
 	const test_args_t args = test_args_RGB332_padding();
@@ -508,6 +558,8 @@ Suite* image_suite() {
 		tcase_add_test(test_case, test_image_convert_BGR666);
 		tcase_add_test(test_case, test_image_convert_XBGR32);
 		tcase_add_test(test_case, test_image_convert_XRGB32);
+
+		tcase_add_test(test_case, test_image_convert_YUYV);
 
 		tcase_add_test(test_case, test_image_convert_1byte_padding);
 		tcase_add_test(test_case, test_image_convert_1byte_oversize);

@@ -20,6 +20,14 @@ According to the [course description](https://www.coursera.org/learn/real-time-p
 
 For details about grading and requirements for passing this course, see `./doc/requirements/`.
 
+## Build
+
+    $ ./scripts/build.fish
+
+## Run
+
+    $ ./scripts/run_capture.fish
+
 ## Run Tests
 
 *Prerequisit*: install the [check](https://libcheck.github.io/check/) test framework

@@ -55,6 +55,22 @@ ret_t negotiate_format(
  * API implementation
 *************************/
 
+void camera_zero( camera_t* camera )
+{
+	(*camera) = (camera_t){
+		.dev_name = "",
+		.dev_file = -1,
+		.buffer_container = {
+			.buffers = NULL,
+			.count = 0
+		},
+		.format = {
+			.width = 0,
+			.height = 0,
+		}
+	};
+}
+
 ret_t camera_init(
 		camera_t* camera,
 		const char* dev_name
@@ -62,13 +78,7 @@ ret_t camera_init(
 {
 	assert( camera != NULL );
 	// init data:
-	(*camera) = (camera_t){
-		.dev_file = -1,
-		.buffer_container = {
-			.buffers = NULL,
-			.count = 0,
-		},
-	};
+	camera_zero( camera );
 	strncpy( camera->dev_name, dev_name, STR_BUFFER_SIZE );
 	// sanity check dev file info:
 	{
@@ -116,6 +126,19 @@ ret_t camera_init(
 	{
 		ret_t ret = reset_cropping(
 				camera
+		);
+		if( ret != RET_SUCCESS ) {
+			private_camera_exit( camera );
+			return ret;
+		}
+	}
+	{
+		// set camera.format
+		// without changing camera settings:
+		ret_t ret = negotiate_format(
+				camera,
+				0, 0,
+				NULL, false
 		);
 		if( ret != RET_SUCCESS ) {
 			private_camera_exit( camera );
@@ -597,6 +620,7 @@ ret_t negotiate_format(
 			)
 	) {
 		// format fulfills requirements:
+		camera->format = current_format;
 		return RET_SUCCESS;
 	}
 	// try to force format:
@@ -646,6 +670,7 @@ ret_t negotiate_format(
 		);
 		return RET_FAILURE;
 	}
+	camera->format = current_format;
 	return RET_SUCCESS;
 }
 

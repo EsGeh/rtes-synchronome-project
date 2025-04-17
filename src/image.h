@@ -1,3 +1,12 @@
+/****************************
+ * Image Data Processing
+ * Utilities
+ *
+ * *REMARK*:
+ * Handling of image formats is experimental/incomplete (ie: colorspaces)
+ *
+ * see: https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/pixfmt.html 
+ ***************************/
 #ifndef IMAGE_H
 #define IMAGE_H
 
@@ -7,6 +16,11 @@
 
 #include <linux/videodev2.h>
 
+
+/********************
+ * Types
+********************/
+
 typedef struct v4l2_pix_format img_format_t;
 
 /********************
@@ -14,14 +28,12 @@ typedef struct v4l2_pix_format img_format_t;
 ********************/
 
 ret_t image_save_ppm(
+		const char* filename,
 		const char* comment,
 		const void* buffer,
-		const img_format_t format,
-		const char* filename
-);
-
-size_t rgb_size(
-		const img_format_t src_format
+		const uint buffer_size,
+		const uint width,
+		const uint height
 );
 
 ret_t image_convert_to_rgb(
@@ -29,6 +41,11 @@ ret_t image_convert_to_rgb(
 		const void* src_buffer,
 		const void* dst_buffer,
 		const size_t dst_size
+);
+
+size_t image_rgb_size(
+		const uint width,
+		const uint height
 );
 
 #endif

@@ -32,6 +32,7 @@ int main(
 ) {
 	// init:
 	SRunner* runner = srunner_create(NULL);
+	fprintf( stderr, "fork status: %d\n", srunner_fork_status( runner ) );
 	// test suites:
 	{
 		srunner_add_suite( runner, camera_suite() );

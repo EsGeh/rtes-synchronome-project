@@ -20,10 +20,21 @@ OBJ_DIR=$(OUT_DIR)/objs
 
 .PHONY: clean
 
-all: $(OUT_DIR)/run_tests $(OUT_DIR)/platform_info
+all: \
+	$(OUT_DIR)/capture \
+	$(OUT_DIR)/run_tests \
+	$(OUT_DIR)/platform_info
 
 clean:
 	rm -rf $(OUT_DIR)
+
+$(OUT_DIR)/capture: \
+		$(OBJ_DIR)/capture.o \
+		$(OBJ_DIR)/camera.o \
+		$(OBJ_DIR)/image.o \
+		$(OBJ_DIR)/output.o \
+		| init_dirs
+	$(CC) $(CFLAGS) -o $@ $^
 
 $(OUT_DIR)/platform_info: \
 		$(OBJ_DIR)/platform_info.o \
@@ -40,6 +51,14 @@ $(OUT_DIR)/run_tests: \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
 	$(CC) $(CFLAGS) -lcheck -o $@ $^
+
+$(OBJ_DIR)/capture.o: \
+		$(SRC_DIR)/capture.c \
+		$(SRC_DIR)/camera.h \
+		$(SRC_DIR)/image.h \
+		$(SRC_DIR)/output.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
 $(OBJ_DIR)/platform_info.o: \
 		$(SRC_DIR)/platform_info.c \
