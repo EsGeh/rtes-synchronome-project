@@ -4,7 +4,7 @@
 #########################
 
 SRC_DIR=src
-TEST_DIR=tests
+TEST_DIR=src/tests
 BUILD_DIR=build
 CONFIG=debug
 
@@ -53,55 +53,55 @@ $(OUT_DIR)/run_tests: \
 	$(CC) $(CFLAGS) -lcheck -o $@ $^
 
 $(OBJ_DIR)/capture.o: \
-		$(SRC_DIR)/capture.c \
-		$(SRC_DIR)/camera.h \
-		$(SRC_DIR)/image.h \
-		$(SRC_DIR)/output.h \
+		$(SRC_DIR)/exe/capture.c \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/output.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
 $(OBJ_DIR)/platform_info.o: \
-		$(SRC_DIR)/platform_info.c \
-		$(SRC_DIR)/camera.h \
-		$(SRC_DIR)/output.h \
+		$(SRC_DIR)/exe/platform_info.c \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/output.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
 $(OBJ_DIR)/run_tests.o: \
-		$(TEST_DIR)/run_tests.c \
+		$(SRC_DIR)/exe/run_tests.c \
 		$(TEST_DIR)/test_camera.c \
-		$(SRC_DIR)/camera.h \
-		$(SRC_DIR)/image.h \
-		$(SRC_DIR)/time.h \
-		$(SRC_DIR)/output.h \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/time.h \
+		$(SRC_DIR)/lib/output.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c -o $@ $<
 
 # library / units:
 
 $(OBJ_DIR)/camera.o: \
-		$(SRC_DIR)/camera.c $(SRC_DIR)/camera.h \
-		$(SRC_DIR)/output.h \
-		$(SRC_DIR)/global.h \
+		$(SRC_DIR)/lib/camera.c $(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/image.o: \
-		$(SRC_DIR)/image.c $(SRC_DIR)/image.h \
-		$(SRC_DIR)/output.h \
-		$(SRC_DIR)/global.h \
+		$(SRC_DIR)/lib/image.c $(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/output.o: \
-		$(SRC_DIR)/output.c $(SRC_DIR)/output.h \
-		$(SRC_DIR)/global.h \
+		$(SRC_DIR)/lib/output.c $(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/time.o: \
-		$(SRC_DIR)/time.c $(SRC_DIR)/time.h \
-		$(SRC_DIR)/global.h \
+		$(SRC_DIR)/lib/time.c $(SRC_DIR)/lib/time.h \
+		$(SRC_DIR)/lib/global.h \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 

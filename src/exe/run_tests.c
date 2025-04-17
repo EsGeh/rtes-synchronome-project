@@ -1,6 +1,6 @@
-#include "test_camera.c"
-#include "test_image.c"
-#include "global.h"
+#include "tests/test_camera.c"
+#include "tests/test_image.c"
+#include "lib/global.h"
 
 #include <check.h>
 #include <stdio.h>

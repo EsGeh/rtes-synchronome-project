@@ -1,6 +1,6 @@
-#include "camera.h"
-#include "image.h"
-#include "global.h"
+#include "lib/camera.h"
+#include "lib/image.h"
+#include "lib/global.h"
 
 #include <getopt.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
-#include "image.h"
-#include "global.h"
+#include "lib/image.h"
+#include "lib/global.h"
 
 #include <check.h>
 #include <linux/videodev2.h>
