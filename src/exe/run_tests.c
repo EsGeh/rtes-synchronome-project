@@ -8,12 +8,19 @@
 #include <getopt.h>
 
 
+/********************
+ * Global Constants
+********************/
+
 const char short_options[] = "h";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ 0,0,0,0 },
 };
 
+/********************
+ * Function Decls
+********************/
 
 void print_cmd_line_info(
 		// int argc,
@@ -25,6 +32,10 @@ int parse_cmd_line_args(
 		char** suite_name,
 		char** case_name
 );
+
+/********************
+ * Main
+********************/
 
 int main(
 		int argc,
@@ -85,6 +96,10 @@ int main(
 	srunner_free(runner);
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+/********************
+ * Function Defs
+********************/
 
 void print_cmd_line_info(
 		// int argc,

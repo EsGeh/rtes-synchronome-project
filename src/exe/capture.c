@@ -1,5 +1,6 @@
 #include "lib/camera.h"
 #include "lib/image.h"
+#include "lib/output.h"
 #include "lib/global.h"
 
 #include <getopt.h>
@@ -9,12 +10,35 @@
 #include <string.h>
 
 
+/********************
+ * Types
+********************/
+
+typedef struct {
+	camera_t camera;
+	byte_t* rgb_buffer;
+	uint rgb_buffer_size;
+} runtime_data_t;
+
+/********************
+ * Global Constants
+********************/
+
 const char short_options[] = "h";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ 0,0,0,0 },
 };
+const char dev_name[] = "/dev/video0";
 
+/********************
+ * Function Decls
+********************/
+
+ret_t run_capture( runtime_data_t* data );
+int set_camera_format( runtime_data_t* data );
+
+void do_exit( runtime_data_t* data );
 
 void print_cmd_line_info(
 		// int argc,
@@ -25,29 +49,28 @@ int parse_cmd_line_args(
 		char* argv[]
 );
 
-#define ERR_HANDLING( EXIT_HANDLER, FUNC_CALL ) { \
+/********************
+ * Main
+********************/
+
+#define CAMERA_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
 		fprintf(stderr, "ERROR: %s\n", camera_error() ); \
-		EXIT_HANDLER; \
-		return EXIT_SUCCESS; \
+		return EXIT_FAILURE; \
 	} \
 }
 
-typedef struct {
-	camera_t camera;
-	byte_t* rgb_buffer;
-	uint rgb_buffer_size;
-
-} runtime_data_t;
-
-int set_camera_format( runtime_data_t* data );
-
-void do_exit( runtime_data_t* data );
+#define API_RUN( FUNC_CALL ) { \
+	if( RET_SUCCESS != FUNC_CALL ) { \
+		return EXIT_FAILURE; \
+	} \
+}
 
 int main(
 		int argc,
 		char* argv[]
 ) {
+	// parse cmd line args:
 	{
 		int ret = parse_cmd_line_args(
 				argc, argv
@@ -63,55 +86,71 @@ int main(
 			return EXIT_FAILURE;
 		}
 	}
-	runtime_data_t data = {
-		.rgb_buffer = NULL,
-		.rgb_buffer_size = 0,
-	};
-	camera_zero( &data.camera );
+	log_init(argv[0]);
+	// run:
+	{
+		runtime_data_t data = {
+			.rgb_buffer = NULL,
+			.rgb_buffer_size = 0,
+		};
+		camera_zero( &data.camera );
+		ret_t ret = run_capture( &data );
+		do_exit( &data );
+		log_init("");
 
-	const char dev_name[] = "/dev/video0";
-	ERR_HANDLING(,camera_init(
-			&data.camera,
+		if( RET_SUCCESS != ret ) {
+			return EXIT_FAILURE;
+		}
+	}
+	return EXIT_SUCCESS;
+}
+
+/********************
+ * Function Defs
+********************/
+
+ret_t run_capture( runtime_data_t* data )
+{
+	CAMERA_RUN(camera_init(
+			&data->camera,
 			dev_name
 	));
-	ERR_HANDLING(do_exit(&data),set_camera_format(
-				&data
+	CAMERA_RUN(set_camera_format(
+				data
 	));
 	// allocate image buffer:
-	data.rgb_buffer_size = image_rgb_size(
-			data.camera.format.width,
-			data.camera.format.height
+	data->rgb_buffer_size = image_rgb_size(
+			data->camera.format.width,
+			data->camera.format.height
 	);
-	CALLOC(data.rgb_buffer, data.rgb_buffer_size, 1);
+	CALLOC(data->rgb_buffer, data->rgb_buffer_size, 1);
 	{
-		ERR_HANDLING(do_exit(&data), camera_init_buffer(
-				&data.camera,
+		CAMERA_RUN( camera_init_buffer(
+				&data->camera,
 				1
 		));
-		ERR_HANDLING(do_exit(&data), camera_stream_start( &data.camera ));
+		CAMERA_RUN( camera_stream_start( &data->camera ));
 		frame_buffer_t frame;
-		ERR_HANDLING(do_exit(&data), camera_get_frame( &data.camera, &frame ));
+		CAMERA_RUN( camera_get_frame( &data->camera, &frame ));
 
-		ERR_HANDLING(do_exit(&data), image_convert_to_rgb(
-				data.camera.format,
+		API_RUN( image_convert_to_rgb(
+				data->camera.format,
 				frame.data,
-				data.rgb_buffer,
-				data.rgb_buffer_size
+				data->rgb_buffer,
+				data->rgb_buffer_size
 		));
-		ERR_HANDLING(do_exit(&data), image_save_ppm(
+		API_RUN( image_save_ppm(
 				"local/img/test.ppm",
 				"captured from camera",
-				data.rgb_buffer,
-				data.rgb_buffer_size,
-				data.camera.format.width,
-				data.camera.format.height
+				data->rgb_buffer,
+				data->rgb_buffer_size,
+				data->camera.format.width,
+				data->camera.format.height
 		));
-		ERR_HANDLING(do_exit(&data), camera_return_frame( &data.camera, &frame));
-		ERR_HANDLING(do_exit(&data), camera_stream_stop( &data.camera ));
+		CAMERA_RUN( camera_return_frame( &data->camera, &frame));
+		CAMERA_RUN( camera_stream_stop( &data->camera ));
 	}
-	do_exit( &data );
-
-	return EXIT_SUCCESS;
+	return RET_SUCCESS;
 }
 
 int set_camera_format( runtime_data_t* data )
@@ -122,13 +161,10 @@ int set_camera_format( runtime_data_t* data )
 				&format_descriptions
 	) )
 		return RET_FAILURE;
-	// printf( "camera video formats:\n" );
 	__u32 required_format;
 	{
-		// unsigned char expected_format = "YUYV";
 		bool format_found = false;
 		for( unsigned int i=0; i< format_descriptions.count; i++ ) {
-			// printf( "format: %s\n", format_descriptions.format_descrs[i].description );
 			if( strstr( (char* )format_descriptions.format_descrs[i].description, "YUYV" ) != NULL ) {
 				format_found = true;
 				required_format = format_descriptions.format_descrs[i].pixelformat;

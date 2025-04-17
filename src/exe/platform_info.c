@@ -7,12 +7,19 @@
 #include <stdio.h> // <- work with files
 
 
+/********************
+ * Global Constants
+********************/
+
 const char short_options[] = "h";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ 0,0,0,0 },
 };
 
+/********************
+ * Function Decls
+********************/
 
 void print_cmd_line_info(
 		// int argc,
@@ -22,6 +29,10 @@ int parse_cmd_line_args(
 		int argc,
 		char* argv[]
 );
+
+/********************
+ * Main
+********************/
 
 int main(
 		int argc,
@@ -82,6 +93,10 @@ int main(
 
 	return EXIT_SUCCESS;
 }
+
+/********************
+ * Function Defs
+********************/
 
 void print_cmd_line_info(
 		// int argc,
