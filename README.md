@@ -15,3 +15,5 @@ In order to achieve that, the process of taking/picking pictures needs to be car
 
 This project is the [fourth part](https://www.coursera.org/learn/real-time-project-embedded-systems) of the [Realtime Embedded Systems Specialization](https://www.coursera.org/specializations/real-time-embedded-systems) by the *University of Colorado Boulder* via Coursera.
 According to the [course description](https://www.coursera.org/learn/real-time-project-embedded-systems) successful completion of this project proofs advanced level applied knowledge about realtime embedded engineering.
+
+For details about grading and requirements for passing this course, see `./doc/requirements/`.
