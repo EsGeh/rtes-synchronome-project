@@ -204,8 +204,9 @@ START_TEST(test_camera_set_format_default) {
 	{
 		CHECK_CAMERA_SUCCESS( camera_set_format(
 					&camera,
-					0, 0,
-					NULL, false
+					0, FORMAT_ANY,
+					(frame_size_t){0, 0}, FRAME_SIZE_ANY,
+					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
 		));
 		// camera still initialized:
 		ck_assert_int_ge( camera.dev_file, 0 );
@@ -233,8 +234,9 @@ START_TEST(test_camera_set_format) {
 		const struct v4l2_fmtdesc* format_descr = &format_descriptions.format_descrs[i];
 		CHECK_CAMERA_SUCCESS( camera_set_format(
 					&camera,
-					0, 0,
-					&(format_descr->pixelformat), true
+					format_descr->pixelformat, FORMAT_EXACT,
+					(frame_size_t){0, 0}, FRAME_SIZE_ANY,
+					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
 		));
 		ck_assert_int_eq( camera.format.pixelformat, format_descr->pixelformat );
 		// camera still initialized:
@@ -264,8 +266,9 @@ START_TEST(test_camera_set_format_uninitialized) {
 	{
 		CHECK_CAMERA_FAILURE( camera_set_format(
 				&camera,
-				0, 0,
-				NULL, false
+				0, FORMAT_ANY,
+				(frame_size_t){0, 0}, FRAME_SIZE_ANY,
+				(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
 		) );
 	}
 }
@@ -282,8 +285,9 @@ START_TEST(test_camera_set_format_too_large) {
 	{
 		CHECK_CAMERA_FAILURE( camera_set_format(
 				&camera,
-				100000, 100000,
-				NULL, false
+				0, FORMAT_ANY,
+				(frame_size_t){100000, 100000}, FRAME_SIZE_EXACT,
+					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
 		) );
 		// camera still initialized:
 		ck_assert_int_ge( camera.dev_file, 0 );

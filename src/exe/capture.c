@@ -180,12 +180,12 @@ int set_camera_format( runtime_data_t* data )
 			return EXIT_FAILURE;
 		}
 	}
+	frame_size_t required_frame_size = { 0, 0};
 	if( RET_SUCCESS != camera_set_format(
 				&data->camera,
-				100,
-				100,
-				&required_format,
-				true // force format
+				required_format, FORMAT_EXACT,
+				required_frame_size, FRAME_SIZE_ANY,
+				(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
 	))
 		return RET_FAILURE;
 	return RET_SUCCESS;

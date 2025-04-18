@@ -42,14 +42,19 @@ const uint iterations_save_img = 10;
  * Function Decls
 ********************/
 
-ret_t run_statistics( runtime_data_t* data );
+ret_t program_run( runtime_data_t* data );
+void program_exit( runtime_data_t* data );
 
+ret_t run_capture(
+		runtime_data_t* data,
+		const camera_mode_descr_t* dest_mode
+);
+ret_t print_all_camera_modes(
+		runtime_data_t* data,
+		camera_mode_descrs_t* modes
+);
 ret_t print_platform_info();
 
-ret_t run_capture( runtime_data_t* data );
-int set_camera_format( runtime_data_t* data );
-
-void do_exit( runtime_data_t* data );
 
 void print_cmd_line_info(
 		// int argc,
@@ -110,8 +115,8 @@ int main(
 			.rgb_buffer_size = 0,
 		};
 		camera_zero( &data.camera );
-		ret_t ret = run_statistics( &data );
-		do_exit( &data );
+		ret_t ret = program_run( &data );
+		program_exit( &data );
 		log_exit();
 
 		if( RET_SUCCESS != ret ) {
@@ -125,38 +130,6 @@ int main(
  * Function Defs
 ********************/
 
-ret_t run_statistics( runtime_data_t* data )
-{
-	if( RET_SUCCESS != print_platform_info() ) {
-		return RET_FAILURE;
-	}
-	if( RET_SUCCESS != run_capture( data ) ) {
-		return RET_FAILURE;
-	}
-	return RET_SUCCESS;
-}
-
-ret_t print_platform_info()
-{
-	char cmd[] = "uname -a";
-	char str[STR_BUFFER_SIZE];
-	FILE* file = popen( cmd, "r" );
-	if( !file ) {
-		perror( "popen" );
-		return RET_FAILURE;
-	}
-	if( NULL == fgets(str, STR_BUFFER_SIZE, file) ) {
-		perror( "pclose" );
-		return RET_FAILURE;
-	}
-	log_info("system info:\n" ); log_info("\t%s", str);
-	if( -1 == pclose( file ) ) {
-		perror( "pclose" );
-		return RET_FAILURE;
-	}
-	return RET_SUCCESS;
-}
-
 #define TIME_START(label) timeval_t (label ## _t0) = time_measure_current_time();
 #define TIME_STOP(label) \
 	timeval_t (label ## _t1) = time_measure_current_time(); \
@@ -165,15 +138,87 @@ ret_t print_platform_info()
 	USEC (label ## _delta_us) = time_us_from_timespec( &(label ## _delta) );
 #define TIME_US(label) (label ## _delta_us )
 
-ret_t run_capture( runtime_data_t* data )
+ret_t program_run( runtime_data_t* data )
+{
+	log_info( "----------------------------------\n" );
+	log_info("system info:\n" );
+	API_RUN( print_platform_info() );
+	// 
+	camera_mode_descrs_t modes;
+	log_info( "----------------------------------\n" );
+	log_info( "camera supported formats:\n" );
+	API_RUN( print_all_camera_modes(
+				data,
+				&modes
+	));
+	// filter modes:
+	camera_mode_descrs_t selected_modes = (camera_mode_descrs_t){
+		.count = 0,
+	};
+	for( uint i=0; i<modes.count; i++ ) {
+		const camera_mode_descr_t* mode = &modes.mode_descrs[i];
+		// remove doubles:
+		/*
+		{
+			bool skip = false;
+			for( uint selected_index=0; selected_index<selected_modes.count; selected_index++ ) {
+				if( camera_mode_descr_equal( mode, &selected_modes.mode_descrs[selected_index] ) ) {
+					skip = true;
+				}
+			}
+			if( skip ) continue;
+		}
+		*/
+		// only select YUYV formats:
+		if( strstr( (char* )mode->pixel_format_descr.description, "YUYV" ) != NULL ) {
+			selected_modes.mode_descrs[selected_modes.count] = *mode;
+			selected_modes.count ++;
+		}
+	}
+	log_info( "----------------------------------\n" );
+	log_info( "Time measurements:\n" );
+	for( uint i=0; i<selected_modes.count; i++ ) {
+		const camera_mode_descr_t* dest_mode = &selected_modes.mode_descrs[i];
+		API_RUN( run_capture(
+					data,
+					dest_mode
+		));
+	}
+	return RET_SUCCESS;
+}
+
+ret_t run_capture(
+		runtime_data_t* data,
+		const camera_mode_descr_t* dest_mode
+)
 {
 	CAMERA_RUN(camera_init(
 			&data->camera,
 			dev_name
 	));
-	CAMERA_RUN(set_camera_format(
-				data
+	CAMERA_RUN(camera_set_format(
+			&data->camera,
+			dest_mode->pixel_format_descr.pixelformat, FORMAT_EXACT,
+			(frame_size_t){
+				.width = dest_mode->frame_size_descr.discrete.width,
+				.height = dest_mode->frame_size_descr.discrete.height,
+			}, FRAME_SIZE_EXACT,
+			dest_mode->frame_interval_descr.discrete, FRAME_INTERVAL_EXACT
 	));
+	{
+		camera_mode_t mode;
+		CAMERA_RUN(camera_get_mode(
+					&data->camera,
+					&mode
+		));
+		log_info( "- %ux%u, %f\n",
+				// (char* )(mode->pixel_format_descr.description),
+				mode.frame_size.width,
+				mode.frame_size.height,
+				(float )mode.frame_interval.numerator
+					/ (float )mode.frame_interval.denominator
+		);
+	}
 	{
 		CAMERA_RUN( camera_init_buffer(
 				&data->camera,
@@ -187,23 +232,13 @@ ret_t run_capture( runtime_data_t* data )
 			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
 		}
 		TIME_STOP(camera_get_frame);
-		log_info( "camera_get_frame + camera_return_frame:\n" );
-		log_info( "\t%uus = %uus / %u\n",
+		log_info( "\t- camera_get_frame + camera_return_frame:" );
+		log_info( " %uus (%uus / %u)\n",
 				TIME_US(camera_get_frame) / iterations_capture,
 				TIME_US(camera_get_frame),
 				iterations_capture
 		);
 
-		/*
-		API_RUN( image_save_ppm(
-				"local/img/test.ppm",
-				"captured from camera",
-				data->rgb_buffer,
-				data->rgb_buffer_size,
-				data->camera.format.width,
-				data->camera.format.height
-		));
-		*/
 	}
 	{
 		// allocate image buffer:
@@ -229,8 +264,8 @@ ret_t run_capture( runtime_data_t* data )
 			TIME_STOP( image_convert_to_rgb )
 			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
 			CAMERA_RUN( camera_stream_stop( &data->camera ));
-			log_info( "image_convert_to_rgb:\n" );
-			log_info( "\t%uus = %uus / %u\n",
+			log_info( "\t- image_convert_to_rgb:" );
+			log_info( " %uus (%uus / %u)\n",
 					TIME_US(image_convert_to_rgb) / iterations_convert,
 					TIME_US(image_convert_to_rgb),
 					iterations_convert
@@ -252,52 +287,80 @@ ret_t run_capture( runtime_data_t* data )
 				));
 			}
 			TIME_STOP( image_save_ppm )
-			log_info( "image_save_ppm:\n" );
-			log_info( "\t%uus = %uus / %u\n",
+			log_info( "\t- image_save_ppm:" );
+			log_info( " %uus (%uus / %u)\n",
 					TIME_US(image_save_ppm) / iterations_save_img,
 					TIME_US(image_save_ppm),
 					iterations_save_img
 			);
 		}
+		FREE( data->rgb_buffer );
 	}
+	CAMERA_RUN(camera_exit(
+			&data->camera
+	));
 	return RET_SUCCESS;
 }
 
-int set_camera_format( runtime_data_t* data )
+ret_t print_all_camera_modes(
+		runtime_data_t* data,
+		camera_mode_descrs_t* modes
+)
 {
-	format_descriptions_t format_descriptions;
-	if( RET_SUCCESS != camera_list_formats(
-				&data->camera,
-				&format_descriptions
-	) )
-		return RET_FAILURE;
-	__u32 required_format;
+	CAMERA_RUN(camera_init(
+			&data->camera,
+			dev_name
+	));
 	{
-		bool format_found = false;
-		for( unsigned int i=0; i< format_descriptions.count; i++ ) {
-			if( strstr( (char* )format_descriptions.format_descrs[i].description, "YUYV" ) != NULL ) {
-				format_found = true;
-				required_format = format_descriptions.format_descrs[i].pixelformat;
-				break;
-			}
-		}
-		if( !format_found ) {
-			fprintf(stderr, "camera does not support expected format!\n");
-			return EXIT_FAILURE;
-		}
-	}
-	if( RET_SUCCESS != camera_set_format(
+		size_descrs_t sizes;
+		CAMERA_RUN(camera_list_sizes(
 				&data->camera,
-				100,
-				100,
-				&required_format,
-				true // force format
-	))
-		return RET_FAILURE;
+				V4L2_PIX_FMT_YUYV,
+				&sizes
+		));
+	}
+	CAMERA_RUN(camera_list_modes(
+			&data->camera,
+			modes
+	));
+	for( uint index=0; index< modes->count; index++ ) {
+		const camera_mode_descr_t* mode = &modes->mode_descrs[index];
+		log_info( "- %s, %ux%u, %f\n",
+				(char* )(mode->pixel_format_descr.description),
+				mode->frame_size_descr.discrete.width,
+				mode->frame_size_descr.discrete.height,
+				(float )mode->frame_interval_descr.discrete.numerator
+					/ (float )mode->frame_interval_descr.discrete.denominator
+		);
+	}
+	CAMERA_RUN(camera_exit(
+			&data->camera
+	));
 	return RET_SUCCESS;
 }
 
-void do_exit( runtime_data_t* data )
+ret_t print_platform_info()
+{
+	char cmd[] = "uname -a";
+	char str[STR_BUFFER_SIZE];
+	FILE* file = popen( cmd, "r" );
+	if( !file ) {
+		perror( "popen" );
+		return RET_FAILURE;
+	}
+	if( NULL == fgets(str, STR_BUFFER_SIZE, file) ) {
+		perror( "pclose" );
+		return RET_FAILURE;
+	}
+	log_info("\t%s", str);
+	if( -1 == pclose( file ) ) {
+		perror( "pclose" );
+		return RET_FAILURE;
+	}
+	return RET_SUCCESS;
+}
+
+void program_exit( runtime_data_t* data )
 {
 	FREE( data->rgb_buffer );
 	data->rgb_buffer_size = 0;
