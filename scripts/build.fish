@@ -6,4 +6,4 @@ set SCRIPTS_DIR "$BASE_DIR/scripts"
 source $SCRIPTS_DIR/utils.fish
 
 
-run_cmd make
+run_cmd make $argv
