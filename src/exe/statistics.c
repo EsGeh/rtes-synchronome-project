@@ -196,7 +196,7 @@ ret_t run_capture(
 			&data->camera,
 			dev_name
 	));
-	CAMERA_RUN(camera_set_format(
+	CAMERA_RUN(camera_set_mode(
 			&data->camera,
 			dest_mode->pixel_format_descr.pixelformat, FORMAT_EXACT,
 			(frame_size_t){

@@ -181,7 +181,7 @@ int set_camera_format( runtime_data_t* data )
 		}
 	}
 	frame_size_t required_frame_size = { 0, 0};
-	if( RET_SUCCESS != camera_set_format(
+	if( RET_SUCCESS != camera_set_mode(
 				&data->camera,
 				required_format, FORMAT_EXACT,
 				required_frame_size, FRAME_SIZE_ANY,

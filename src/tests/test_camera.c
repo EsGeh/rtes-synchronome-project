@@ -170,6 +170,85 @@ END_TEST
  * test case: formats
 ***********************/
 
+START_TEST(test_camera_set_mode_no_change) {
+	camera_t camera;
+	camera_zero( &camera );
+	const char dev_name[] = "/dev/video0";
+	camera_init(
+			&camera,
+			dev_name
+	);
+	camera_mode_t old_mode;
+	CHECK_CAMERA_SUCCESS( camera_get_mode(
+				&camera,
+				&old_mode
+	));
+	{
+		CHECK_CAMERA_SUCCESS( camera_set_mode(
+					&camera,
+					0, FORMAT_ANY,
+					(frame_size_t){0, 0}, FRAME_SIZE_ANY,
+					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
+		));
+		camera_mode_t new_mode;
+		CHECK_CAMERA_SUCCESS( camera_get_mode(
+					&camera,
+					&new_mode
+		));
+		ck_assert_int_eq( new_mode.pixel_format, old_mode.pixel_format );
+		ck_assert_int_eq( new_mode.frame_size.width, old_mode.frame_size.width );
+		ck_assert_int_eq( new_mode.frame_size.height, old_mode.frame_size.height );
+		// camera still initialized:
+		ck_assert_int_ge( camera.dev_file, 0 );
+		ck_assert_ptr_null( camera.buffer_container.buffers );
+		ck_assert_int_eq( camera.buffer_container.count, 0 );
+	}
+	camera_exit(&camera);
+}
+
+START_TEST(test_camera_set_mode) {
+	camera_t camera;
+	camera_zero( &camera );
+	const char dev_name[] = "/dev/video0";
+	camera_init(
+			&camera,
+			dev_name
+	);
+	camera_mode_descrs_t modes;
+	camera_list_modes(
+				&camera,
+				&modes
+	);
+	ck_assert_int_gt( modes.count, 0 );
+	for( unsigned int i=0; i<modes.count; i++ ) {
+		const camera_mode_descr_t* mode = &modes.mode_descrs[i];
+		ck_assert_int_eq( mode->frame_size_descr.type, V4L2_FRMSIZE_TYPE_DISCRETE );
+		ck_assert_int_eq( mode->frame_interval_descr.type, V4L2_FRMIVAL_TYPE_DISCRETE );
+		CHECK_CAMERA_SUCCESS( camera_set_mode(
+					&camera,
+					mode->pixel_format_descr.pixelformat, FORMAT_EXACT,
+					(frame_size_t){
+						.width = mode->frame_size_descr.discrete.width,
+						.height = mode->frame_size_descr.discrete.height
+					}, FRAME_SIZE_EXACT,
+					mode->frame_interval_descr.discrete, FRAME_INTERVAL_EXACT
+		));
+		camera_mode_t new_mode;
+		CHECK_CAMERA_SUCCESS( camera_get_mode(
+					&camera,
+					&new_mode
+		));
+		ck_assert_int_eq( new_mode.pixel_format, mode->pixel_format_descr.pixelformat );
+		ck_assert_int_eq( new_mode.frame_size.width, mode->frame_size_descr.discrete.width );
+		ck_assert_int_eq( new_mode.frame_size.height, mode->frame_size_descr.discrete.height );
+		// camera still initialized:
+		ck_assert_int_ge( camera.dev_file, 0 );
+		ck_assert_ptr_null( camera.buffer_container.buffers );
+		ck_assert_int_eq( camera.buffer_container.count, 0 );
+	}
+	camera_exit(&camera);
+}
+
 START_TEST(test_camera_list_formats) {
 	camera_t camera;
 	camera_zero( &camera );
@@ -193,60 +272,6 @@ START_TEST(test_camera_list_formats) {
 	camera_exit(&camera);
 }
 
-START_TEST(test_camera_set_format_default) {
-	camera_t camera;
-	camera_zero( &camera );
-	const char dev_name[] = "/dev/video0";
-	camera_init(
-			&camera,
-			dev_name
-	);
-	{
-		CHECK_CAMERA_SUCCESS( camera_set_format(
-					&camera,
-					0, FORMAT_ANY,
-					(frame_size_t){0, 0}, FRAME_SIZE_ANY,
-					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
-		));
-		// camera still initialized:
-		ck_assert_int_ge( camera.dev_file, 0 );
-		ck_assert_ptr_null( camera.buffer_container.buffers );
-		ck_assert_int_eq( camera.buffer_container.count, 0 );
-	}
-	camera_exit(&camera);
-}
-
-START_TEST(test_camera_set_format) {
-	camera_t camera;
-	camera_zero( &camera );
-	const char dev_name[] = "/dev/video0";
-	camera_init(
-			&camera,
-			dev_name
-	);
-	format_descriptions_t format_descriptions;
-	camera_list_formats(
-				&camera,
-				&format_descriptions
-	);
-	ck_assert_int_gt( format_descriptions.count, 0 );
-	for( unsigned int i=0; i< format_descriptions.count; i++ ) {
-		const struct v4l2_fmtdesc* format_descr = &format_descriptions.format_descrs[i];
-		CHECK_CAMERA_SUCCESS( camera_set_format(
-					&camera,
-					format_descr->pixelformat, FORMAT_EXACT,
-					(frame_size_t){0, 0}, FRAME_SIZE_ANY,
-					(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
-		));
-		ck_assert_int_eq( camera.format.pixelformat, format_descr->pixelformat );
-		// camera still initialized:
-		ck_assert_int_ge( camera.dev_file, 0 );
-		ck_assert_ptr_null( camera.buffer_container.buffers );
-		ck_assert_int_eq( camera.buffer_container.count, 0 );
-	}
-	camera_exit(&camera);
-}
-
 // negative tests:
 
 START_TEST(test_camera_list_formats_uninitialized) {
@@ -260,11 +285,11 @@ START_TEST(test_camera_list_formats_uninitialized) {
 }
 END_TEST
 
-START_TEST(test_camera_set_format_uninitialized) {
+START_TEST(test_camera_set_mode_uninitialized) {
 	camera_t camera;
 	camera_zero( &camera );
 	{
-		CHECK_CAMERA_FAILURE( camera_set_format(
+		CHECK_CAMERA_FAILURE( camera_set_mode(
 				&camera,
 				0, FORMAT_ANY,
 				(frame_size_t){0, 0}, FRAME_SIZE_ANY,
@@ -274,7 +299,7 @@ START_TEST(test_camera_set_format_uninitialized) {
 }
 END_TEST
 
-START_TEST(test_camera_set_format_too_large) {
+START_TEST(test_camera_set_mode_too_large_size) {
 	const char dev_name[] = "/dev/video0";
 	camera_t camera;
 	camera_zero( &camera );
@@ -283,7 +308,7 @@ START_TEST(test_camera_set_format_too_large) {
 			dev_name
 	);
 	{
-		CHECK_CAMERA_FAILURE( camera_set_format(
+		CHECK_CAMERA_FAILURE( camera_set_mode(
 				&camera,
 				0, FORMAT_ANY,
 				(frame_size_t){100000, 100000}, FRAME_SIZE_EXACT,
@@ -478,13 +503,13 @@ Suite* camera_suite() {
 	}
 	{
 		TCase* test_case = tcase_create("formats");
+		tcase_add_test(test_case, test_camera_set_mode_no_change);
+		tcase_add_test(test_case, test_camera_set_mode);
 		tcase_add_test(test_case, test_camera_list_formats);
-		tcase_add_test(test_case, test_camera_set_format_default);
-		tcase_add_test(test_case, test_camera_set_format);
 		// negative:
 		tcase_add_test(test_case, test_camera_list_formats_uninitialized);
-		tcase_add_test(test_case, test_camera_set_format_uninitialized);
-		tcase_add_test(test_case, test_camera_set_format_too_large);
+		tcase_add_test(test_case, test_camera_set_mode_uninitialized);
+		tcase_add_test(test_case, test_camera_set_mode_too_large_size);
 		suite_add_tcase(suite, test_case);
 	}
 	{

@@ -168,7 +168,7 @@ ret_t camera_list_modes(
 );
 
 // precondition: camera must be in state "initialized"
-ret_t camera_set_format(
+ret_t camera_set_mode(
 		camera_t* camera,
 		const pixel_format_t requested_format,
 		const format_constraint_t format_constraint,

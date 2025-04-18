@@ -43,10 +43,6 @@ ret_t reset_cropping(
 		camera_t* camera
 );
 
-ret_t get_format(
-		camera_t* camera
-);
-
 ret_t negotiate_format(
 		camera_t* camera,
 		const pixel_format_t format,
@@ -349,7 +345,7 @@ ret_t camera_list_modes(
 	return RET_SUCCESS;
 }
 
-ret_t camera_set_format(
+ret_t camera_set_mode(
 		camera_t* camera,
 		const pixel_format_t requested_format,
 		const format_constraint_t format_constraint,
@@ -362,7 +358,7 @@ ret_t camera_set_format(
 	assert( camera != NULL );
 	if( camera->dev_file == -1 ) {
 		DEV_ERROR(
-			"'camera_set_format': camera is uninitialized\n"
+			"'camera_set_mode': camera is uninitialized\n"
 		);
 		return RET_FAILURE;
 	}
@@ -785,22 +781,6 @@ ret_t reset_cropping(
 	if( -1 == ioctl_helper(camera->dev_file, VIDIOC_S_CROP, &crop) && errno != EINVAL ) {
 		// ignore errors...
 	}
-	return RET_SUCCESS;
-}
-
-ret_t get_format(
-		camera_t* camera
-)
-{
-	struct v4l2_format format;
-	if( -1 == ioctl_helper( camera->dev_file, VIDIOC_G_FMT, &format ) ) {
-		DEV_ERROR( "'VIDIOC_G_FMT' error %d, %s\n",
-				errno,
-				strerror(errno)
-		)
-		return RET_FAILURE;
-	}
-	camera->format = format.fmt.pix;
 	return RET_SUCCESS;
 }
 
