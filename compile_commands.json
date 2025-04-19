@@ -1,0 +1,119 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-Isrc",
+      "-c",
+      "-o",
+      "build/debug/objs/capture.o",
+      "src/exe/capture.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/exe/capture.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/capture.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-c",
+      "-o",
+      "build/debug/objs/camera.o",
+      "src/lib/camera.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/lib/camera.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/camera.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-c",
+      "-o",
+      "build/debug/objs/image.o",
+      "src/lib/image.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/lib/image.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/image.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-c",
+      "-o",
+      "build/debug/objs/output.o",
+      "src/lib/output.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/lib/output.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/output.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-Isrc",
+      "-c",
+      "-o",
+      "build/debug/objs/run_tests.o",
+      "src/exe/run_tests.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/exe/run_tests.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/run_tests.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O0",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-g",
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-Isrc",
+      "-c",
+      "-o",
+      "build/debug/objs/statistics.o",
+      "src/exe/statistics.c"
+    ],
+    "directory": "/data/neues Zeug/rtes-synchronome-project",
+    "file": "/data/neues Zeug/rtes-synchronome-project/src/exe/statistics.c",
+    "output": "/data/neues Zeug/rtes-synchronome-project/build/debug/objs/statistics.o"
+  }
+]
