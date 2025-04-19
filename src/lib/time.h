@@ -21,10 +21,10 @@ typedef struct timespec timeval_t;
  ***********************/
 
 // init module:
-void time_init();
+void time_init(void);
 
 // get elapsed time since 'time_init()':
-struct timespec time_measure_current_time();
+struct timespec time_measure_current_time(void);
 
 
 /***********************
@@ -32,7 +32,7 @@ struct timespec time_measure_current_time();
  ***********************/
 
 void time_repeat(
-		void (*timer_callback)(),
+		void (*timer_callback)(int),
 		const USEC period_us
 );
 

@@ -5,6 +5,7 @@
 #include <linux/videodev2.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>

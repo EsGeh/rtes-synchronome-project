@@ -2,14 +2,13 @@
 # define GLOBAL_H
 
 #include <assert.h>
+#include <stdbool.h>
 
 #define STR_BUFFER_SIZE 1024
 
 /***********************
  * Types
  ***********************/
-
-typedef enum { false, true } bool;
 
 typedef unsigned char byte_t;
 

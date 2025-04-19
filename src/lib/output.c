@@ -1,5 +1,8 @@
 #include "output.h"
+
 #include <stdarg.h>
+#include <syslog.h> // <- write to syslog
+#include <stdio.h>
 
 static bool g_info_enable_print = true;
 static bool g_info_enable_log = false;
@@ -33,7 +36,7 @@ void log_init(
 	g_error_enable_log = error_enable_log;
 }
 
-void log_exit()
+void log_exit(void)
 {
 	closelog();
 }

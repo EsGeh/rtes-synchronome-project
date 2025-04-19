@@ -12,12 +12,12 @@ void nsec_to_timespec(
 );
 
 
-void time_init()
+void time_init(void)
 {
   clock_gettime(MEASUREMENT_CLOCK, &start_time);
 }
 
-struct timespec time_measure_current_time()
+struct timespec time_measure_current_time(void)
 {
 	struct timespec current_time;
 	clock_gettime(MEASUREMENT_CLOCK, &current_time);
@@ -31,7 +31,7 @@ struct timespec time_measure_current_time()
 }
 
 void time_repeat(
-		void (*timer_callback)(),
+		void (*timer_callback)(int),
 		const USEC period_us
 )
 {
