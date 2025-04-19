@@ -1,2 +1,10 @@
 
 /build/
+
+# clang
+/compile_commands.json
+/.cache
+*.plist
+
+# local vim config:
+/.exrc

@@ -5,5 +5,6 @@ set SCRIPTS_DIR "$BASE_DIR/scripts"
 
 source $SCRIPTS_DIR/utils.fish
 
-
-run_cmd make $argv
+which bear &> /dev/null
+and run_cmd -- bear -- make $argv
+or run_cmd -- make $argv

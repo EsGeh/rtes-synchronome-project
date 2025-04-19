@@ -1,0 +1,16 @@
+
+let mapleader = " "
+
+" run build script:
+noremap <leader>b :!./scripts/build.fish<Cr>
+
+"""""""""""""""""""""""
+" ale config:
+""""""""""""""""""""""
+
+" .h files are c, not c++:
+let g:c_syntax_for_h = 1
+
+let c_opts = '-std=gnu23 -Wall -Wextra -pedantic'
+let g:ale_c_cc_options = c_opts
+let g:ale_c_build_dir_names = ['build', 'build/release', 'build/debug']

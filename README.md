@@ -43,3 +43,10 @@ For details about grading and requirements for passing this course, see `./doc/r
 Auto run tests before every commit:
 
     $ git config core.hooksPath hooks
+
+Recommended integrated linter/autocompletion config for vim/neovim:
+
+- [ale](https://github.com/dense-analysis/ale): integrated lint engine for vim/neovim
+- [bear](https://github.com/rizsotto/Bear): automatically generate `compile_commands.json` for clang-based linting/analysis tools
+
+[Example local config](.excr)
