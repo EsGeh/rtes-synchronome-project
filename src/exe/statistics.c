@@ -233,9 +233,9 @@ ret_t run_capture(
 		}
 		TIME_STOP(camera_get_frame);
 		log_info( "\t- camera_get_frame + camera_return_frame:" );
-		log_info( " %uus (%uus / %u)\n",
-				TIME_US(camera_get_frame) / iterations_capture,
-				TIME_US(camera_get_frame),
+		log_info( " %fs (%fs / %u)\n",
+				(float )TIME_US(camera_get_frame) / iterations_capture/1000.0/1000.0,
+				(float )TIME_US(camera_get_frame) / 1000.0 / 1000.0,
 				iterations_capture
 		);
 
@@ -265,9 +265,9 @@ ret_t run_capture(
 			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
 			CAMERA_RUN( camera_stream_stop( &data->camera ));
 			log_info( "\t- image_convert_to_rgb:" );
-			log_info( " %uus (%uus / %u)\n",
-					TIME_US(image_convert_to_rgb) / iterations_convert,
-					TIME_US(image_convert_to_rgb),
+			log_info( " %fs (%us / %u)\n",
+					(float )TIME_US(image_convert_to_rgb) / iterations_convert /1000.0/1000.0,
+					(float )TIME_US(image_convert_to_rgb) /1000.0/1000.0,
 					iterations_convert
 			);
 		}
@@ -288,9 +288,9 @@ ret_t run_capture(
 			}
 			TIME_STOP( image_save_ppm )
 			log_info( "\t- image_save_ppm:" );
-			log_info( " %uus (%uus / %u)\n",
-					TIME_US(image_save_ppm) / iterations_save_img,
-					TIME_US(image_save_ppm),
+			log_info( " %us (%us / %u)\n",
+					(float )TIME_US(image_save_ppm) / iterations_save_img /1000.0/1000.0,
+					(float )TIME_US(image_save_ppm) /1000.0/1000.0,
 					iterations_save_img
 			);
 		}
