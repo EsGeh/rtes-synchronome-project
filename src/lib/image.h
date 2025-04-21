@@ -43,6 +43,13 @@ ret_t image_convert_to_rgb(
 		const size_t dst_size
 );
 
+ret_t image_diff(
+		const img_format_t src_format,
+		const void* src_buffer_1,
+		const void* src_buffer_2,
+		float* result
+);
+
 size_t image_rgb_size(
 		const uint width,
 		const uint height

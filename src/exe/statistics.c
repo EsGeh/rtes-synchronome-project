@@ -36,6 +36,7 @@ const char dev_name[] = "/dev/video0";
 const uint buffer_count = 30;
 const uint iterations_capture = 10;
 const uint iterations_convert = 50;
+const uint iterations_image_diff = 10;
 const uint iterations_save_img = 10;
 
 /********************
@@ -275,7 +276,9 @@ ret_t run_capture(
 		);
 		CALLOC(data->rgb_buffer, data->rgb_buffer_size, 1);
 		frame_buffer_t frame;
+		frame_buffer_t frame_2;
 		CAMERA_RUN( camera_get_frame( &data->camera, &frame ));
+		CAMERA_RUN( camera_get_frame( &data->camera, &frame_2 ));
 
 		// measure 'image_convert_to_rgb''
 		{
@@ -290,10 +293,27 @@ ret_t run_capture(
 				));
 				TIME_TEST_STOP( image_convert_to_rgb )
 			}
-			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
-			CAMERA_RUN( camera_stream_stop( &data->camera ));
 			TIME_TEST_PRINT(image_convert_to_rgb,iterations_convert)
 		}
+		// measure 'image_diff''
+		{
+			TIME_TEST_INIT( image_diff )
+			for( uint i=0; i<iterations_image_diff; ++i ) {
+				float result;
+				TIME_TEST_START(image_diff)
+				API_RUN( image_diff(
+						data->camera.format,
+						frame.data,
+						frame_2.data,
+						&result
+				));
+				TIME_TEST_STOP(image_diff)
+			}
+			TIME_TEST_PRINT(image_diff,iterations_image_diff)
+		}
+		CAMERA_RUN( camera_return_frame( &data->camera, &frame));
+		CAMERA_RUN( camera_return_frame( &data->camera, &frame_2));
+		CAMERA_RUN( camera_stream_stop( &data->camera ));
 		// measure 'image_save_ppm'
 		{
 			TIME_TEST_INIT( image_save_ppm )

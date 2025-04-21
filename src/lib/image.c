@@ -5,6 +5,7 @@
 #include <linux/videodev2.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 #define CAST_TO_BYTE_PTR(VOID_P) \
@@ -483,6 +484,49 @@ ret_t image_convert_to_rgb(
 		}
 		}
 	}
+	return RET_SUCCESS;
+}
+
+ret_t image_diff(
+		const img_format_t src_format,
+		const void* src_buffer_1,
+		const void* src_buffer_2,
+		float* result
+)
+{
+	if( src_format.pixelformat != V4L2_PIX_FMT_YUYV ) {
+		return RET_FAILURE;
+	}
+	(*result) = 0;
+	for( uint x_pos=0; x_pos<src_format.width; ++x_pos ) {
+	for( uint y_pos=0; y_pos<src_format.height; ++y_pos ) {
+		const byte_t* read_pos_1 = &CAST_TO_BYTE_PTR(src_buffer_1)[
+			y_pos*src_format.bytesperline
+				+ x_pos*4
+		];
+		const byte_t* read_pos_2 = &CAST_TO_BYTE_PTR(src_buffer_2)[
+			y_pos*src_format.bytesperline
+				+ x_pos*4
+		];
+		// transform:
+		const byte_t y0_1 = read_pos_1[0];
+		// const byte_t u_1 = read_pos_1[1];
+		const byte_t y1_1 = read_pos_1[2];
+		// const byte_t v_1 = read_pos_1[3];
+
+		const byte_t y0_2 = read_pos_2[0];
+		// const byte_t u_2 = read_pos_2[1];
+		const byte_t y1_2 = read_pos_2[2];
+		// const byte_t v_2 = read_pos_2[3];
+
+		// simply use brightness information only:
+		(*result) += ((
+				abs(y0_1 - y0_2)
+		) / 256.0 / (src_format.width*src_format.height));
+		(*result) += ((
+				abs(y1_1 - y1_2)
+		) / 256.0 / (src_format.width*src_format.height));
+	}}
 	return RET_SUCCESS;
 }
 

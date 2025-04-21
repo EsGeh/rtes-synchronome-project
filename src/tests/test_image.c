@@ -27,7 +27,6 @@ const byte_t expected[] =
 typedef struct {
 	img_format_t format;
 	byte_t src_buffer[256];
-	size_t src_size;
 } test_args_t;
 
 test_args_t test_args_RGB332() {
@@ -539,6 +538,80 @@ START_TEST(test_image_convert_1byte_padding_undersized) {
 }
 END_TEST
 
+START_TEST(test_image_diff_yuyv_same) {
+	const test_args_t args = test_args_YUYV();
+	byte_t src_buffer_1[sizeof(args.src_buffer)];
+	memcpy( src_buffer_1, args.src_buffer, sizeof(args.src_buffer) );
+	byte_t src_buffer_2[sizeof(args.src_buffer)];
+	memcpy( src_buffer_2, args.src_buffer, sizeof(args.src_buffer) );
+	{
+		float result = 0;
+		ret_t ret = image_diff(
+				args.format,
+				src_buffer_1,
+				src_buffer_2,
+				&result
+		);
+		ck_assert( ret == RET_SUCCESS );
+		ck_assert_float_eq_tol( result, 0, 0.001);
+	}
+}
+END_TEST
+
+START_TEST(test_image_diff_yuyv_small_difference) {
+	const test_args_t args = test_args_YUYV();
+	byte_t src_buffer_1[sizeof(args.src_buffer)];
+	memcpy( src_buffer_1, args.src_buffer, sizeof(args.src_buffer) );
+	byte_t src_buffer_2[sizeof(args.src_buffer)];
+	memcpy( src_buffer_2, args.src_buffer, sizeof(args.src_buffer) );
+	src_buffer_2[0] += 64;
+	{
+		float result = 0;
+		ret_t ret = image_diff(
+				args.format,
+				src_buffer_1,
+				src_buffer_2,
+				&result
+		);
+		ck_assert( ret == RET_SUCCESS );
+		ck_assert_float_eq_tol(
+				result,
+				(64.0/256.0) * 1.0 / (args.format.width*args.format.height),
+				0.0001
+		);
+	}
+}
+END_TEST
+
+START_TEST(test_image_diff_yuyv_very_different) {
+	const test_args_t args = test_args_YUYV();
+	byte_t src_buffer_1[sizeof(args.src_buffer)];
+	memcpy( src_buffer_1, args.src_buffer, sizeof(args.src_buffer) );
+	byte_t src_buffer_2[sizeof(args.src_buffer)];
+	memcpy( src_buffer_2, args.src_buffer, sizeof(args.src_buffer) );
+	src_buffer_2[0] += 64;
+	src_buffer_2[2] += 64;
+	src_buffer_2[4] += 64;
+	src_buffer_2[6] += 64;
+	{
+		float result = 0;
+		ret_t ret = image_diff(
+				args.format,
+				src_buffer_1,
+				src_buffer_2,
+				&result
+		);
+		ck_assert( ret == RET_SUCCESS );
+		// 50% of the pixels differ by 64/256:
+		ck_assert_float_eq_tol(
+				result,
+				64.0 / 256.0 * 0.5,
+				0.0001
+		);
+	}
+}
+END_TEST
+
 /***********************
  * test suite
 ***********************/
@@ -568,11 +641,12 @@ Suite* image_suite() {
 
 		suite_add_tcase(suite, test_case);
 	}
-	/*
 	{
-		TCase* test_case = tcase_create("save");
-		tcase_add_test(test_case, test_image_convert_1byte_save);
+		TCase* test_case = tcase_create("difference");
+		tcase_add_test(test_case, test_image_diff_yuyv_same);
+		tcase_add_test(test_case, test_image_diff_yuyv_small_difference);
+		tcase_add_test(test_case, test_image_diff_yuyv_very_different);
+		suite_add_tcase(suite, test_case);
 	}
-	*/
 	return suite;
 }
