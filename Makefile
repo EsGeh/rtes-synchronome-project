@@ -56,7 +56,7 @@ $(OUT_DIR)/run_tests: \
 		$(OBJ_DIR)/time.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
-	$(CC) $(CFLAGS) -lcheck -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check`
 
 $(OBJ_DIR)/capture.o: \
 		$(SRC_DIR)/exe/capture.c \
