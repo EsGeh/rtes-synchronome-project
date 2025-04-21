@@ -2,12 +2,14 @@
 
 set BASE_DIR (realpath (status dirname)/..)
 set SCRIPTS_DIR "$BASE_DIR/scripts"
-set BIN_DIR "$BASE_DIR/build/debug"
+set CONFIG release
+set BIN_DIR "$BASE_DIR/build/$CONFIG"
 set OUTPUT_DIR "$BASE_DIR/local/img"
 
 
 source "$SCRIPTS_DIR/utils.fish"
 
+run_cmd -- ./scripts/build.fish CONFIG=$CONFIG
 run_cmd -- mkdir --parents "'$OUTPUT_DIR'"
 
 begin

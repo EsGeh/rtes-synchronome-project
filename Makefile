@@ -9,8 +9,12 @@ BUILD_DIR=build
 CONFIG=debug
 
 CC=gcc
+ifeq (${CONFIG},debug)
 CFLAGS=-O0 -Wall -Wextra -pedantic -g \
  -fprofile-arcs -ftest-coverage
+else
+CFLAGS=-O3 -Wall -Wextra -pedantic
+endif
 OUT_DIR=$(BUILD_DIR)/$(CONFIG)
 OBJ_DIR=$(OUT_DIR)/objs
 
