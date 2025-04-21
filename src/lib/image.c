@@ -275,9 +275,6 @@
  * Utils
  *****************/
 
-#define CAT(a, ...) a ## __VA_ARGS__
-#define CAT2(a,b, ...) a ## b ## __VA_ARGS__
-
 #define GET_SIZE(FORMAT) \
 	CAT(FORMAT,_SIZE)
 

@@ -130,13 +130,34 @@ int main(
  * Function Defs
 ********************/
 
-#define TIME_START(label) timeval_t (label ## _t0) = time_measure_current_time();
-#define TIME_STOP(label) \
+#define TIME_TEST_INIT(label) \
+		USEC CAT(label,_max) = 0; \
+		USEC CAT(label,_acc) = 0;
+
+#define TIME_TEST_MAX_US(label) (CAT(label,_max))
+#define TIME_TEST_ACC_US(label) (CAT(label,_acc))
+
+#define TIME_TEST_MAX_S(label) ((float)CAT(label,_max) / 1000.0 / 1000.0)
+#define TIME_TEST_ACC_S(label) ((float )CAT(label,_acc) / 1000.0 / 1000.0)
+#define TIME_TEST_AVG_S(label,iterations) (TIME_TEST_ACC_S(label) / iterations)
+
+#define TIME_TEST_START(label) timeval_t (label ## _t0) = time_measure_current_time();
+#define TIME_TEST_STOP(label) \
 	timeval_t (label ## _t1) = time_measure_current_time(); \
 	timeval_t (label ## _delta); \
 	time_delta( &(label ## _t1), &(label ## _t0), &(label ## _delta) ); \
-	USEC (label ## _delta_us) = time_us_from_timespec( &(label ## _delta) );
-#define TIME_US(label) (label ## _delta_us )
+	USEC (label ## _delta_us) = time_us_from_timespec( &(label ## _delta) ); \
+	CAT(label,_max) = MAX( CAT(label,_max), CAT(label,_delta_us) ); \
+	CAT(label,_acc) += CAT(label,_delta_us);
+
+#define TIME_TEST_PRINT(label,iterations) \
+		log_info( "\t- " #label  ":" ); \
+		log_info( " max: %f, avg: %fs (%fs / %u)\n", \
+				TIME_TEST_MAX_S(label), \
+				TIME_TEST_AVG_S(label,iterations), \
+				TIME_TEST_ACC_S(label), \
+				iterations_capture \
+		);
 
 ret_t program_run( runtime_data_t* data )
 {
@@ -226,19 +247,25 @@ ret_t run_capture(
 		));
 		CAMERA_RUN( camera_stream_start( &data->camera ));
 		frame_buffer_t frame;
-		TIME_START(camera_get_frame);
+		/* First frame may be used by camera
+		 * for adjustments and can
+		 * take much longer.
+		 * Therefore: skip and don't measure first frame!
+		 */
+		CAMERA_RUN( camera_get_frame(&data->camera, &frame) );
+		CAMERA_RUN( camera_return_frame( &data->camera, &frame));
+		TIME_TEST_INIT(camera_get_frame);
+		TIME_TEST_INIT(camera_return_frame);
 		for( uint i=0; i<iterations_capture; ++i ) {
-			CAMERA_RUN( camera_get_frame( &data->camera, &frame ));
+			TIME_TEST_START(camera_get_frame);
+			CAMERA_RUN( camera_get_frame(&data->camera, &frame) );
+			TIME_TEST_STOP(camera_get_frame);
+			TIME_TEST_START(camera_return_frame);
 			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
+			TIME_TEST_STOP(camera_return_frame);
 		}
-		TIME_STOP(camera_get_frame);
-		log_info( "\t- camera_get_frame + camera_return_frame:" );
-		log_info( " %fs (%fs / %u)\n",
-				(float )TIME_US(camera_get_frame) / iterations_capture/1000.0/1000.0,
-				(float )TIME_US(camera_get_frame) / 1000.0 / 1000.0,
-				iterations_capture
-		);
-
+		TIME_TEST_PRINT(camera_get_frame,iterations_capture)
+		TIME_TEST_PRINT(camera_return_frame,iterations_capture)
 	}
 	{
 		// allocate image buffer:
@@ -252,31 +279,28 @@ ret_t run_capture(
 
 		// measure 'image_convert_to_rgb''
 		{
-			TIME_START( image_convert_to_rgb )
+			TIME_TEST_INIT( image_convert_to_rgb )
 			for( uint i=0; i<iterations_convert; ++i ) {
+				TIME_TEST_START(image_convert_to_rgb)
 				API_RUN( image_convert_to_rgb(
 						data->camera.format,
 						frame.data,
 						data->rgb_buffer,
 						data->rgb_buffer_size
 				));
+				TIME_TEST_STOP( image_convert_to_rgb )
 			}
-			TIME_STOP( image_convert_to_rgb )
 			CAMERA_RUN( camera_return_frame( &data->camera, &frame));
 			CAMERA_RUN( camera_stream_stop( &data->camera ));
-			log_info( "\t- image_convert_to_rgb:" );
-			log_info( " %fs (%us / %u)\n",
-					(float )TIME_US(image_convert_to_rgb) / iterations_convert /1000.0/1000.0,
-					(float )TIME_US(image_convert_to_rgb) /1000.0/1000.0,
-					iterations_convert
-			);
+			TIME_TEST_PRINT(image_convert_to_rgb,iterations_convert)
 		}
 		// measure 'image_save_ppm'
 		{
-			TIME_START( image_save_ppm )
+			TIME_TEST_INIT( image_save_ppm )
 			char filename[STR_BUFFER_SIZE];
 			for( uint i=0; i<iterations_save_img; ++i ) {
 				snprintf( filename, STR_BUFFER_SIZE, "local/img/test%u.ppm", i );
+				TIME_TEST_START(image_save_ppm)
 				API_RUN( image_save_ppm(
 						filename,
 						"captured from camera",
@@ -285,14 +309,9 @@ ret_t run_capture(
 						data->camera.format.width,
 						data->camera.format.height
 				));
+				TIME_TEST_STOP(image_save_ppm)
 			}
-			TIME_STOP( image_save_ppm )
-			log_info( "\t- image_save_ppm:" );
-			log_info( " %us (%us / %u)\n",
-					(float )TIME_US(image_save_ppm) / iterations_save_img /1000.0/1000.0,
-					(float )TIME_US(image_save_ppm) /1000.0/1000.0,
-					iterations_save_img
-			);
+			TIME_TEST_PRINT(image_save_ppm,iterations_save_img)
 		}
 		FREE( data->rgb_buffer );
 	}
