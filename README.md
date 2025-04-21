@@ -38,6 +38,18 @@ For details about grading and requirements for passing this course, see `./doc/r
 
     $ ./scripts/test.fish
 
+## Upload
+
+    $ ./scripts/upload.fish
+
+The script will cd into to the uploaded dir on the REMOTE.
+You may now build and run the program there.
+
+*Remark*: create `./local/config/remote.conf` on first run and edit accordingly:
+
+    $ mkdir --parents local/config
+    $ cp .example-remote.conf ./local/config/remote.conf
+
 ## Developer Notes
 
 Auto run tests before every commit:
