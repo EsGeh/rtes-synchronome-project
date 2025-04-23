@@ -1,0 +1,842 @@
+$ ./scripts/build.fish CONFIG=release
+$ make CONFIG=release
+mkdir --parents build/release
+mkdir --parents build/release/objs
+gcc -O3 -Wall -Wextra -pedantic -Isrc -c -o build/release/objs/capture.o src/exe/capture.c
+gcc -O3 -Wall -Wextra -pedantic -c -o build/release/objs/camera.o src/lib/camera.c
+src/lib/camera.c: In function ‘camera_init’:
+src/lib/camera.c:85:9: warning: ‘strncpy’ specified bound 1024 equals destination size [-Wstringop-truncation]
+   85 |         strncpy( camera->dev_name, dev_name, STR_BUFFER_SIZE );
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O3 -Wall -Wextra -pedantic -c -o build/release/objs/image.o src/lib/image.c
+gcc -O3 -Wall -Wextra -pedantic -c -o build/release/objs/output.o src/lib/output.c
+gcc -O3 -Wall -Wextra -pedantic -o build/release/capture build/release/objs/capture.o build/release/objs/camera.o build/release/objs/image.o build/release/objs/output.o
+gcc -O3 -Wall -Wextra -pedantic -Isrc -c -o build/release/objs/run_tests.o src/exe/run_tests.c
+In file included from src/exe/run_tests.c:2:
+src/tests/test_image.c: In function ‘test_args_XRGB555’:
+src/tests/test_image.c:80:36: warning: binary constants are a C2X feature or GCC extension
+   80 |                                 0, 0b01111100, /**/ 0b11100000, 0b00000011, /**/ 0b00011111, 0,
+      |                                    ^~~~~~~~~~
+src/tests/test_image.c:80:53: warning: binary constants are a C2X feature or GCC extension
+   80 |                                 0, 0b01111100, /**/ 0b11100000, 0b00000011, /**/ 0b00011111, 0,
+      |                                                     ^~~~~~~~~~
+src/tests/test_image.c:80:65: warning: binary constants are a C2X feature or GCC extension
+   80 |                                 0, 0b01111100, /**/ 0b11100000, 0b00000011, /**/ 0b00011111, 0,
+      |                                                                 ^~~~~~~~~~
+src/tests/test_image.c:80:82: warning: binary constants are a C2X feature or GCC extension
+   80 |                                 0, 0b01111100, /**/ 0b11100000, 0b00000011, /**/ 0b00011111, 0,
+      |                                                                                  ^~~~~~~~~~
+src/tests/test_image.c:81:33: warning: binary constants are a C2X feature or GCC extension
+   81 |                                 0b11100000, 0b01111111, /**/ 0xFF, 0b01111111, /**/ 0, 0
+      |                                 ^~~~~~~~~~
+src/tests/test_image.c:81:45: warning: binary constants are a C2X feature or GCC extension
+   81 |                                 0b11100000, 0b01111111, /**/ 0xFF, 0b01111111, /**/ 0, 0
+      |                                             ^~~~~~~~~~
+src/tests/test_image.c:81:68: warning: binary constants are a C2X feature or GCC extension
+   81 |                                 0b11100000, 0b01111111, /**/ 0xFF, 0b01111111, /**/ 0, 0
+      |                                                                    ^~~~~~~~~~
+src/tests/test_image.c: In function ‘test_args_RGB565’:
+src/tests/test_image.c:98:36: warning: binary constants are a C2X feature or GCC extension
+   98 |                                 0, 0b11111000, /**/ 0b11100000, 0b00000111, /**/ 0b00011111, 0,
+      |                                    ^~~~~~~~~~
+src/tests/test_image.c:98:53: warning: binary constants are a C2X feature or GCC extension
+   98 |                                 0, 0b11111000, /**/ 0b11100000, 0b00000111, /**/ 0b00011111, 0,
+      |                                                     ^~~~~~~~~~
+src/tests/test_image.c:98:65: warning: binary constants are a C2X feature or GCC extension
+   98 |                                 0, 0b11111000, /**/ 0b11100000, 0b00000111, /**/ 0b00011111, 0,
+      |                                                                 ^~~~~~~~~~
+src/tests/test_image.c:98:82: warning: binary constants are a C2X feature or GCC extension
+   98 |                                 0, 0b11111000, /**/ 0b11100000, 0b00000111, /**/ 0b00011111, 0,
+      |                                                                                  ^~~~~~~~~~
+src/tests/test_image.c:99:33: warning: binary constants are a C2X feature or GCC extension
+   99 |                                 0b11100000, 0b11111111, /**/ 0xFF, 0xFF, /**/ 0, 0
+      |                                 ^~~~~~~~~~
+src/tests/test_image.c:99:45: warning: binary constants are a C2X feature or GCC extension
+   99 |                                 0b11100000, 0b11111111, /**/ 0xFF, 0xFF, /**/ 0, 0
+      |                                             ^~~~~~~~~~
+src/tests/test_image.c: In function ‘test_args_XRGB555X’:
+src/tests/test_image.c:116:33: warning: binary constants are a C2X feature or GCC extension
+  116 |                                 0b011111100, 0, /**/ 0b00000011, 0b11100000, /**/ 0, 0b00011111,
+      |                                 ^~~~~~~~~~~
+src/tests/test_image.c:116:54: warning: binary constants are a C2X feature or GCC extension
+  116 |                                 0b011111100, 0, /**/ 0b00000011, 0b11100000, /**/ 0, 0b00011111,
+      |                                                      ^~~~~~~~~~
+src/tests/test_image.c:116:66: warning: binary constants are a C2X feature or GCC extension
+  116 |                                 0b011111100, 0, /**/ 0b00000011, 0b11100000, /**/ 0, 0b00011111,
+      |                                                                  ^~~~~~~~~~
+src/tests/test_image.c:116:86: warning: binary constants are a C2X feature or GCC extension
+  116 |                                 0b011111100, 0, /**/ 0b00000011, 0b11100000, /**/ 0, 0b00011111,
+      |                                                                                      ^~~~~~~~~~
+src/tests/test_image.c:117:33: warning: binary constants are a C2X feature or GCC extension
+  117 |                                 0b01111111, 0b11100000, /**/ 0b01111111, 0xFF, /**/ 0, 0
+      |                                 ^~~~~~~~~~
+src/tests/test_image.c:117:45: warning: binary constants are a C2X feature or GCC extension
+  117 |                                 0b01111111, 0b11100000, /**/ 0b01111111, 0xFF, /**/ 0, 0
+      |                                             ^~~~~~~~~~
+src/tests/test_image.c:117:62: warning: binary constants are a C2X feature or GCC extension
+  117 |                                 0b01111111, 0b11100000, /**/ 0b01111111, 0xFF, /**/ 0, 0
+      |                                                              ^~~~~~~~~~
+src/tests/test_image.c: In function ‘test_args_RGB565X’:
+src/tests/test_image.c:134:33: warning: binary constants are a C2X feature or GCC extension
+  134 |                                 0b11111000, 0, /**/ 0b00000111, 0b11100000, /**/ 0, 0b00011111,
+      |                                 ^~~~~~~~~~
+src/tests/test_image.c:134:53: warning: binary constants are a C2X feature or GCC extension
+  134 |                                 0b11111000, 0, /**/ 0b00000111, 0b11100000, /**/ 0, 0b00011111,
+      |                                                     ^~~~~~~~~~
+src/tests/test_image.c:134:65: warning: binary constants are a C2X feature or GCC extension
+  134 |                                 0b11111000, 0, /**/ 0b00000111, 0b11100000, /**/ 0, 0b00011111,
+      |                                                                 ^~~~~~~~~~
+src/tests/test_image.c:134:85: warning: binary constants are a C2X feature or GCC extension
+  134 |                                 0b11111000, 0, /**/ 0b00000111, 0b11100000, /**/ 0, 0b00011111,
+      |                                                                                     ^~~~~~~~~~
+src/tests/test_image.c:135:33: warning: binary constants are a C2X feature or GCC extension
+  135 |                                 0b11111111, 0b11100000, /**/ 0xFF, 0xFF, /**/ 0, 0
+      |                                 ^~~~~~~~~~
+src/tests/test_image.c:135:45: warning: binary constants are a C2X feature or GCC extension
+  135 |                                 0b11111111, 0b11100000, /**/ 0xFF, 0xFF, /**/ 0, 0
+      |                                             ^~~~~~~~~~
+src/tests/test_image.c: In function ‘test_args_BGR666’:
+src/tests/test_image.c:184:28: warning: binary constants are a C2X feature or GCC extension
+  184 |                         0, 0b00001111, 0b11000000, /**/ 0b00000011, 0b11110000, 0, /**/ 0b11111100, 0, 0,
+      |                            ^~~~~~~~~~
+src/tests/test_image.c:184:40: warning: binary constants are a C2X feature or GCC extension
+  184 |                         0, 0b00001111, 0b11000000, /**/ 0b00000011, 0b11110000, 0, /**/ 0b11111100, 0, 0,
+      |                                        ^~~~~~~~~~
+src/tests/test_image.c:184:57: warning: binary constants are a C2X feature or GCC extension
+  184 |                         0, 0b00001111, 0b11000000, /**/ 0b00000011, 0b11110000, 0, /**/ 0b11111100, 0, 0,
+      |                                                         ^~~~~~~~~~
+src/tests/test_image.c:184:69: warning: binary constants are a C2X feature or GCC extension
+  184 |                         0, 0b00001111, 0b11000000, /**/ 0b00000011, 0b11110000, 0, /**/ 0b11111100, 0, 0,
+      |                                                                     ^~~~~~~~~~
+src/tests/test_image.c:184:89: warning: binary constants are a C2X feature or GCC extension
+  184 |                         0, 0b00001111, 0b11000000, /**/ 0b00000011, 0b11110000, 0, /**/ 0b11111100, 0, 0,
+      |                                                                                         ^~~~~~~~~~
+src/tests/test_image.c:185:25: warning: binary constants are a C2X feature or GCC extension
+  185 |                         0b00000011, 0xFF, 0b11000000, /**/ 0xFF, 0xFF, 0xFF, /**/ 0, 0, 0
+      |                         ^~~~~~~~~~
+src/tests/test_image.c:185:43: warning: binary constants are a C2X feature or GCC extension
+  185 |                         0b00000011, 0xFF, 0b11000000, /**/ 0xFF, 0xFF, 0xFF, /**/ 0, 0, 0
+      |                                           ^~~~~~~~~~
+In function ‘parse_cmd_line_args’,
+    inlined from ‘parse_cmd_line_args’ at src/exe/run_tests.c:114:5:
+src/exe/run_tests.c:145:25: warning: ‘strncpy’ specified bound 1024 equals destination size [-Wstringop-truncation]
+  145 |                         strncpy( suite_name_buf, argv[index], STR_BUFFER_SIZE );
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/exe/run_tests.c:152:25: warning: ‘strncpy’ specified bound 1024 equals destination size [-Wstringop-truncation]
+  152 |                         strncpy( case_name_buf, argv[index], STR_BUFFER_SIZE );
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gcc -O3 -Wall -Wextra -pedantic -c -o build/release/objs/time.o src/lib/time.c
+gcc -O3 -Wall -Wextra -pedantic -o build/release/run_tests build/release/objs/run_tests.o build/release/objs/camera.o build/release/objs/image.o build/release/objs/time.o build/release/objs/output.o `pkg-config --cflags --libs check`
+gcc -O3 -Wall -Wextra -pedantic -Isrc -c -o build/release/objs/statistics.o src/exe/statistics.c
+gcc -O3 -Wall -Wextra -pedantic -o build/release/statistics build/release/objs/statistics.o build/release/objs/camera.o build/release/objs/image.o build/release/objs/time.o build/release/objs/output.o
+$ mkdir --parents '/home/pirt/rtes-synchronome-project/local/img'
+$ '/home/pirt/rtes-synchronome-project/build/release/statistics'
+----------------------------------
+system info:
+	Linux raspberrypi 6.6.51+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.6.51-1+rpt3 (2024-10-08) aarch64 GNU/Linux
+----------------------------------
+camera supported formats:
+- YUYV 4:2:2, 640x480, 0.033333
+- YUYV 4:2:2, 640x480, 0.040000
+- YUYV 4:2:2, 640x480, 0.050000
+- YUYV 4:2:2, 640x480, 0.066667
+- YUYV 4:2:2, 640x480, 0.100000
+- YUYV 4:2:2, 640x480, 0.200000
+- YUYV 4:2:2, 160x120, 0.033333
+- YUYV 4:2:2, 160x120, 0.040000
+- YUYV 4:2:2, 160x120, 0.050000
+- YUYV 4:2:2, 160x120, 0.066667
+- YUYV 4:2:2, 160x120, 0.100000
+- YUYV 4:2:2, 160x120, 0.200000
+- YUYV 4:2:2, 176x144, 0.033333
+- YUYV 4:2:2, 176x144, 0.040000
+- YUYV 4:2:2, 176x144, 0.050000
+- YUYV 4:2:2, 176x144, 0.066667
+- YUYV 4:2:2, 176x144, 0.100000
+- YUYV 4:2:2, 176x144, 0.200000
+- YUYV 4:2:2, 320x176, 0.033333
+- YUYV 4:2:2, 320x176, 0.040000
+- YUYV 4:2:2, 320x176, 0.050000
+- YUYV 4:2:2, 320x176, 0.066667
+- YUYV 4:2:2, 320x176, 0.100000
+- YUYV 4:2:2, 320x176, 0.200000
+- YUYV 4:2:2, 320x240, 0.033333
+- YUYV 4:2:2, 320x240, 0.040000
+- YUYV 4:2:2, 320x240, 0.050000
+- YUYV 4:2:2, 320x240, 0.066667
+- YUYV 4:2:2, 320x240, 0.100000
+- YUYV 4:2:2, 320x240, 0.200000
+- YUYV 4:2:2, 352x288, 0.033333
+- YUYV 4:2:2, 352x288, 0.040000
+- YUYV 4:2:2, 352x288, 0.050000
+- YUYV 4:2:2, 352x288, 0.066667
+- YUYV 4:2:2, 352x288, 0.100000
+- YUYV 4:2:2, 352x288, 0.200000
+- YUYV 4:2:2, 432x240, 0.033333
+- YUYV 4:2:2, 432x240, 0.040000
+- YUYV 4:2:2, 432x240, 0.050000
+- YUYV 4:2:2, 432x240, 0.066667
+- YUYV 4:2:2, 432x240, 0.100000
+- YUYV 4:2:2, 432x240, 0.200000
+- YUYV 4:2:2, 544x288, 0.033333
+- YUYV 4:2:2, 544x288, 0.040000
+- YUYV 4:2:2, 544x288, 0.050000
+- YUYV 4:2:2, 544x288, 0.066667
+- YUYV 4:2:2, 544x288, 0.100000
+- YUYV 4:2:2, 544x288, 0.200000
+- YUYV 4:2:2, 640x360, 0.033333
+- YUYV 4:2:2, 640x360, 0.040000
+- YUYV 4:2:2, 640x360, 0.050000
+- YUYV 4:2:2, 640x360, 0.066667
+- YUYV 4:2:2, 640x360, 0.100000
+- YUYV 4:2:2, 640x360, 0.200000
+- YUYV 4:2:2, 752x416, 0.040000
+- YUYV 4:2:2, 752x416, 0.050000
+- YUYV 4:2:2, 752x416, 0.066667
+- YUYV 4:2:2, 752x416, 0.100000
+- YUYV 4:2:2, 752x416, 0.200000
+- YUYV 4:2:2, 800x448, 0.050000
+- YUYV 4:2:2, 800x448, 0.066667
+- YUYV 4:2:2, 800x448, 0.100000
+- YUYV 4:2:2, 800x448, 0.200000
+- YUYV 4:2:2, 800x600, 0.050000
+- YUYV 4:2:2, 800x600, 0.066667
+- YUYV 4:2:2, 800x600, 0.100000
+- YUYV 4:2:2, 800x600, 0.200000
+- YUYV 4:2:2, 864x480, 0.050000
+- YUYV 4:2:2, 864x480, 0.066667
+- YUYV 4:2:2, 864x480, 0.100000
+- YUYV 4:2:2, 864x480, 0.200000
+- YUYV 4:2:2, 960x544, 0.066667
+- YUYV 4:2:2, 960x544, 0.100000
+- YUYV 4:2:2, 960x544, 0.200000
+- YUYV 4:2:2, 960x720, 0.100000
+- YUYV 4:2:2, 960x720, 0.200000
+- YUYV 4:2:2, 1024x576, 0.100000
+- YUYV 4:2:2, 1024x576, 0.200000
+- YUYV 4:2:2, 1184x656, 0.100000
+- YUYV 4:2:2, 1184x656, 0.200000
+- YUYV 4:2:2, 1280x720, 0.133333
+- YUYV 4:2:2, 1280x720, 0.200000
+- YUYV 4:2:2, 1280x960, 0.133333
+- YUYV 4:2:2, 1280x960, 0.200000
+- Motion-JPEG, 640x480, 0.033333
+- Motion-JPEG, 640x480, 0.040000
+- Motion-JPEG, 640x480, 0.050000
+- Motion-JPEG, 640x480, 0.066667
+- Motion-JPEG, 640x480, 0.100000
+- Motion-JPEG, 640x480, 0.200000
+- Motion-JPEG, 160x120, 0.033333
+- Motion-JPEG, 160x120, 0.040000
+- Motion-JPEG, 160x120, 0.050000
+- Motion-JPEG, 160x120, 0.066667
+- Motion-JPEG, 160x120, 0.100000
+- Motion-JPEG, 160x120, 0.200000
+- Motion-JPEG, 176x144, 0.033333
+- Motion-JPEG, 176x144, 0.040000
+- Motion-JPEG, 176x144, 0.050000
+- Motion-JPEG, 176x144, 0.066667
+- Motion-JPEG, 176x144, 0.100000
+- Motion-JPEG, 176x144, 0.200000
+- Motion-JPEG, 320x176, 0.033333
+- Motion-JPEG, 320x176, 0.040000
+- Motion-JPEG, 320x176, 0.050000
+- Motion-JPEG, 320x176, 0.066667
+- Motion-JPEG, 320x176, 0.100000
+- Motion-JPEG, 320x176, 0.200000
+- Motion-JPEG, 320x240, 0.033333
+- Motion-JPEG, 320x240, 0.040000
+- Motion-JPEG, 320x240, 0.050000
+- Motion-JPEG, 320x240, 0.066667
+- Motion-JPEG, 320x240, 0.100000
+- Motion-JPEG, 320x240, 0.200000
+- Motion-JPEG, 352x288, 0.033333
+- Motion-JPEG, 352x288, 0.040000
+- Motion-JPEG, 352x288, 0.050000
+- Motion-JPEG, 352x288, 0.066667
+- Motion-JPEG, 352x288, 0.100000
+- Motion-JPEG, 352x288, 0.200000
+- Motion-JPEG, 432x240, 0.033333
+- Motion-JPEG, 432x240, 0.040000
+- Motion-JPEG, 432x240, 0.050000
+- Motion-JPEG, 432x240, 0.066667
+- Motion-JPEG, 432x240, 0.100000
+- Motion-JPEG, 432x240, 0.200000
+- Motion-JPEG, 544x288, 0.033333
+- Motion-JPEG, 544x288, 0.040000
+- Motion-JPEG, 544x288, 0.050000
+- Motion-JPEG, 544x288, 0.066667
+- Motion-JPEG, 544x288, 0.100000
+- Motion-JPEG, 544x288, 0.200000
+- Motion-JPEG, 640x360, 0.033333
+- Motion-JPEG, 640x360, 0.040000
+- Motion-JPEG, 640x360, 0.050000
+- Motion-JPEG, 640x360, 0.066667
+- Motion-JPEG, 640x360, 0.100000
+- Motion-JPEG, 640x360, 0.200000
+- Motion-JPEG, 752x416, 0.033333
+- Motion-JPEG, 752x416, 0.040000
+- Motion-JPEG, 752x416, 0.050000
+- Motion-JPEG, 752x416, 0.066667
+- Motion-JPEG, 752x416, 0.100000
+- Motion-JPEG, 752x416, 0.200000
+- Motion-JPEG, 800x448, 0.033333
+- Motion-JPEG, 800x448, 0.040000
+- Motion-JPEG, 800x448, 0.050000
+- Motion-JPEG, 800x448, 0.066667
+- Motion-JPEG, 800x448, 0.100000
+- Motion-JPEG, 800x448, 0.200000
+- Motion-JPEG, 800x600, 0.033333
+- Motion-JPEG, 800x600, 0.040000
+- Motion-JPEG, 800x600, 0.050000
+- Motion-JPEG, 800x600, 0.066667
+- Motion-JPEG, 800x600, 0.100000
+- Motion-JPEG, 800x600, 0.200000
+- Motion-JPEG, 864x480, 0.033333
+- Motion-JPEG, 864x480, 0.040000
+- Motion-JPEG, 864x480, 0.050000
+- Motion-JPEG, 864x480, 0.066667
+- Motion-JPEG, 864x480, 0.100000
+- Motion-JPEG, 864x480, 0.200000
+- Motion-JPEG, 960x544, 0.033333
+- Motion-JPEG, 960x544, 0.040000
+- Motion-JPEG, 960x544, 0.050000
+- Motion-JPEG, 960x544, 0.066667
+- Motion-JPEG, 960x544, 0.100000
+- Motion-JPEG, 960x544, 0.200000
+- Motion-JPEG, 960x720, 0.033333
+- Motion-JPEG, 960x720, 0.040000
+- Motion-JPEG, 960x720, 0.050000
+- Motion-JPEG, 960x720, 0.066667
+- Motion-JPEG, 960x720, 0.100000
+- Motion-JPEG, 960x720, 0.200000
+- Motion-JPEG, 1024x576, 0.033333
+- Motion-JPEG, 1024x576, 0.040000
+- Motion-JPEG, 1024x576, 0.050000
+- Motion-JPEG, 1024x576, 0.066667
+- Motion-JPEG, 1024x576, 0.100000
+- Motion-JPEG, 1024x576, 0.200000
+- Motion-JPEG, 1184x656, 0.033333
+- Motion-JPEG, 1184x656, 0.040000
+- Motion-JPEG, 1184x656, 0.050000
+- Motion-JPEG, 1184x656, 0.066667
+- Motion-JPEG, 1184x656, 0.100000
+- Motion-JPEG, 1184x656, 0.200000
+- Motion-JPEG, 1280x720, 0.033333
+- Motion-JPEG, 1280x720, 0.040000
+- Motion-JPEG, 1280x720, 0.050000
+- Motion-JPEG, 1280x720, 0.066667
+- Motion-JPEG, 1280x720, 0.100000
+- Motion-JPEG, 1280x720, 0.200000
+- Motion-JPEG, 1280x960, 0.033333
+- Motion-JPEG, 1280x960, 0.040000
+- Motion-JPEG, 1280x960, 0.050000
+- Motion-JPEG, 1280x960, 0.066667
+- Motion-JPEG, 1280x960, 0.100000
+- Motion-JPEG, 1280x960, 0.200000
+----------------------------------
+Time measurements:
+- 640x480, 0.033333
+	- camera_get_frame: max: 0.067995, avg: 0.066800s (0.668000s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000004s (0.000044s / 10)
+	- image_convert_to_rgb: max: 0.015134, avg: 0.005367s (0.268333s / 10)
+	- image_diff: max: 0.006652, avg: 0.006592s (0.065915s / 10)
+	- image_save_ppm: max: 0.117209, avg: 0.045070s (0.450698s / 10)
+- 640x480, 0.040000
+	- camera_get_frame: max: 0.067985, avg: 0.066795s (0.667951s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000045s / 10)
+	- image_convert_to_rgb: max: 0.005159, avg: 0.004391s (0.219538s / 10)
+	- image_diff: max: 0.006604, avg: 0.006566s (0.065655s / 10)
+	- image_save_ppm: max: 0.051927, avg: 0.038451s (0.384510s / 10)
+- 640x480, 0.050000
+	- camera_get_frame: max: 0.067985, avg: 0.066799s (0.667988s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000004s (0.000045s / 10)
+	- image_convert_to_rgb: max: 0.004416, avg: 0.004376s (0.218819s / 10)
+	- image_diff: max: 0.006609, avg: 0.006577s (0.065771s / 10)
+	- image_save_ppm: max: 0.042286, avg: 0.038790s (0.387900s / 10)
+- 640x480, 0.066667
+	- camera_get_frame: max: 0.068056, avg: 0.066807s (0.668067s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000008s (0.000077s / 10)
+	- image_convert_to_rgb: max: 0.011290, avg: 0.005766s (0.288306s / 10)
+	- image_diff: max: 0.006642, avg: 0.006613s (0.066128s / 10)
+	- image_save_ppm: max: 0.063166, avg: 0.041440s (0.414403s / 10)
+- 640x480, 0.100000
+	- camera_get_frame: max: 0.100017, avg: 0.100007s (1.000069s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000043s / 10)
+	- image_convert_to_rgb: max: 0.004423, avg: 0.004373s (0.218656s / 10)
+	- image_diff: max: 0.006631, avg: 0.006613s (0.066130s / 10)
+	- image_save_ppm: max: 0.042378, avg: 0.038329s (0.383287s / 10)
+- 640x480, 0.200000
+	- camera_get_frame: max: 0.200082, avg: 0.200025s (2.000250s / 10)
+	- camera_return_frame: max: 0.000012, avg: 0.000007s (0.000067s / 10)
+	- image_convert_to_rgb: max: 0.011876, avg: 0.005652s (0.282616s / 10)
+	- image_diff: max: 0.006505, avg: 0.006474s (0.064735s / 10)
+	- image_save_ppm: max: 0.043181, avg: 0.038838s (0.388375s / 10)
+- 160x120, 0.033333
+	- camera_get_frame: max: 0.066642, avg: 0.066630s (0.666303s / 10)
+	- camera_return_frame: max: 0.000003, avg: 0.000001s (0.000013s / 10)
+	- image_convert_to_rgb: max: 0.000306, avg: 0.000275s (0.013745s / 10)
+	- image_diff: max: 0.000315, avg: 0.000311s (0.003114s / 10)
+	- image_save_ppm: max: 0.012575, avg: 0.004761s (0.047610s / 10)
+- 160x120, 0.040000
+	- camera_get_frame: max: 0.066654, avg: 0.066630s (0.666297s / 10)
+	- camera_return_frame: max: 0.000002, avg: 0.000001s (0.000014s / 10)
+	- image_convert_to_rgb: max: 0.000291, avg: 0.000275s (0.013727s / 10)
+	- image_diff: max: 0.000310, avg: 0.000307s (0.003066s / 10)
+	- image_save_ppm: max: 0.009654, avg: 0.004615s (0.046145s / 10)
+- 160x120, 0.050000
+	- camera_get_frame: max: 0.066638, avg: 0.066630s (0.666300s / 10)
+	- camera_return_frame: max: 0.000002, avg: 0.000001s (0.000014s / 10)
+	- image_convert_to_rgb: max: 0.000305, avg: 0.000275s (0.013743s / 10)
+	- image_diff: max: 0.000320, avg: 0.000316s (0.003157s / 10)
+	- image_save_ppm: max: 0.009256, avg: 0.004606s (0.046065s / 10)
+- 160x120, 0.066667
+	- camera_get_frame: max: 0.066677, avg: 0.066633s (0.666326s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000003s (0.000032s / 10)
+	- image_convert_to_rgb: max: 0.000745, avg: 0.000707s (0.035359s / 10)
+	- image_diff: max: 0.000801, avg: 0.000788s (0.007877s / 10)
+	- image_save_ppm: max: 0.013647, avg: 0.005451s (0.054515s / 10)
+- 160x120, 0.100000
+	- camera_get_frame: max: 0.100768, avg: 0.099947s (0.999468s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000002s (0.000016s / 10)
+	- image_convert_to_rgb: max: 0.000293, avg: 0.000275s (0.013731s / 10)
+	- image_diff: max: 0.000319, avg: 0.000315s (0.003148s / 10)
+	- image_save_ppm: max: 0.009539, avg: 0.004625s (0.046251s / 10)
+- 160x120, 0.200000
+	- camera_get_frame: max: 0.201525, avg: 0.200061s (2.000612s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000002s (0.000018s / 10)
+	- image_convert_to_rgb: max: 0.000305, avg: 0.000275s (0.013743s / 10)
+	- image_diff: max: 0.000297, avg: 0.000293s (0.002928s / 10)
+	- image_save_ppm: max: 0.009374, avg: 0.003472s (0.034718s / 10)
+- 176x144, 0.033333
+	- camera_get_frame: max: 0.068002, avg: 0.066727s (0.667270s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.001170, avg: 0.001036s (0.051795s / 10)
+	- image_diff: max: 0.000733, avg: 0.000718s (0.007178s / 10)
+	- image_save_ppm: max: 0.013135, avg: 0.005556s (0.055557s / 10)
+- 176x144, 0.040000
+	- camera_get_frame: max: 0.067995, avg: 0.066726s (0.667260s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000048s / 10)
+	- image_convert_to_rgb: max: 0.001128, avg: 0.001035s (0.051768s / 10)
+	- image_diff: max: 0.000699, avg: 0.000678s (0.006775s / 10)
+	- image_save_ppm: max: 0.009931, avg: 0.005824s (0.058237s / 10)
+- 176x144, 0.050000
+	- camera_get_frame: max: 0.068005, avg: 0.066512s (0.665119s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000053s / 10)
+	- image_convert_to_rgb: max: 0.001178, avg: 0.001089s (0.054460s / 10)
+	- image_diff: max: 0.001313, avg: 0.001289s (0.012887s / 10)
+	- image_save_ppm: max: 0.011879, avg: 0.005745s (0.057453s / 10)
+- 176x144, 0.066667
+	- camera_get_frame: max: 0.068005, avg: 0.066730s (0.667298s / 10)
+	- camera_return_frame: max: 0.000003, avg: 0.000001s (0.000015s / 10)
+	- image_convert_to_rgb: max: 0.000386, avg: 0.000362s (0.018101s / 10)
+	- image_diff: max: 0.000419, avg: 0.000412s (0.004122s / 10)
+	- image_save_ppm: max: 0.012238, avg: 0.005802s (0.058019s / 10)
+- 176x144, 0.100000
+	- camera_get_frame: max: 0.099947, avg: 0.099884s (0.998842s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000002s (0.000020s / 10)
+	- image_convert_to_rgb: max: 0.000381, avg: 0.000362s (0.018087s / 10)
+	- image_diff: max: 0.000442, avg: 0.000428s (0.004282s / 10)
+	- image_save_ppm: max: 0.009950, avg: 0.005330s (0.053302s / 10)
+- 176x144, 0.200000
+	- camera_get_frame: max: 0.201904, avg: 0.200203s (2.002027s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000004s (0.000039s / 10)
+	- image_convert_to_rgb: max: 0.001173, avg: 0.000960s (0.048004s / 10)
+	- image_diff: max: 0.000812, avg: 0.000803s (0.008032s / 10)
+	- image_save_ppm: max: 0.010913, avg: 0.005839s (0.058388s / 10)
+- 320x176, 0.033333
+	- camera_get_frame: max: 0.068001, avg: 0.066803s (0.668033s / 10)
+	- camera_return_frame: max: 0.000003, avg: 0.000002s (0.000020s / 10)
+	- image_convert_to_rgb: max: 0.000851, avg: 0.000803s (0.040144s / 10)
+	- image_diff: max: 0.001082, avg: 0.001067s (0.010672s / 10)
+	- image_save_ppm: max: 0.015858, avg: 0.008851s (0.088508s / 10)
+- 320x176, 0.040000
+	- camera_get_frame: max: 0.068015, avg: 0.066803s (0.668033s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000003s (0.000028s / 10)
+	- image_convert_to_rgb: max: 0.000836, avg: 0.000803s (0.040125s / 10)
+	- image_diff: max: 0.001034, avg: 0.001026s (0.010260s / 10)
+	- image_save_ppm: max: 0.012832, avg: 0.008405s (0.084054s / 10)
+- 320x176, 0.050000
+	- camera_get_frame: max: 0.068001, avg: 0.066804s (0.668041s / 10)
+	- camera_return_frame: max: 0.000002, avg: 0.000002s (0.000019s / 10)
+	- image_convert_to_rgb: max: 0.000840, avg: 0.000803s (0.040139s / 10)
+	- image_diff: max: 0.001062, avg: 0.001044s (0.010445s / 10)
+	- image_save_ppm: max: 0.013664, avg: 0.008405s (0.084046s / 10)
+- 320x176, 0.066667
+	- camera_get_frame: max: 0.068008, avg: 0.066804s (0.668042s / 10)
+	- camera_return_frame: max: 0.000002, avg: 0.000001s (0.000014s / 10)
+	- image_convert_to_rgb: max: 0.002094, avg: 0.001746s (0.087314s / 10)
+	- image_diff: max: 0.002066, avg: 0.002048s (0.020484s / 10)
+	- image_save_ppm: max: 0.015126, avg: 0.008817s (0.088173s / 10)
+- 320x176, 0.100000
+	- camera_get_frame: max: 0.100020, avg: 0.100009s (1.000093s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000002s (0.000024s / 10)
+	- image_convert_to_rgb: max: 0.000846, avg: 0.000803s (0.040131s / 10)
+	- image_diff: max: 0.001075, avg: 0.001058s (0.010584s / 10)
+	- image_save_ppm: max: 0.014961, avg: 0.008410s (0.084095s / 10)
+- 320x176, 0.200000
+	- camera_get_frame: max: 0.200053, avg: 0.200023s (2.000226s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000003s (0.000026s / 10)
+	- image_convert_to_rgb: max: 0.002483, avg: 0.002021s (0.101057s / 10)
+	- image_diff: max: 0.001027, avg: 0.001017s (0.010168s / 10)
+	- image_save_ppm: max: 0.013558, avg: 0.008638s (0.086379s / 10)
+- 320x240, 0.033333
+	- camera_get_frame: max: 0.068028, avg: 0.066803s (0.668030s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000004s (0.000037s / 10)
+	- image_convert_to_rgb: max: 0.001124, avg: 0.001094s (0.054687s / 10)
+	- image_diff: max: 0.001505, avg: 0.001478s (0.014780s / 10)
+	- image_save_ppm: max: 0.017130, avg: 0.010344s (0.103439s / 10)
+- 320x240, 0.040000
+	- camera_get_frame: max: 0.068004, avg: 0.066406s (0.664059s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000002s (0.000023s / 10)
+	- image_convert_to_rgb: max: 0.001118, avg: 0.001094s (0.054685s / 10)
+	- image_diff: max: 0.001493, avg: 0.001474s (0.014745s / 10)
+	- image_save_ppm: max: 0.017038, avg: 0.010153s (0.101532s / 10)
+- 320x240, 0.050000
+	- camera_get_frame: max: 0.068003, avg: 0.066804s (0.668038s / 10)
+	- camera_return_frame: max: 0.000003, avg: 0.000002s (0.000022s / 10)
+	- image_convert_to_rgb: max: 0.001123, avg: 0.001094s (0.054685s / 10)
+	- image_diff: max: 0.001500, avg: 0.001478s (0.014777s / 10)
+	- image_save_ppm: max: 0.015232, avg: 0.010205s (0.102051s / 10)
+- 320x240, 0.066667
+	- camera_get_frame: max: 0.068051, avg: 0.066809s (0.668091s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000003s (0.000032s / 10)
+	- image_convert_to_rgb: max: 0.003346, avg: 0.001907s (0.095330s / 10)
+	- image_diff: max: 0.001489, avg: 0.001463s (0.014633s / 10)
+	- image_save_ppm: max: 0.013025, avg: 0.010661s (0.106612s / 10)
+- 320x240, 0.100000
+	- camera_get_frame: max: 0.100016, avg: 0.100007s (1.000066s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000002s (0.000023s / 10)
+	- image_convert_to_rgb: max: 0.001134, avg: 0.001094s (0.054695s / 10)
+	- image_diff: max: 0.001489, avg: 0.001470s (0.014697s / 10)
+	- image_save_ppm: max: 0.028223, avg: 0.011966s (0.119664s / 10)
+- 320x240, 0.200000
+	- camera_get_frame: max: 0.200053, avg: 0.200020s (2.000203s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000049s / 10)
+	- image_convert_to_rgb: max: 0.003361, avg: 0.002493s (0.124660s / 10)
+	- image_diff: max: 0.001468, avg: 0.001446s (0.014456s / 10)
+	- image_save_ppm: max: 0.013719, avg: 0.010205s (0.102050s / 10)
+- 352x288, 0.033333
+	- camera_get_frame: max: 0.068023, avg: 0.066802s (0.668016s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000003s (0.000034s / 10)
+	- image_convert_to_rgb: max: 0.001470, avg: 0.001443s (0.072160s / 10)
+	- image_diff: max: 0.001775, avg: 0.001760s (0.017600s / 10)
+	- image_save_ppm: max: 0.016965, avg: 0.012224s (0.122237s / 10)
+- 352x288, 0.040000
+	- camera_get_frame: max: 0.068000, avg: 0.066406s (0.664057s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000002s (0.000024s / 10)
+	- image_convert_to_rgb: max: 0.001464, avg: 0.001443s (0.072165s / 10)
+	- image_diff: max: 0.001823, avg: 0.001809s (0.018094s / 10)
+	- image_save_ppm: max: 0.017415, avg: 0.011981s (0.119808s / 10)
+- 352x288, 0.050000
+	- camera_get_frame: max: 0.068027, avg: 0.066807s (0.668066s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000003s (0.000027s / 10)
+	- image_convert_to_rgb: max: 0.001495, avg: 0.001444s (0.072191s / 10)
+	- image_diff: max: 0.001844, avg: 0.001818s (0.018178s / 10)
+	- image_save_ppm: max: 0.016288, avg: 0.011894s (0.118941s / 10)
+- 352x288, 0.066667
+	- camera_get_frame: max: 0.068070, avg: 0.066807s (0.668072s / 10)
+	- camera_return_frame: max: 0.000015, avg: 0.000006s (0.000056s / 10)
+	- image_convert_to_rgb: max: 0.003792, avg: 0.002838s (0.141913s / 10)
+	- image_diff: max: 0.001885, avg: 0.001844s (0.018436s / 10)
+	- image_save_ppm: max: 0.016943, avg: 0.012461s (0.124610s / 10)
+- 352x288, 0.100000
+	- camera_get_frame: max: 0.100013, avg: 0.099610s (0.996098s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000003s (0.000026s / 10)
+	- image_convert_to_rgb: max: 0.001486, avg: 0.001444s (0.072175s / 10)
+	- image_diff: max: 0.001789, avg: 0.001779s (0.017791s / 10)
+	- image_save_ppm: max: 0.029624, avg: 0.013650s (0.136498s / 10)
+- 352x288, 0.200000
+	- camera_get_frame: max: 0.200031, avg: 0.200022s (2.000216s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000003s (0.000030s / 10)
+	- image_convert_to_rgb: max: 0.004405, avg: 0.002844s (0.142179s / 10)
+	- image_diff: max: 0.001810, avg: 0.001795s (0.017952s / 10)
+	- image_save_ppm: max: 0.015443, avg: 0.012947s (0.129472s / 10)
+- 432x240, 0.033333
+	- camera_get_frame: max: 0.067998, avg: 0.066803s (0.668025s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000003s (0.000027s / 10)
+	- image_convert_to_rgb: max: 0.001526, avg: 0.001476s (0.073789s / 10)
+	- image_diff: max: 0.002243, avg: 0.001997s (0.019971s / 10)
+	- image_save_ppm: max: 0.014548, avg: 0.011711s (0.117111s / 10)
+- 432x240, 0.040000
+	- camera_get_frame: max: 0.068011, avg: 0.066803s (0.668031s / 10)
+	- camera_return_frame: max: 0.000004, avg: 0.000003s (0.000025s / 10)
+	- image_convert_to_rgb: max: 0.001507, avg: 0.001475s (0.073763s / 10)
+	- image_diff: max: 0.002259, avg: 0.001994s (0.019937s / 10)
+	- image_save_ppm: max: 0.019275, avg: 0.011974s (0.119742s / 10)
+- 432x240, 0.050000
+	- camera_get_frame: max: 0.067998, avg: 0.066799s (0.667989s / 10)
+	- camera_return_frame: max: 0.000043, avg: 0.000007s (0.000074s / 10)
+	- image_convert_to_rgb: max: 0.001486, avg: 0.001475s (0.073765s / 10)
+	- image_diff: max: 0.002210, avg: 0.001997s (0.019965s / 10)
+	- image_save_ppm: max: 0.016682, avg: 0.011949s (0.119494s / 10)
+- 432x240, 0.066667
+	- camera_get_frame: max: 0.068016, avg: 0.066808s (0.668082s / 10)
+	- camera_return_frame: max: 0.000012, avg: 0.000007s (0.000066s / 10)
+	- image_convert_to_rgb: max: 0.004805, avg: 0.002924s (0.146220s / 10)
+	- image_diff: max: 0.002411, avg: 0.002087s (0.020874s / 10)
+	- image_save_ppm: max: 0.021014, avg: 0.013029s (0.130293s / 10)
+- 432x240, 0.100000
+	- camera_get_frame: max: 0.100020, avg: 0.100007s (1.000073s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000004s (0.000040s / 10)
+	- image_convert_to_rgb: max: 0.001624, avg: 0.001513s (0.075667s / 10)
+	- image_diff: max: 0.002439, avg: 0.002098s (0.020980s / 10)
+	- image_save_ppm: max: 0.021691, avg: 0.012771s (0.127715s / 10)
+- 432x240, 0.200000
+	- camera_get_frame: max: 0.200039, avg: 0.200021s (2.000213s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000005s (0.000048s / 10)
+	- image_convert_to_rgb: max: 0.004699, avg: 0.002879s (0.143943s / 10)
+	- image_diff: max: 0.002315, avg: 0.002079s (0.020794s / 10)
+	- image_save_ppm: max: 0.016373, avg: 0.011958s (0.119583s / 10)
+- 544x288, 0.033333
+	- camera_get_frame: max: 0.067982, avg: 0.066407s (0.664074s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000049s / 10)
+	- image_convert_to_rgb: max: 0.002388, avg: 0.002281s (0.114043s / 10)
+	- image_diff: max: 0.003072, avg: 0.002939s (0.029391s / 10)
+	- image_save_ppm: max: 0.025903, avg: 0.017958s (0.179580s / 10)
+- 544x288, 0.040000
+	- camera_get_frame: max: 0.067984, avg: 0.066801s (0.668007s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.002424, avg: 0.002277s (0.113855s / 10)
+	- image_diff: max: 0.003033, avg: 0.002910s (0.029096s / 10)
+	- image_save_ppm: max: 0.039660, avg: 0.019458s (0.194583s / 10)
+- 544x288, 0.050000
+	- camera_get_frame: max: 0.068002, avg: 0.066801s (0.668011s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.002373, avg: 0.002276s (0.113807s / 10)
+	- image_diff: max: 0.002905, avg: 0.002822s (0.028217s / 10)
+	- image_save_ppm: max: 0.019715, avg: 0.015138s (0.151381s / 10)
+- 544x288, 0.066667
+	- camera_get_frame: max: 0.068016, avg: 0.066408s (0.664079s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000010s (0.000097s / 10)
+	- image_convert_to_rgb: max: 0.006038, avg: 0.003626s (0.181315s / 10)
+	- image_diff: max: 0.003014, avg: 0.002897s (0.028972s / 10)
+	- image_save_ppm: max: 0.021033, avg: 0.015394s (0.153939s / 10)
+- 544x288, 0.100000
+	- camera_get_frame: max: 0.100020, avg: 0.100007s (1.000074s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.002380, avg: 0.002282s (0.114090s / 10)
+	- image_diff: max: 0.002952, avg: 0.002889s (0.028890s / 10)
+	- image_save_ppm: max: 0.019774, avg: 0.016358s (0.163576s / 10)
+- 544x288, 0.200000
+	- camera_get_frame: max: 0.200028, avg: 0.200021s (2.000214s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.007105, avg: 0.003695s (0.184731s / 10)
+	- image_diff: max: 0.002883, avg: 0.002828s (0.028278s / 10)
+	- image_save_ppm: max: 0.028201, avg: 0.018084s (0.180839s / 10)
+- 640x360, 0.033333
+	- camera_get_frame: max: 0.067978, avg: 0.066799s (0.667992s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000006s (0.000056s / 10)
+	- image_convert_to_rgb: max: 0.003533, avg: 0.003362s (0.168082s / 10)
+	- image_diff: max: 0.005260, avg: 0.005071s (0.050708s / 10)
+	- image_save_ppm: max: 0.035651, avg: 0.032135s (0.321349s / 10)
+- 640x360, 0.040000
+	- camera_get_frame: max: 0.067990, avg: 0.066796s (0.667955s / 10)
+	- camera_return_frame: max: 0.000021, avg: 0.000007s (0.000065s / 10)
+	- image_convert_to_rgb: max: 0.003313, avg: 0.003277s (0.163871s / 10)
+	- image_diff: max: 0.004928, avg: 0.004906s (0.049061s / 10)
+	- image_save_ppm: max: 0.043411, avg: 0.033638s (0.336379s / 10)
+- 640x360, 0.050000
+	- camera_get_frame: max: 0.067999, avg: 0.066798s (0.667976s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000045s / 10)
+	- image_convert_to_rgb: max: 0.008441, avg: 0.003444s (0.172198s / 10)
+	- image_diff: max: 0.012561, avg: 0.010072s (0.100725s / 10)
+	- image_save_ppm: max: 0.040726, avg: 0.033164s (0.331639s / 10)
+- 640x360, 0.066667
+	- camera_get_frame: max: 0.068006, avg: 0.066800s (0.667999s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000044s / 10)
+	- image_convert_to_rgb: max: 0.003308, avg: 0.003278s (0.163911s / 10)
+	- image_diff: max: 0.004979, avg: 0.004914s (0.049142s / 10)
+	- image_save_ppm: max: 0.056761, avg: 0.036173s (0.361727s / 10)
+- 640x360, 0.100000
+	- camera_get_frame: max: 0.100015, avg: 0.100003s (1.000035s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000045s / 10)
+	- image_convert_to_rgb: max: 0.003323, avg: 0.003278s (0.163916s / 10)
+	- image_diff: max: 0.004919, avg: 0.004887s (0.048872s / 10)
+	- image_save_ppm: max: 0.035690, avg: 0.031535s (0.315348s / 10)
+- 640x360, 0.200000
+	- camera_get_frame: max: 0.200071, avg: 0.200022s (2.000219s / 10)
+	- camera_return_frame: max: 0.000012, avg: 0.000009s (0.000087s / 10)
+	- image_convert_to_rgb: max: 0.010206, avg: 0.004747s (0.237332s / 10)
+	- image_diff: max: 0.004839, avg: 0.004816s (0.048156s / 10)
+	- image_save_ppm: max: 0.039886, avg: 0.032668s (0.326684s / 10)
+- 752x416, 0.040000
+	- camera_get_frame: max: 0.067984, avg: 0.066798s (0.667977s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000004s (0.000043s / 10)
+	- image_convert_to_rgb: max: 0.004533, avg: 0.004454s (0.222677s / 10)
+	- image_diff: max: 0.009251, avg: 0.009110s (0.091104s / 10)
+	- image_save_ppm: max: 0.051260, avg: 0.040957s (0.409571s / 10)
+- 752x416, 0.050000
+	- camera_get_frame: max: 0.067979, avg: 0.066797s (0.667967s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000004s (0.000042s / 10)
+	- image_convert_to_rgb: max: 0.004491, avg: 0.004452s (0.222590s / 10)
+	- image_diff: max: 0.009311, avg: 0.009162s (0.091619s / 10)
+	- image_save_ppm: max: 0.047460, avg: 0.039195s (0.391953s / 10)
+- 752x416, 0.066667
+	- camera_get_frame: max: 0.068065, avg: 0.066808s (0.668078s / 10)
+	- camera_return_frame: max: 0.000013, avg: 0.000008s (0.000078s / 10)
+	- image_convert_to_rgb: max: 0.012272, avg: 0.005976s (0.298782s / 10)
+	- image_diff: max: 0.009689, avg: 0.009514s (0.095140s / 10)
+	- image_save_ppm: max: 0.045199, avg: 0.038554s (0.385535s / 10)
+- 752x416, 0.100000
+	- camera_get_frame: max: 0.100026, avg: 0.100003s (1.000032s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000047s / 10)
+	- image_convert_to_rgb: max: 0.004752, avg: 0.004459s (0.222964s / 10)
+	- image_diff: max: 0.009185, avg: 0.009143s (0.091434s / 10)
+	- image_save_ppm: max: 0.054091, avg: 0.040143s (0.401433s / 10)
+- 752x416, 0.200000
+	- camera_get_frame: max: 0.200073, avg: 0.200026s (2.000263s / 10)
+	- camera_return_frame: max: 0.000013, avg: 0.000008s (0.000085s / 10)
+	- image_convert_to_rgb: max: 0.011510, avg: 0.005258s (0.262923s / 10)
+	- image_diff: max: 0.009137, avg: 0.009066s (0.090661s / 10)
+	- image_save_ppm: max: 0.041231, avg: 0.037122s (0.371223s / 10)
+- 800x448, 0.050000
+	- camera_get_frame: max: 0.067978, avg: 0.066796s (0.667961s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000054s / 10)
+	- image_convert_to_rgb: max: 0.006118, avg: 0.005122s (0.256125s / 10)
+	- image_diff: max: 0.007674, avg: 0.007632s (0.076324s / 10)
+	- image_save_ppm: max: 0.077913, avg: 0.064953s (0.649531s / 10)
+- 800x448, 0.066667
+	- camera_get_frame: max: 0.067985, avg: 0.066798s (0.667977s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000004s (0.000043s / 10)
+	- image_convert_to_rgb: max: 0.005171, avg: 0.005117s (0.255843s / 10)
+	- image_diff: max: 0.008130, avg: 0.007916s (0.079164s / 10)
+	- image_save_ppm: max: 0.049309, avg: 0.028304s (0.283036s / 10)
+- 800x448, 0.100000
+	- camera_get_frame: max: 0.100046, avg: 0.100009s (1.000088s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000008s (0.000081s / 10)
+	- image_convert_to_rgb: max: 0.015391, avg: 0.006583s (0.329137s / 10)
+	- image_diff: max: 0.007676, avg: 0.007629s (0.076292s / 10)
+	- image_save_ppm: max: 0.086791, avg: 0.066577s (0.665770s / 10)
+- 800x448, 0.200000
+	- camera_get_frame: max: 0.200034, avg: 0.200020s (2.000203s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000005s (0.000055s / 10)
+	- image_convert_to_rgb: max: 0.005135, avg: 0.005100s (0.254996s / 10)
+	- image_diff: max: 0.007538, avg: 0.007522s (0.075219s / 10)
+	- image_save_ppm: max: 0.062829, avg: 0.060421s (0.604207s / 10)
+- 800x600, 0.050000
+	- camera_get_frame: max: 0.067967, avg: 0.066405s (0.664045s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000009s (0.000087s / 10)
+	- image_convert_to_rgb: max: 0.020239, avg: 0.008035s (0.401730s / 10)
+	- image_diff: max: 0.010133, avg: 0.010088s (0.100881s / 10)
+	- image_save_ppm: max: 0.083189, avg: 0.072593s (0.725933s / 10)
+- 800x600, 0.066667
+	- camera_get_frame: max: 0.068042, avg: 0.066797s (0.667969s / 10)
+	- camera_return_frame: max: 0.000049, avg: 0.000010s (0.000100s / 10)
+	- image_convert_to_rgb: max: 0.007072, avg: 0.006839s (0.341938s / 10)
+	- image_diff: max: 0.010136, avg: 0.010118s (0.101177s / 10)
+	- image_save_ppm: max: 0.132063, avg: 0.048246s (0.482461s / 10)
+- 800x600, 0.100000
+	- camera_get_frame: max: 0.100014, avg: 0.100004s (1.000042s / 10)
+	- camera_return_frame: max: 0.000007, avg: 0.000005s (0.000053s / 10)
+	- image_convert_to_rgb: max: 0.013714, avg: 0.007630s (0.381490s / 10)
+	- image_diff: max: 0.010155, avg: 0.010138s (0.101378s / 10)
+	- image_save_ppm: max: 0.120878, avg: 0.082666s (0.826658s / 10)
+- 800x600, 0.200000
+	- camera_get_frame: max: 0.200047, avg: 0.200019s (2.000191s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000006s (0.000056s / 10)
+	- image_convert_to_rgb: max: 0.006892, avg: 0.006833s (0.341673s / 10)
+	- image_diff: max: 0.010080, avg: 0.010048s (0.100480s / 10)
+	- image_save_ppm: max: 0.095218, avg: 0.076149s (0.761491s / 10)
+- 864x480, 0.050000
+	- camera_get_frame: max: 0.067990, avg: 0.066798s (0.667977s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000048s / 10)
+	- image_convert_to_rgb: max: 0.005930, avg: 0.005902s (0.295109s / 10)
+	- image_diff: max: 0.008834, avg: 0.008786s (0.087856s / 10)
+	- image_save_ppm: max: 0.078727, avg: 0.068682s (0.686822s / 10)
+- 864x480, 0.066667
+	- camera_get_frame: max: 0.067985, avg: 0.066416s (0.664156s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000054s / 10)
+	- image_convert_to_rgb: max: 0.005928, avg: 0.005903s (0.295170s / 10)
+	- image_diff: max: 0.008862, avg: 0.008826s (0.088257s / 10)
+	- image_save_ppm: max: 0.105684, avg: 0.074936s (0.749358s / 10)
+- 864x480, 0.100000
+	- camera_get_frame: max: 0.100015, avg: 0.100005s (1.000047s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000005s (0.000046s / 10)
+	- image_convert_to_rgb: max: 0.005964, avg: 0.005906s (0.295286s / 10)
+	- image_diff: max: 0.008817, avg: 0.008777s (0.087768s / 10)
+	- image_save_ppm: max: 0.069665, avg: 0.067314s (0.673138s / 10)
+- 864x480, 0.200000
+	- camera_get_frame: max: 0.200078, avg: 0.200027s (2.000273s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000006s (0.000063s / 10)
+	- image_convert_to_rgb: max: 0.017780, avg: 0.006808s (0.340383s / 10)
+	- image_diff: max: 0.008822, avg: 0.008785s (0.087848s / 10)
+	- image_save_ppm: max: 0.068593, avg: 0.066425s (0.664249s / 10)
+- 960x544, 0.066667
+	- camera_get_frame: max: 0.067973, avg: 0.066799s (0.667988s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000005s (0.000047s / 10)
+	- image_convert_to_rgb: max: 0.007472, avg: 0.007432s (0.371580s / 10)
+	- image_diff: max: 0.011915, avg: 0.011859s (0.118595s / 10)
+	- image_save_ppm: max: 0.098065, avg: 0.076454s (0.764542s / 10)
+- 960x544, 0.100000
+	- camera_get_frame: max: 0.100039, avg: 0.100010s (1.000095s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000050s / 10)
+	- image_convert_to_rgb: max: 0.019218, avg: 0.008434s (0.421708s / 10)
+	- image_diff: max: 0.011886, avg: 0.011855s (0.118547s / 10)
+	- image_save_ppm: max: 0.075650, avg: 0.072582s (0.725820s / 10)
+- 960x544, 0.200000
+	- camera_get_frame: max: 0.200030, avg: 0.200019s (2.000194s / 10)
+	- camera_return_frame: max: 0.000005, avg: 0.000005s (0.000048s / 10)
+	- image_convert_to_rgb: max: 0.007473, avg: 0.007439s (0.371935s / 10)
+	- image_diff: max: 0.011835, avg: 0.011769s (0.117695s / 10)
+	- image_save_ppm: max: 0.100767, avg: 0.078048s (0.780483s / 10)
+- 960x720, 0.100000
+	- camera_get_frame: max: 0.100024, avg: 0.100005s (1.000047s / 10)
+	- camera_return_frame: max: 0.000006, avg: 0.000005s (0.000052s / 10)
+	- image_convert_to_rgb: max: 0.011904, avg: 0.009878s (0.493893s / 10)
+	- image_diff: max: 0.015523, avg: 0.015496s (0.154964s / 10)
+	- image_save_ppm: max: 0.126953, avg: 0.104456s (1.044564s / 10)
+- 960x720, 0.200000
+	- camera_get_frame: max: 0.200106, avg: 0.200032s (2.000324s / 10)
+	- camera_return_frame: max: 0.000015, avg: 0.000012s (0.000119s / 10)
+	- image_convert_to_rgb: max: 0.028878, avg: 0.011483s (0.574143s / 10)
+	- image_diff: max: 0.016076, avg: 0.015825s (0.158254s / 10)
+	- image_save_ppm: max: 0.118938, avg: 0.106201s (1.062012s / 10)
+- 1024x576, 0.100000
+	- camera_get_frame: max: 0.100013, avg: 0.100004s (1.000036s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000007s (0.000069s / 10)
+	- image_convert_to_rgb: max: 0.009379, avg: 0.008690s (0.434477s / 10)
+	- image_diff: max: 0.023142, avg: 0.022990s (0.229901s / 10)
+	- image_save_ppm: max: 0.120503, avg: 0.097475s (0.974753s / 10)
+- 1024x576, 0.200000
+	- camera_get_frame: max: 0.200051, avg: 0.200015s (2.000151s / 10)
+	- camera_return_frame: max: 0.000015, avg: 0.000013s (0.000129s / 10)
+	- image_convert_to_rgb: max: 0.026211, avg: 0.009942s (0.497081s / 10)
+	- image_diff: max: 0.022964, avg: 0.022566s (0.225665s / 10)
+	- image_save_ppm: max: 0.117673, avg: 0.096203s (0.962032s / 10)
+- 1184x656, 0.100000
+	- camera_get_frame: max: 0.100019, avg: 0.100005s (1.000046s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000006s (0.000056s / 10)
+	- image_convert_to_rgb: max: 0.013251, avg: 0.011097s (0.554857s / 10)
+	- image_diff: max: 0.018046, avg: 0.017989s (0.179890s / 10)
+	- image_save_ppm: max: 0.161636, avg: 0.130117s (1.301168s / 10)
+- 1184x656, 0.200000
+	- camera_get_frame: max: 0.200063, avg: 0.200019s (2.000189s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000006s (0.000061s / 10)
+	- image_convert_to_rgb: max: 0.011196, avg: 0.011055s (0.552767s / 10)
+	- image_diff: max: 0.017855, avg: 0.017755s (0.177553s / 10)
+	- image_save_ppm: max: 0.166230, avg: 0.131247s (1.312472s / 10)
+- 1280x720, 0.133333
+	- camera_get_frame: max: 0.143973, avg: 0.141613s (1.416130s / 10)
+	- camera_return_frame: max: 0.000008, avg: 0.000005s (0.000051s / 10)
+	- image_convert_to_rgb: max: 0.015716, avg: 0.013162s (0.658110s / 10)
+	- image_diff: max: 0.024885, avg: 0.024725s (0.247246s / 10)
+	- image_save_ppm: max: 0.179190, avg: 0.148987s (1.489872s / 10)
+- 1280x720, 0.200000
+	- camera_get_frame: max: 0.200086, avg: 0.200019s (2.000195s / 10)
+	- camera_return_frame: max: 0.000011, avg: 0.000009s (0.000092s / 10)
+	- image_convert_to_rgb: max: 0.038337, avg: 0.014536s (0.726803s / 10)
+	- image_diff: max: 0.024925, avg: 0.024672s (0.246723s / 10)
+	- image_save_ppm: max: 0.170300, avg: 0.155935s (1.559346s / 10)
+- 1280x960, 0.133333
+	- camera_get_frame: max: 0.143959, avg: 0.141613s (1.416131s / 10)
+	- camera_return_frame: max: 0.000009, avg: 0.000005s (0.000055s / 10)
+	- image_convert_to_rgb: max: 0.031482, avg: 0.018423s (0.921168s / 10)
+	- image_diff: max: 0.041315, avg: 0.041092s (0.410919s / 10)
+	- image_save_ppm: max: 0.239186, avg: 0.207855s (2.078546s / 10)
+- 1280x960, 0.200000
+	- camera_get_frame: max: 0.200050, avg: 0.200020s (2.000197s / 10)
+	- camera_return_frame: max: 0.000013, avg: 0.000008s (0.000079s / 10)
+	- image_convert_to_rgb: max: 0.046397, avg: 0.018722s (0.936077s / 10)
+	- image_diff: max: 0.043332, avg: 0.042891s (0.428911s / 10)
+	- image_save_ppm: max: 0.234676, avg: 0.209446s (2.094460s / 10)
