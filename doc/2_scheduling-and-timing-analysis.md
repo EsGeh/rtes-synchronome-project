@@ -54,7 +54,7 @@ For the target/stretch goals Tc = 0.1s, we get:
 | C in s     | 0.068   | 0.002 | 0.001 | 0.017  |
 | U in %     | 204.08% | 4.52% | 1.12% | 17.13% |
 
-Under the assumption, that the technical issue with S1 can be fixed, 
+Because of a [technical issue](#open-problems-and-challenges), S1 (frame acquisition) is above 100% in this (hopefully this will be fixed).
 
 ## Feasibility
 
@@ -62,7 +62,7 @@ Under the assumption, that the technical issue with S1 can be fixed,
 
 S1 and S4 occupy one core on their own. Therefore they must fulfil the trivial constraint U < 1.
 For the Tc = 1s case this is obviously the case.
-In case of Tc = 0.1s, feasibility depends on finding a solution to drop the minimum sample interval of the camera below 0.03s (or at least below 0.05s).
+In case of Tc = 0.1s, feasibility depends on finding a solution to drop the minimum sample interval of the camera below 0.03s (or at least below 0.05s) (see [technical issues](#open-problems-and-challenges)).
 
 ### S2 and S3
 
