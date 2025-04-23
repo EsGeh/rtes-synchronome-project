@@ -1,6 +1,8 @@
 
 /build/
 
+/doc/pdf/
+
 # clang
 /compile_commands.json
 /.cache
