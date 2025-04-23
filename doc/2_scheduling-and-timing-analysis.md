@@ -69,24 +69,24 @@ In case of Tc = 0.1s, feasibility depends on finding a solution to drop the mini
 S2 and S3 share core 3.
 According to the [Liu & Layland paper [1]](#references), feasibility is guaranteed for rate-monotonic (shortest-deadline-first) policy, as long as the total utilization below the least upper bound. For 2 processes, this criteria evaluates to:
 
-U_{total} < LUB = 2*(2^(1/2) - 1) = 0.83
+U_{total} < LUB = 2*(2^(1/2) - 1) = 0.83 = 83%
 
 Plugging the measured WCET and periods as specified above proofs that processing is feasible for the relevant cases:
 
-- Case 320x240, Ta = 1/3:
+- Case 320x240, Ta = 1s/3:
     - Utilization U = U2 + U3 = 0.564% 
-- Case 320x240, Ta = 1/30:
+- Case 320x240, Ta = 1s/30:
     - Utilization U = U2 + U3 = 5.639%
 
-Even if we add lots of margin and consider C2 = 0.01 and U3 = 0.01, we are still below the LUB:
+Even if we add lots of margin and consider C2 = 0.01s and C3 = 0.01s, we are still below the LUB:
 
 - Case Ta = 1/3:
-    - U2 = 0.01 / (1/3) = 3%
-    - U3 = 0.01 / 1 = 1%
+    - U2 = 0.01s / (1/3)s = 3%
+    - U3 = 0.01s / 1s = 1%
     - Utilization U = U2 + U3 = 4%
 - Case Ta = 1/30:
-    - U2 = 0.01 / (1/30) = 30%
-    - U3 = 0.01 / (1/10) = 10%
+    - U2 = 0.01s / (1/30)s = 30%
+    - U3 = 0.01s / (1/10)s = 10%
     - Utilization U = U2 + U3 = 40%
 
 Timing diagrams for these cases (units are 1s/300):
