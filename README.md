@@ -24,9 +24,9 @@ For details about grading and requirements for passing this course, see `./doc/0
 
 Extended documentation:
 
-- <./doc/0_requirements.md>
-- <./doc/1_system-design.md>
-- <./doc/2_scheduling-and-timing-analysis.md>
+- [Requirements](./doc/0_requirements.md)
+- [System Design](./doc/1_system-design.md)
+- [Scheduling & Timing Analysis](./doc/2_scheduling-and-timing-analysis.md)
 
 Generate .PDF documentation:
 
