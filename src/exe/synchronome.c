@@ -15,6 +15,10 @@
 ********************/
 
 typedef struct {
+	char* output_dir;
+} program_args_t;
+
+typedef struct {
 	camera_t camera;
 	byte_t* rgb_buffer;
 	uint rgb_buffer_size;
@@ -24,18 +28,27 @@ typedef struct {
  * Global Constants
 ********************/
 
-const char short_options[] = "h";
+const char short_options[] = "ho:";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
+	{ "output-dir", required_argument, 0, 'o' },
 	{ 0,0,0,0 },
 };
 const char dev_name[] = "/dev/video0";
+const char output_dir[] = "local/output/synchronome";
+
+static const program_args_t def_args = {
+	.output_dir = "local/output/synchronome",
+};
 
 /********************
  * Function Decls
 ********************/
 
-ret_t run_capture( runtime_data_t* data );
+ret_t run_synchronome(
+		program_args_t* args,
+		runtime_data_t* data
+);
 int set_camera_format( runtime_data_t* data );
 
 void do_exit( runtime_data_t* data );
@@ -46,8 +59,11 @@ void print_cmd_line_info(
 );
 int parse_cmd_line_args(
 		int argc,
-		char* argv[]
+		char* argv[],
+		program_args_t* args
 );
+
+
 
 /********************
  * Main
@@ -55,13 +71,14 @@ int parse_cmd_line_args(
 
 #define CAMERA_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("ERROR: %s\n", camera_error() ); \
+		log_error("%s\n", camera_error() ); \
 		return EXIT_FAILURE; \
 	} \
 }
 
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
+		log_error("error in '%s'\n", #FUNC_CALL ); \
 		return EXIT_FAILURE; \
 	} \
 }
@@ -70,10 +87,12 @@ int main(
 		int argc,
 		char* argv[]
 ) {
+	program_args_t args = def_args;
 	// parse cmd line args:
 	{
 		int ret = parse_cmd_line_args(
-				argc, argv
+				argc, argv,
+				&args
 		);
 		// --help:
 		if( ret == -1 ) {
@@ -98,7 +117,7 @@ int main(
 			.rgb_buffer_size = 0,
 		};
 		camera_zero( &data.camera );
-		ret_t ret = run_capture( &data );
+		ret_t ret = run_synchronome( &args, &data );
 		do_exit( &data );
 		log_exit();
 
@@ -113,7 +132,10 @@ int main(
  * Function Defs
 ********************/
 
-ret_t run_capture( runtime_data_t* data )
+ret_t run_synchronome(
+		program_args_t* args,
+		runtime_data_t* data
+)
 {
 	CAMERA_RUN(camera_init(
 			&data->camera,
@@ -143,8 +165,13 @@ ret_t run_capture( runtime_data_t* data )
 				data->rgb_buffer,
 				data->rgb_buffer_size
 		));
+		char output_path[STR_BUFFER_SIZE];
+		snprintf(output_path, STR_BUFFER_SIZE, "%s/image%04u.ppm",
+				args->output_dir,
+				0
+		);
 		API_RUN( image_save_ppm(
-				"local/img/test.ppm",
+				output_path,
 				"captured from camera",
 				data->rgb_buffer,
 				data->rgb_buffer_size,
@@ -203,12 +230,22 @@ void print_cmd_line_info(
 		char* argv[]
 )
 {
-	printf( "usage: %s\n", argv[0] );
+	printf(
+			"usage: %s [OPTIONS]\n"
+			"\n"
+			"OPTIONS:\n",
+			argv[0]
+	);
+	printf(
+			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
+			def_args.output_dir
+	);
 }
 
 int parse_cmd_line_args(
 		int argc,
-		char* argv[]
+		char* argv[],
+		program_args_t* args
 )
 {
 	// parse options:
@@ -225,6 +262,16 @@ int parse_cmd_line_args(
 			case 'h':
 				return -1;
 			break;
+			case 'o':
+				args->output_dir = optarg;
+			break;
+			case '?':
+				log_error( "invalid arguments!\n" );
+				return 1;
+			break;
+			default:
+				log_error( "getopt returned %o", c );
+				return -1;
 		}
 	}
 	return 0;

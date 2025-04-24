@@ -68,6 +68,7 @@ void log_error(
 	if( g_error_enable_print ) {
 		va_list args;
 		va_start( args, fmt );
+		fprintf( stderr, "ERROR: " );
 		vfprintf( stderr, fmt, args );
 		va_end( args );
 	}

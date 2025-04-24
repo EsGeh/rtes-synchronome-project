@@ -25,15 +25,15 @@ OBJ_DIR=$(OUT_DIR)/objs
 .PHONY: clean
 
 all: \
-	$(OUT_DIR)/capture \
+	$(OUT_DIR)/synchronome \
 	$(OUT_DIR)/run_tests \
 	$(OUT_DIR)/statistics
 
 clean:
 	rm -rf $(OUT_DIR)
 
-$(OUT_DIR)/capture: \
-		$(OBJ_DIR)/capture.o \
+$(OUT_DIR)/synchronome: \
+		$(OBJ_DIR)/synchronome.o \
 		$(OBJ_DIR)/camera.o \
 		$(OBJ_DIR)/image.o \
 		$(OBJ_DIR)/output.o \
@@ -58,8 +58,8 @@ $(OUT_DIR)/run_tests: \
 		| init_dirs
 	$(CC) $(CFLAGS) -o $@ $^ `pkg-config --cflags --libs check`
 
-$(OBJ_DIR)/capture.o: \
-		$(SRC_DIR)/exe/capture.c \
+$(OBJ_DIR)/synchronome.o: \
+		$(SRC_DIR)/exe/synchronome.c \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/output.h \
