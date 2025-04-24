@@ -1,6 +1,6 @@
 #!/bin/env fish
 
-set BASE_DIR (realpath (status dirname)/..)
+set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set SCRIPTS_DIR "$BASE_DIR/scripts"
 set DOC_DIR "$BASE_DIR/doc"
 set OUTPUT_DIR "$BASE_DIR/doc/pdf"

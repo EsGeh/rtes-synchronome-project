@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-set BASE_DIR (realpath (status dirname)"/..")
+set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set CONFIG "$BASE_DIR/local/config/remote.conf"
 set SRC_DIR "$BASE_DIR"
 

@@ -10,6 +10,8 @@ CONFIG=debug
 
 CC=gcc
 ifeq (${CONFIG},debug)
+CFLAGS=-O0 -Wall -Wextra -pedantic -g
+else ifeq (${CONFIG},test)
 CFLAGS=-O0 -Wall -Wextra -pedantic -g \
  -fprofile-arcs -ftest-coverage
 else

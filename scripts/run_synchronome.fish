@@ -1,8 +1,9 @@
 #!/bin/env fish
 
-set BASE_DIR (realpath (status dirname)/..)
+set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set SCRIPTS_DIR "$BASE_DIR/scripts"
-set BIN_DIR "$BASE_DIR/build/debug"
+set CONFIG debug
+set BIN_DIR "$BASE_DIR/build/$CONFIG"
 set OUTPUT_DIR "$BASE_DIR/local/output/synchronome"
 
 
