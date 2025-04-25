@@ -1,13 +1,16 @@
-#include "lib/camera.h"
-#include "lib/image.h"
+#include "synchronome/main.h"
 #include "lib/output.h"
 #include "lib/global.h"
 
 #include <getopt.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdio.h> // <- work with files
 #include <string.h>
+#include <signal.h>
+#include <semaphore.h>
+#include <errno.h>
 
 
 /********************
@@ -17,12 +20,6 @@
 typedef struct {
 	char* output_dir;
 } program_args_t;
-
-typedef struct {
-	camera_t camera;
-	byte_t* rgb_buffer;
-	uint rgb_buffer_size;
-} runtime_data_t;
 
 /********************
  * Global Constants
@@ -45,14 +42,6 @@ static const program_args_t def_args = {
  * Function Decls
 ********************/
 
-ret_t run_synchronome(
-		program_args_t* args,
-		runtime_data_t* data
-);
-int set_camera_format( runtime_data_t* data );
-
-void do_exit( runtime_data_t* data );
-
 void print_cmd_line_info(
 		// int argc,
 		char* argv[]
@@ -63,25 +52,13 @@ int parse_cmd_line_args(
 		program_args_t* args
 );
 
+void scheduler(void);
 
+static void signal_handler(int signal);
 
 /********************
  * Main
 ********************/
-
-#define CAMERA_RUN( FUNC_CALL ) { \
-	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("%s\n", camera_error() ); \
-		return EXIT_FAILURE; \
-	} \
-}
-
-#define API_RUN( FUNC_CALL ) { \
-	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("error in '%s'\n", #FUNC_CALL ); \
-		return EXIT_FAILURE; \
-	} \
-}
 
 int main(
 		int argc,
@@ -110,120 +87,39 @@ int main(
 			true, false,
 			true, true
 	);
+	{
+		struct sigaction sa;
+		memset( &sa, 0, sizeof(sa));
+		sa.sa_handler = signal_handler;
+		sigemptyset( &sa.sa_mask );
+		// sa.sa_flags = SA_RESTART;
+		if( -1 == sigaction( SIGINT, &sa, NULL ) ) {
+			log_error( "'sigaction': %s", strerror(errno) );
+			return EXIT_FAILURE;
+		}
+	}
 	// run:
 	{
-		runtime_data_t data = {
-			.rgb_buffer = NULL,
-			.rgb_buffer_size = 0,
-		};
-		camera_zero( &data.camera );
-		ret_t ret = run_synchronome( &args, &data );
-		do_exit( &data );
+		const uint width = 320;
+		const uint height = 240;
+		ret_t ret = synchronome_run(
+				width,
+				height,
+				args.output_dir
+		);
 		log_exit();
 
 		if( RET_SUCCESS != ret ) {
 			return EXIT_FAILURE;
 		}
 	}
-	return EXIT_SUCCESS;
+	log_info( "exit success\n" );
+	exit(EXIT_SUCCESS);
 }
 
 /********************
  * Function Defs
 ********************/
-
-ret_t run_synchronome(
-		program_args_t* args,
-		runtime_data_t* data
-)
-{
-	CAMERA_RUN(camera_init(
-			&data->camera,
-			dev_name
-	));
-	CAMERA_RUN(set_camera_format(
-				data
-	));
-	// allocate image buffer:
-	data->rgb_buffer_size = image_rgb_size(
-			data->camera.format.width,
-			data->camera.format.height
-	);
-	CALLOC(data->rgb_buffer, data->rgb_buffer_size, 1);
-	{
-		CAMERA_RUN( camera_init_buffer(
-				&data->camera,
-				1
-		));
-		CAMERA_RUN( camera_stream_start( &data->camera ));
-		frame_buffer_t frame;
-		CAMERA_RUN( camera_get_frame( &data->camera, &frame ));
-
-		API_RUN( image_convert_to_rgb(
-				data->camera.format,
-				frame.data,
-				data->rgb_buffer,
-				data->rgb_buffer_size
-		));
-		char output_path[STR_BUFFER_SIZE];
-		snprintf(output_path, STR_BUFFER_SIZE, "%s/image%04u.ppm",
-				args->output_dir,
-				0
-		);
-		API_RUN( image_save_ppm(
-				output_path,
-				"captured from camera",
-				data->rgb_buffer,
-				data->rgb_buffer_size,
-				data->camera.format.width,
-				data->camera.format.height
-		));
-		CAMERA_RUN( camera_return_frame( &data->camera, &frame));
-		CAMERA_RUN( camera_stream_stop( &data->camera ));
-	}
-	return RET_SUCCESS;
-}
-
-int set_camera_format( runtime_data_t* data )
-{
-	format_descriptions_t format_descriptions;
-	if( RET_SUCCESS != camera_list_formats(
-				&data->camera,
-				&format_descriptions
-	) )
-		return RET_FAILURE;
-	__u32 required_format;
-	{
-		bool format_found = false;
-		for( unsigned int i=0; i< format_descriptions.count; i++ ) {
-			if( strstr( (char* )format_descriptions.format_descrs[i].description, "YUYV" ) != NULL ) {
-				format_found = true;
-				required_format = format_descriptions.format_descrs[i].pixelformat;
-				break;
-			}
-		}
-		if( !format_found ) {
-			fprintf(stderr, "camera does not support expected format!\n");
-			return EXIT_FAILURE;
-		}
-	}
-	frame_size_t required_frame_size = { 0, 0};
-	if( RET_SUCCESS != camera_set_mode(
-				&data->camera,
-				required_format, FORMAT_EXACT,
-				required_frame_size, FRAME_SIZE_ANY,
-				(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
-	))
-		return RET_FAILURE;
-	return RET_SUCCESS;
-}
-
-void do_exit( runtime_data_t* data )
-{
-	FREE( data->rgb_buffer );
-	data->rgb_buffer_size = 0;
-	camera_exit( &data->camera );
-}
 
 void print_cmd_line_info(
 		// int argc,
@@ -275,4 +171,13 @@ int parse_cmd_line_args(
 		}
 	}
 	return 0;
+}
+
+static void signal_handler(int signal)
+{
+	switch( signal ) {
+		case SIGINT:
+			synchronome_stop();
+		break;
+	}
 }

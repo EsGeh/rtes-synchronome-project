@@ -1,0 +1,25 @@
+#include "lib/camera.h"
+
+#include <semaphore.h>
+
+
+ret_t frame_acq_init(
+		camera_t* camera,
+		const char* dev_name,
+		const uint buffer_size,
+		const uint width,
+		const uint height
+);
+
+ret_t frame_acq_exit(
+		camera_t* camera
+);
+
+ret_t frame_acq_run(
+		camera_t* camera,
+		sem_t* sem,
+		bool* stop,
+		byte_t* rgb_buffer,
+		uint rgb_buffer_size,
+		const char* output_dir
+);

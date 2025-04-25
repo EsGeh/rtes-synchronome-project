@@ -1,7 +1,7 @@
 #ifndef TIME_H
 #define TIME_H
 
-// #include "global.h"
+#include "global.h"
 
 #define MEASUREMENT_CLOCK CLOCK_MONOTONIC_RAW
 #define TIMER_CLOCK CLOCK_REALTIME
@@ -31,7 +31,7 @@ struct timespec time_measure_current_time(void);
  * Repeat at const frequency
  ***********************/
 
-void time_repeat(
+ret_t time_add_timer(
 		void (*timer_callback)(int),
 		const USEC period_us
 );

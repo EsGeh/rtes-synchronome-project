@@ -1,7 +1,11 @@
 #include "time.h"
+#include "global.h"
+#include "output.h"
 
 #include <time.h>
 #include <signal.h>
+#include <errno.h>
+#include <string.h>
 
 struct timespec start_time;
 
@@ -30,12 +34,19 @@ struct timespec time_measure_current_time(void)
 	return current_time_rel;
 }
 
-void time_repeat(
+ret_t time_add_timer(
 		void (*timer_callback)(int),
 		const USEC period_us
 )
 {
-  signal(SIGALRM, timer_callback);
+	struct sigaction sa;
+	memset( &sa, 0, sizeof(sa));
+	sa.sa_handler = timer_callback;
+	sigemptyset( &sa.sa_mask );
+	if( -1 == sigaction( SIGALRM, &sa, NULL ) ) {
+		log_error( "'sigaction': %s", strerror(errno) );
+		return RET_FAILURE;
+	}
 	// repeat running scheduler
 	// in regular intervals:
 	{
@@ -59,6 +70,7 @@ void time_repeat(
 				NULL
 		);
 	}
+	return RET_SUCCESS;
 }
 
 void time_sleep(

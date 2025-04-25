@@ -922,10 +922,10 @@ ret_t negotiate_format(
 
 int ioctl_helper(int fh, unsigned int request, void *arg) {
 	int r;
-	do 
-	{
+	do {
 		r = ioctl(fh, request, arg);
 
-	} while (-1 == r && EINTR == errno);
+	}
+	while(-1 == r && (errno == EINTR || errno == EAGAIN) );
 	return r;
 }
