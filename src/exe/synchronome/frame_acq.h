@@ -7,8 +7,9 @@ ret_t frame_acq_init(
 		camera_t* camera,
 		const char* dev_name,
 		const uint buffer_size,
-		const uint width,
-		const uint height
+		const pixel_format_t required_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval
 );
 
 ret_t frame_acq_exit(

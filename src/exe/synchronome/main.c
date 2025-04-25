@@ -15,7 +15,6 @@
 #include <semaphore.h>
 #include <errno.h>
 #include <unistd.h>
-#include <signal.h>
 
 
 /********************
@@ -49,15 +48,15 @@ static camera_thread_t camera_thread;
 ********************/
 
 ret_t synchronome_init(
-		const uint width,
-		const uint height
+		const frame_size_t size
 );
 void synchronome_exit(void);
 
 ret_t synchronome_main(
-		const char* output_dir,
-		const uint width,
-		const uint height
+		const pixel_format_t pixel_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval,
+		const char* output_dir
 );
 
 void sequencer(int);
@@ -86,22 +85,23 @@ void* camera_thread_run(
 }
 
 ret_t synchronome_run(
-		const uint width,
-		const uint height,
+		const pixel_format_t pixel_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval,
 		const char* output_dir
 )
 {
 	if( RET_SUCCESS != synchronome_init(
-				width,
-				height
+				size
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
 	};
 	if( RET_SUCCESS != synchronome_main(
-				output_dir,
-				width,
-				height
+				pixel_format,
+				size,
+				acq_interval,
+				output_dir
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -117,8 +117,7 @@ void synchronome_stop(void)
 }
 
 ret_t synchronome_init(
-		const uint width,
-		const uint height
+		const frame_size_t size
 )
 {
 	data.rgb_buffer = NULL;
@@ -127,8 +126,8 @@ ret_t synchronome_init(
 	data.stop = false;
 	// allocate image buffer:
 	data.rgb_buffer_size = image_rgb_size(
-			width,
-			height
+			size.width,
+			size.height
 	);
 	CALLOC(data.rgb_buffer, data.rgb_buffer_size, 1);
 	// semaphore
@@ -151,24 +150,25 @@ void synchronome_exit(void)
 }
 
 ret_t synchronome_main(
-		const char* output_dir,
-		const uint width,
-		const uint height
-
+		const pixel_format_t pixel_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval,
+		const char* output_dir
 )
 {
 	camera_thread.output_dir = output_dir;
 	const uint frame_buffer_size = 10;
 	time_add_timer(
 			sequencer,
-			1000*1000
+			1000*1000 * acq_interval->numerator / acq_interval->denominator
 	);
 	frame_acq_init(
 			&data.camera,
 			"/dev/video0",
 			frame_buffer_size,
-			width,
-			height
+			pixel_format,
+			size,
+			acq_interval
 	);
 	thread_create(
 			"capture",

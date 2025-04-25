@@ -1,17 +1,18 @@
 #include "frame_acq.h"
 
+#include "lib/camera.h"
 #include "lib/image.h"
 #include "lib/output.h"
 #include "lib/global.h"
 
 #include <stdio.h>
-#include <string.h>
 
 
 int set_camera_format(
 		camera_t* camera,
-		const uint width,
-		const uint height
+		const pixel_format_t pixel_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval
 );
 
 #define CAMERA_RUN( FUNC_CALL ) { \
@@ -33,8 +34,9 @@ ret_t frame_acq_init(
 		camera_t* camera,
 		const char* dev_name,
 		const uint buffer_size,
-		const uint width,
-		const uint height
+		const pixel_format_t required_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval
 )
 {
 	CAMERA_RUN(camera_init(
@@ -43,8 +45,9 @@ ret_t frame_acq_init(
 	));
 	CAMERA_RUN(set_camera_format(
 				camera,
-				width,
-				height
+				required_format,
+				size,
+				acq_interval
 	));
 	CAMERA_RUN( camera_init_buffer(
 			camera,
@@ -112,37 +115,51 @@ ret_t frame_acq_run(
 
 int set_camera_format(
 		camera_t* camera,
-		const uint width,
-		const uint height
+		const pixel_format_t pixel_format,
+		const frame_size_t size,
+		const frame_interval_t* acq_interval
+		// const float acq_rate
 )
 {
-	format_descriptions_t format_descriptions;
-	if( RET_SUCCESS != camera_list_formats(
+	frame_interval_descrs_t interval_descrs;
+	if( RET_SUCCESS != camera_list_frame_intervals(
 				camera,
-				&format_descriptions
-	) )
+				pixel_format,
+				size,
+				&interval_descrs
+	) ) {
 		return RET_FAILURE;
-	__u32 required_format;
-	{
-		bool format_found = false;
-		for( unsigned int i=0; i< format_descriptions.count; i++ ) {
-			if( strstr( (char* )format_descriptions.format_descrs[i].description, "YUYV" ) != NULL ) {
-				format_found = true;
-				required_format = format_descriptions.format_descrs[i].pixelformat;
-				break;
-			}
-		}
-		if( !format_found ) {
-			log_error( "camera does not support expected format!\n");
-			return RET_FAILURE;
+	}
+	// choose minimal supported camera frame interval:
+	frame_interval_t selected_interval = { 0, 0 };
+	for( uint index=0; index<interval_descrs.count; index++ ) {
+		frame_interval_descr_t* interval_descr = &interval_descrs.descrs[index];
+		if( 
+				(selected_interval.numerator == 0 && selected_interval.denominator == 0)
+				||
+				((float )interval_descr->discrete.numerator / (float )interval_descr->discrete.denominator)
+				< (float )selected_interval.numerator / (float )selected_interval.denominator
+			) {
+			selected_interval = interval_descr->discrete;
 		}
 	}
-	frame_size_t required_frame_size = { width, height };
+	const float max_interval = (float )acq_interval->numerator / (float )acq_interval->denominator;
+	// const float max_interval = 1.0 / acq_rate;
+	if( 
+			(float )selected_interval.numerator / (float )selected_interval.denominator > max_interval
+	)
+	{
+		log_error( "supported lowest camera interval is too long!: supported: %f, required: %f\n",
+			(float )selected_interval.numerator / (float )selected_interval.denominator,
+			max_interval
+		);
+		return RET_FAILURE;
+	}
 	if( RET_SUCCESS != camera_set_mode(
 				camera,
-				required_format, FORMAT_EXACT,
-				required_frame_size, FRAME_SIZE_EXACT,
-				(frame_interval_t){0, 0}, FRAME_INTERVAL_ANY
+				pixel_format, FORMAT_EXACT,
+				size, FRAME_SIZE_EXACT,
+				selected_interval, FRAME_INTERVAL_EXACT
 	)) {
 		return RET_FAILURE;
 	}
