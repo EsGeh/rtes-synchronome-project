@@ -120,7 +120,7 @@ int main(
 		sigemptyset( &sa.sa_mask );
 		// sa.sa_flags = SA_RESTART;
 		if( -1 == sigaction( SIGINT, &sa, NULL ) ) {
-			log_error( "'sigaction': %s", strerror(errno) );
+			log_error( "'sigaction': %s\n", strerror(errno) );
 			return EXIT_FAILURE;
 		}
 	}
@@ -136,6 +136,7 @@ int main(
 		log_exit();
 
 		if( RET_SUCCESS != ret ) {
+			log_error( "program failed!\n" );
 			return EXIT_FAILURE;
 		}
 	}

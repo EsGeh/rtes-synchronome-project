@@ -796,6 +796,7 @@ ret_t negotiate_format(
 )
 {
 	struct v4l2_format format;
+	memset(&format, 0, sizeof(format));
 	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	// Query current format:
 	{

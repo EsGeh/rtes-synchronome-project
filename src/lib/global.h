@@ -3,6 +3,8 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #define STR_BUFFER_SIZE 1024
 
@@ -29,7 +31,7 @@ typedef enum {
 	assert( PTR == NULL ); \
 	PTR = calloc( COUNT, SIZE ); \
 	if( PTR == NULL ) { \
-		fprintf( stderr, "calloc failed! out of memory!" ); \
+		fprintf( stderr, "calloc failed! out of memory!\n" ); \
 		exit( EXIT_FAILURE ); \
 	} \
 }
