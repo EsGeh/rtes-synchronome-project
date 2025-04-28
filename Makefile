@@ -40,8 +40,10 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/frame_acq.o \
 		$(OBJ_DIR)/select.o \
 		$(OBJ_DIR)/convert.o \
+		$(OBJ_DIR)/write_to_storage.o \
 		$(OBJ_DIR)/acq_queue.o \
 		$(OBJ_DIR)/select_queue.o \
+		$(OBJ_DIR)/rgb_queue.o \
 		$(OBJ_DIR)/camera.o \
 		$(OBJ_DIR)/time.o \
 		$(OBJ_DIR)/image.o \
@@ -97,10 +99,13 @@ $(OBJ_DIR)/run_tests.o: \
 
 $(OBJ_DIR)/synchronome_main.o: \
 		$(SRC_DIR)/exe/synchronome/main.c $(SRC_DIR)/exe/synchronome/main.h \
-		$(SRC_DIR)/exe/synchronome/select.h \
 		$(SRC_DIR)/exe/synchronome/frame_acq.h \
+		$(SRC_DIR)/exe/synchronome/select.h \
+		$(SRC_DIR)/exe/synchronome/convert.h \
+		$(SRC_DIR)/exe/synchronome/write_to_storage.h \
 		$(SRC_DIR)/exe/synchronome/acq_queue.h \
 		$(SRC_DIR)/exe/synchronome/select_queue.h \
+		$(SRC_DIR)/exe/synchronome/rgb_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/time.h \
@@ -141,8 +146,19 @@ $(OBJ_DIR)/convert.o: \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(OBJ_DIR)/write_to_storage.o: \
+		$(SRC_DIR)/exe/synchronome/write_to_storage.c $(SRC_DIR)/exe/synchronome/write_to_storage.h \
+		$(SRC_DIR)/exe/synchronome/rgb_queue.h \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(OBJ_DIR)/acq_queue.o: \
 		$(SRC_DIR)/exe/synchronome/acq_queue.c $(SRC_DIR)/exe/synchronome/acq_queue.h \
+		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
@@ -151,6 +167,16 @@ $(OBJ_DIR)/acq_queue.o: \
 
 $(OBJ_DIR)/select_queue.o: \
 		$(SRC_DIR)/exe/synchronome/select_queue.c $(SRC_DIR)/exe/synchronome/select_queue.h \
+		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/rgb_queue.o: \
+		$(SRC_DIR)/exe/synchronome/rgb_queue.c $(SRC_DIR)/exe/synchronome/rgb_queue.h \
+		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \

@@ -74,6 +74,7 @@ ret_t frame_acq_run(
 )
 {
 	acq_entry_t acq_entry;
+	timeval_t t0 = time_measure_current_time();
 	while( true ) {
 		if( sem_wait( sem ) ) {
 			perror("sem_wait");
@@ -83,41 +84,19 @@ ret_t frame_acq_run(
 			log_info( "frame_acc: stopping\n" );
 			break;
 		}
-		if( acq_queue_is_full(acq_queue) ) {
-			log_error( "frame_acc: Acquisition Queue overflow!" );
-			return RET_FAILURE;
-		}
-		acq_entry.time = time_measure_current_time();
+		timeval_t time = time_measure_current_time();
+		timeval_t delta;
+		time_delta( &time, &t0, &delta );
+		acq_entry.time = delta;
 		CAMERA_RUN( camera_get_frame( camera, &acq_entry.frame ));
-		log_info( "frame_acc: write\n" );
-		acq_queue_push( acq_queue, acq_entry );
-		/*
-		API_RUN( image_convert_to_rgb(
-				camera->format,
-				frame.data,
-				rgb_buffer,
-				rgb_buffer_size
-		));
-		snprintf(output_path, STR_BUFFER_SIZE, "%s/image%04u.ppm",
-				output_dir,
-				counter
+		log_info( "frame_acc: write %lu.%lu\n",
+				delta.tv_sec,
+				delta.tv_nsec / 1000 / 1000
 		);
-		log_info( "writing frame: '%s'\n", output_path );
-		API_RUN( image_save_ppm(
-				output_path,
-				"captured from camera",
-				rgb_buffer,
-				rgb_buffer_size,
-				camera->format.width,
-				camera->format.height
-		));
-		CAMERA_RUN( camera_return_frame( camera, &frame));
-		*/
-		// ++counter;
+		acq_queue_push( acq_queue, acq_entry );
 	}
 	return RET_SUCCESS;
 }
-
 
 int set_camera_format(
 		camera_t* camera,

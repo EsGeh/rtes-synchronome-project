@@ -4,26 +4,17 @@
 
 #include <semaphore.h>
 
-/*
-typedef struct {
-	timeval_t time;
-	frame_buffer_t frame;
-} select_entry_t;
-*/
 
 typedef acq_entry_t select_entry_t;
 
 typedef struct {
 	select_entry_t* entries;
 	uint max_count;
-	uint count;
 	uint read_pos;
+	uint write_pos;
 	sem_t read_sem;
-	bool stop;
-	pthread_mutex_t mutex;
-	/*
 	sem_t write_sem;
-	*/
+	bool stop;
 } select_queue_t;
 
 void select_queue_init(
@@ -36,36 +27,32 @@ uint select_queue_get_max_count(
 		select_queue_t* queue
 );
 
-uint select_queue_get_count(
+bool select_queue_get_should_stop(
 		select_queue_t* queue
 );
 
-bool select_queue_is_full(
+void select_queue_set_should_stop(
 		select_queue_t* queue
 );
 
-void select_queue_wait(
+// READ:
+
+void select_queue_read_start(
 		select_queue_t* queue
 );
 
-bool select_queue_should_stop(
-		select_queue_t* queue
-);
-
-void select_queue_stop(
-		select_queue_t* queue
-);
-
-void select_queue_push(
-		select_queue_t* queue,
-		select_entry_t entry
-);
-
-void select_queue_peek(
+void select_queue_read_get(
 		select_queue_t* queue,
 		select_entry_t* entry
 );
 
-void select_queue_pop(
+void select_queue_read_stop_dump(
 		select_queue_t* queue
+);
+
+// WRITE:
+
+void select_queue_push(
+		select_queue_t* queue,
+		select_entry_t entry
 );

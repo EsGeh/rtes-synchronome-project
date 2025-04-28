@@ -2,10 +2,12 @@
 // buffers:
 #include "exe/synchronome/acq_queue.h"
 #include "exe/synchronome/select_queue.h"
+#include "exe/synchronome/rgb_queue.h"
 // services:
 #include "frame_acq.h"
 #include "select.h"
 #include "convert.h"
+#include "write_to_storage.h"
 
 #include "lib/camera.h"
 #include "lib/time.h"
@@ -28,19 +30,12 @@
  * Types
 ********************/
 
-/*
-typedef struct {
-	byte_t* data;
-	uint size;
-} rgb_buffer_t;
-*/
-
 typedef struct {
 	// Resources:
 	camera_t camera;
 	acq_queue_t acq_queue;
 	select_queue_t select_queue;
-	// rgb_buffer_t rgb_buffer;
+	rgb_queue_t rgb_queue;
 	// 
 	bool stop;
 } runtime_data_t;
@@ -49,20 +44,23 @@ typedef struct {
 	pthread_t td;
 	ret_t ret;
 	sem_t sem;
-	// const char* output_dir;
 } camera_thread_t;
 
 typedef struct {
 	pthread_t td;
 	ret_t ret;
-	// sem_t sem;
 } select_thread_t;
 
 typedef struct {
 	pthread_t td;
 	ret_t ret;
-	// sem_t sem;
 } convert_thread_t;
+
+typedef struct {
+	pthread_t td;
+	ret_t ret;
+	// parameters:
+} write_to_storage_thread_t;
 
 /********************
  * Global Data
@@ -73,9 +71,11 @@ static runtime_data_t data;
 static camera_thread_t camera_thread;
 static select_thread_t select_thread;
 static convert_thread_t convert_thread;
+static write_to_storage_thread_t write_to_storage_thread;
 
 const uint frame_buffer_count = 1;
 const uint select_queue_count = 1;
+const uint rgb_queue_count = 1;
 
 /********************
  * Function Decls
@@ -104,6 +104,10 @@ void* select_thread_run(
 );
 
 void* convert_thread_run(
+		void* thread_args
+);
+
+void* write_to_storage_thread_run(
 		void* thread_args
 );
 
@@ -155,10 +159,10 @@ ret_t synchronome_run(
 void synchronome_stop(void)
 {
 	data.stop = true;
-	acq_queue_stop( &data.acq_queue );
-	select_queue_stop( &data.select_queue );
+	acq_queue_set_should_stop( &data.acq_queue );
+	select_queue_set_should_stop( &data.select_queue );
+	rgb_queue_set_should_stop( &data.rgb_queue );
 	sem_post( &camera_thread.sem );
-	// sem_post( &select_thread.sem );
 }
 
 void dump_frame(frame_buffer_t frame)
@@ -184,19 +188,11 @@ ret_t synchronome_init(
 			&data.select_queue,
 			select_queue_count
 	);
-	/*
-	data.acq_buffer.max_count = frame_buffer_count;
-	CALLOC( data.acq_buffer.entries, data.acq_buffer.max_count, sizeof(frame_buffer_t));
-	data.acq_buffer.count = 0;
-	data.acq_buffer.read_pos = 0;
-	*/
-	/*
-	data.rgb_buffer.size = image_rgb_size(
-			size.width,
-			size.height
+	rgb_queue_init(
+			&data.rgb_queue,
+			size,
+			rgb_queue_count
 	);
-	CALLOC(data.rgb_buffer.data, data.rgb_buffer.size, 1);
-	*/
 	// semaphore
 	if( sem_init( &camera_thread.sem, 0, 0 ) ) {
 		log_error( "'sem_init': %s\n", strerror(errno) );
@@ -211,10 +207,9 @@ void synchronome_exit(void)
 		log_error( "'sem_destroy': %s\n", strerror(errno) );
 	}
 	log_info( "shutdown\n" );
-	log_info( "exit acq queue\n" );
+	rgb_queue_exit( &data.rgb_queue );
 	select_queue_exit( &data.select_queue );
 	acq_queue_exit( &data.acq_queue );
-	log_info( "exit camera\n" );
 	camera_exit( &data.camera );
 }
 
@@ -225,7 +220,6 @@ ret_t synchronome_main(
 		const char* output_dir
 )
 {
-	// camera_thread.output_dir = output_dir;
 	time_add_timer(
 			sequencer,
 			1000*1000 * acq_interval->numerator / acq_interval->denominator
@@ -256,6 +250,19 @@ ret_t synchronome_main(
 			convert_thread_run,
 			NULL
 	);
+	thread_create(
+			"storage",
+			&write_to_storage_thread.td,
+			write_to_storage_thread_run,
+			(void* )output_dir
+	);
+	if( 0 != pthread_join(
+			write_to_storage_thread.td,
+			NULL
+	)) {
+		perror( "pthread_join" );
+		return RET_FAILURE;
+	}
 	if( 0 != pthread_join(
 			convert_thread.td,
 			NULL
@@ -315,10 +322,24 @@ void* convert_thread_run(
 )
 {
 	convert_thread.ret = convert_run(
+			data.camera.format,
 			&data.select_queue,
+			&data.rgb_queue,
 			dump_frame
 	);
-	return &select_thread.ret;
+	return &convert_thread.ret;
+}
+
+void* write_to_storage_thread_run(
+		void* p
+)
+{
+	char* output_dir = p;
+	write_to_storage_thread.ret = write_to_storage_run(
+			&data.rgb_queue,
+			output_dir
+	);
+	return &write_to_storage_thread.ret;
 }
 
 void sequencer(int sig) {

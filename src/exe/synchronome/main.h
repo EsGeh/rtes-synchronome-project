@@ -1,3 +1,5 @@
+#pragma once
+
 #include "lib/global.h"
 
 #include "lib/camera.h"
