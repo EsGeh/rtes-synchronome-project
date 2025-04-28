@@ -1,7 +1,7 @@
 #include "lib/camera.h"
+#include "acq_queue.h"
 
 #include <semaphore.h>
-
 
 ret_t frame_acq_init(
 		camera_t* camera,
@@ -20,7 +20,5 @@ ret_t frame_acq_run(
 		camera_t* camera,
 		sem_t* sem,
 		bool* stop,
-		byte_t* rgb_buffer,
-		uint rgb_buffer_size,
-		const char* output_dir
+		acq_queue_t* acq_queue
 );
