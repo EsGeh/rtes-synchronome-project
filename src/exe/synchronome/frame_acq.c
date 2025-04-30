@@ -89,10 +89,12 @@ ret_t frame_acq_run(
 		time_delta( &time, &t0, &delta );
 		acq_entry.time = delta;
 		CAMERA_RUN( camera_get_frame( camera, &acq_entry.frame ));
+		/*
 		log_info( "frame_acc: write %lu.%lu\n",
 				delta.tv_sec,
 				delta.tv_nsec / 1000 / 1000
 		);
+		*/
 		acq_queue_push( acq_queue, acq_entry );
 	}
 	return RET_SUCCESS;

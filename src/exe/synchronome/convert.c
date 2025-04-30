@@ -28,10 +28,12 @@ ret_t convert_run(
 		}
 		select_queue_read_get(input_queue, &entry);
 		{
+			/*
 			log_info( "convert: frame %lu.%lu\n",
 					entry.time.tv_sec,
 					entry.time.tv_nsec / 1000 / 1000
 			);
+			*/
 			rgb_entry_t* dst_entry;
 			rgb_queue_push_start( rgb_queue, &dst_entry );
 			dst_entry->time = entry.time;

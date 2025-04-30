@@ -46,9 +46,9 @@ void acq_queue_read_start(
 		acq_queue_t* queue
 );
 
-void acq_queue_read_get(
+acq_entry_t* acq_queue_read_get(
 		acq_queue_t* queue,
-		acq_entry_t* entry
+		const uint index
 );
 
 void acq_queue_read_stop_dump(

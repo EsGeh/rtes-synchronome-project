@@ -72,12 +72,14 @@ void acq_queue_read_start(
 	sem_wait( &queue->read_sem );
 }
 
-void acq_queue_read_get(
+acq_entry_t* acq_queue_read_get(
 		acq_queue_t* queue,
-		acq_entry_t* entry
+		const uint index
 )
 {
-	*entry = queue->entries[queue->read_pos];
+	return &queue->entries[
+		(queue->read_pos + index) % queue->max_count
+	];
 }
 
 void acq_queue_read_stop_dump(
