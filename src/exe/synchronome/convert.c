@@ -50,7 +50,8 @@ ret_t convert_run(
 			rgb_queue_push_end( rgb_queue );
 		}
 		select_queue_read_stop_dump(input_queue);
-		dump_frame( entry.frame );
+		// frames are dumped be the `select` service!,
+		// so nothing to do here!
 	}
 	return RET_SUCCESS;
 }

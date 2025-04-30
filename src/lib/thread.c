@@ -31,3 +31,18 @@ ret_t thread_create(
 	}
 	return RET_SUCCESS;
 }
+
+ret_t thread_join_ret(
+		pthread_t thread
+)
+{
+	ret_t* ret;
+	if( 0 != pthread_join(
+			thread,
+			(void**)&ret
+	)) {
+		perror( "pthread_join" );
+		return RET_FAILURE;
+	}
+	return *ret;
+}

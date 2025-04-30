@@ -62,6 +62,11 @@ typedef struct {
 	// parameters:
 } write_to_storage_thread_t;
 
+typedef struct {
+	float acq_interval;
+	float clock_tick_interval;
+} select_parameters_t;
+
 /********************
  * Global Data
 ********************/
@@ -73,7 +78,6 @@ static select_thread_t select_thread;
 static convert_thread_t convert_thread;
 static write_to_storage_thread_t write_to_storage_thread;
 
-const uint frame_buffer_count = 10;
 const uint select_queue_count = 1;
 const uint rgb_queue_count = 1;
 
@@ -82,14 +86,17 @@ const uint rgb_queue_count = 1;
 ********************/
 
 ret_t synchronome_init(
-		const frame_size_t size
+		const frame_size_t size,
+		const uint frame_buffer_count
 );
 void synchronome_exit(void);
 
 ret_t synchronome_main(
 		const pixel_format_t pixel_format,
 		const frame_size_t size,
-		const frame_interval_t* acq_interval,
+		const uint frame_buffer_count,
+		const frame_interval_t acq_interval,
+		const frame_interval_t clock_tick_interval,
 		const char* output_dir
 );
 
@@ -133,12 +140,23 @@ void* write_to_storage_thread_run(
 ret_t synchronome_run(
 		const pixel_format_t pixel_format,
 		const frame_size_t size,
-		const frame_interval_t* acq_interval,
+		const frame_interval_t acq_interval,
+		const frame_interval_t clock_tick_interval,
 		const char* output_dir
 )
 {
+	uint frame_buffer_count;
+	API_RUN( select_get_frame_acc_count(
+			(float )acq_interval.numerator / (float )acq_interval.denominator,
+			(float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
+			&frame_buffer_count
+	));
+	// add safety margin:
+	frame_buffer_count += 2;
+	log_info( "frame_buffer_count: %u\n", frame_buffer_count );
 	if( RET_SUCCESS != synchronome_init(
-				size
+				size,
+				frame_buffer_count
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -146,7 +164,9 @@ ret_t synchronome_run(
 	if( RET_SUCCESS != synchronome_main(
 				pixel_format,
 				size,
+				frame_buffer_count,
 				acq_interval,
+				clock_tick_interval,
 				output_dir
 	) ) {
 		synchronome_exit();
@@ -174,7 +194,8 @@ void dump_frame(frame_buffer_t frame)
 }
 
 ret_t synchronome_init(
-		const frame_size_t size
+		const frame_size_t size,
+		const uint frame_buffer_count
 )
 {
 	camera_zero( &data.camera );
@@ -216,13 +237,15 @@ void synchronome_exit(void)
 ret_t synchronome_main(
 		const pixel_format_t pixel_format,
 		const frame_size_t size,
-		const frame_interval_t* acq_interval,
+		const uint frame_buffer_count,
+		const frame_interval_t acq_interval,
+		const frame_interval_t clock_tick_interval,
 		const char* output_dir
 )
 {
 	time_add_timer(
 			sequencer,
-			1000*1000 * acq_interval->numerator / acq_interval->denominator
+			1000*1000 * acq_interval.numerator / acq_interval.denominator
 	);
 	frame_acq_init(
 			&data.camera,
@@ -230,7 +253,7 @@ ret_t synchronome_main(
 			frame_buffer_count,
 			pixel_format,
 			size,
-			acq_interval
+			&acq_interval
 	);
 	thread_create(
 			"capture",
@@ -238,11 +261,15 @@ ret_t synchronome_main(
 			camera_thread_run,
 			NULL
 	);
+	select_parameters_t select_params = {
+		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
+		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
+	};
 	thread_create(
 			"select",
 			&select_thread.td,
 			select_thread_run,
-			NULL
+			&select_params
 	);
 	thread_create(
 			"convert",
@@ -256,40 +283,30 @@ ret_t synchronome_main(
 			write_to_storage_thread_run,
 			(void* )output_dir
 	);
-	if( 0 != pthread_join(
-			write_to_storage_thread.td,
-			NULL
+	ret_t ret = RET_SUCCESS;
+	if( RET_SUCCESS != thread_join_ret(
+				write_to_storage_thread.td
 	)) {
-		perror( "pthread_join" );
-		return RET_FAILURE;
+		ret = RET_FAILURE;
 	}
-	if( 0 != pthread_join(
-			convert_thread.td,
-			NULL
+	if( RET_SUCCESS != thread_join_ret(
+				convert_thread.td
 	)) {
-		perror( "pthread_join" );
-		return RET_FAILURE;
+		ret = RET_FAILURE;
 	}
-	if( 0 != pthread_join(
-			select_thread.td,
-			NULL
+	if( RET_SUCCESS != thread_join_ret(
+				select_thread.td
 	)) {
-		perror( "pthread_join" );
-		return RET_FAILURE;
+		ret = RET_FAILURE;
 	}
-	if( 0 != pthread_join(
-			camera_thread.td,
-			NULL
+	if( RET_SUCCESS != thread_join_ret(
+				camera_thread.td
 	)) {
-		perror( "pthread_join" );
-		return RET_FAILURE;
-	}
-	if( camera_thread.ret == RET_FAILURE ) {
-		return RET_FAILURE;
+		ret = RET_FAILURE;
 	}
 	frame_acq_exit( &data.camera );
 	log_info( "done\n" );
-	return RET_SUCCESS;
+	return ret;
 }
 
 void* camera_thread_run(
@@ -302,6 +319,9 @@ void* camera_thread_run(
 			&data.stop,
 			&data.acq_queue
 	);
+	if( camera_thread.ret != RET_SUCCESS ) {
+		synchronome_stop();
+	}
 	return &camera_thread.ret;
 }
 
@@ -309,12 +329,18 @@ void* select_thread_run(
 		void* p
 )
 {
+	const select_parameters_t select_params = *((select_parameters_t *)p);
 	select_thread.ret = select_run(
 			data.camera.format,
+			select_params.acq_interval,
+			select_params.clock_tick_interval,
 			&data.acq_queue,
 			&data.select_queue,
 			dump_frame
 	);
+	if( select_thread.ret != RET_SUCCESS ) {
+		synchronome_stop();
+	}
 	return &select_thread.ret;
 }
 
@@ -328,6 +354,9 @@ void* convert_thread_run(
 			&data.rgb_queue,
 			dump_frame
 	);
+	if( convert_thread.ret != RET_SUCCESS ) {
+		synchronome_stop();
+	}
 	return &convert_thread.ret;
 }
 
@@ -340,6 +369,9 @@ void* write_to_storage_thread_run(
 			&data.rgb_queue,
 			output_dir
 	);
+	if( write_to_storage_thread.ret != RET_SUCCESS ) {
+		synchronome_stop();
+	}
 	return &write_to_storage_thread.ret;
 }
 

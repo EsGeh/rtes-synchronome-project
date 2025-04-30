@@ -1,3 +1,4 @@
+#include "lib/camera.h"
 #include "synchronome/main.h"
 #include "lib/output.h"
 #include "lib/global.h"
@@ -20,6 +21,7 @@
 typedef struct {
 	frame_size_t size;
 	frame_interval_t acq_interval;
+	frame_interval_t clock_tick_interval;
 	char* output_dir;
 } program_args_t;
 
@@ -29,18 +31,20 @@ typedef struct {
 
 static const program_args_t def_args = {
 	.output_dir = "local/output/synchronome",
-	.acq_interval = { 1, 1 },
+	.acq_interval = { 1, 3 },
+	.clock_tick_interval = { 1, 1 },
 	.size = {
 			.width = 320,
 			.height = 240,
 	},
 };
 
-const char short_options[] = "ho:s:a:";
+const char short_options[] = "ho:s:a:c:";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "size", required_argument, 0, 's' },
-	{ "acquisition-intervall", required_argument, 0, 'a' },
+	{ "acq-interval", required_argument, 0, 'a' },
+	{ "clock-tick", required_argument, 0, 'c' },
 	{ "output-dir", required_argument, 0, 'o' },
 	{ 0,0,0,0 },
 };
@@ -130,7 +134,8 @@ int main(
 		ret_t ret = synchronome_run(
 				pixel_format,
 				args.size,
-				&args.acq_interval,
+				args.acq_interval,
+				args.clock_tick_interval,
 				args.output_dir
 		);
 		log_exit();
@@ -163,9 +168,14 @@ void print_cmd_line_info(
 			"--size|-s SIZE_DESCR: image size. Format WxH. default: 320x240\n"
 	);
 	printf(
-			"--acquisition-interval|-a RATE: frame sample interval in seconds. Format: X/Y. default: %u/%u\n",
+			"--acq-interval|-a RATE: frame sample interval in seconds. Format: X/Y. default: %u/%u\n",
 			def_args.acq_interval.numerator,
 			def_args.acq_interval.denominator
+	);
+	printf(
+			"--clock-tick|-c FREQ: tick interval of the external clock in seconds. Format: X/Y. default: %u/%u\n",
+			def_args.clock_tick_interval.numerator,
+			def_args.clock_tick_interval.denominator
 	);
 	printf(
 			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
@@ -214,6 +224,13 @@ int parse_cmd_line_args(
 					return 1;
 				}
 			break;
+			case 'c': {
+				if( RET_SUCCESS != parse_2_toks(optarg, '/', &args->clock_tick_interval.numerator, &args->clock_tick_interval.denominator) ) {
+					log_error( "invalid format. expected: X/Y\n" );
+					return 1;
+				}
+			}
+			break;
 			case '?':
 				// log_error( "invalid arguments!\n" );
 				return 1;
@@ -235,6 +252,10 @@ void print_args(
 	log_info( "acquisition interval: %u/%u\n",
 			args->acq_interval.numerator,
 			args->acq_interval.denominator
+	);
+	log_info( "clock tick interval: %f\n",
+			args->clock_tick_interval.numerator,
+			args->clock_tick_interval.denominator
 	);
 	log_info( "output dir: %s\n", args->output_dir );
 }

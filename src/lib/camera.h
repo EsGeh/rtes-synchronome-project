@@ -121,6 +121,9 @@ typedef struct {
 	buffer_container_t buffer_container;
 	img_format_t format;
 	frame_interval_t frame_interval;
+	// keep track of owned frames
+	// (useful for debugging)
+	uint currently_owned_frames;
 } camera_t;
 
 /********************

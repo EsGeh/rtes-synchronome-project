@@ -70,7 +70,8 @@ void camera_zero( camera_t* camera )
 		.format = {
 			.width = 0,
 			.height = 0,
-		}
+		},
+		.currently_owned_frames = 0,
 	};
 }
 
@@ -481,7 +482,8 @@ ret_t camera_init_buffer(
 			);
 			return RET_FAILURE;
 		}
-	}	
+	}
+	camera->currently_owned_frames = buffer_count;
 	return RET_SUCCESS;
 }
 
@@ -584,6 +586,7 @@ ret_t camera_get_frame(
 		);
 		return RET_FAILURE;
 	}
+	assert( camera->currently_owned_frames > 0 );
 	// wait for the device to get ready:
 	{
 		fd_set fds;
@@ -616,6 +619,8 @@ ret_t camera_get_frame(
 	buffer->data = camera->buffer_container.buffers[buffer_descr.index].data;
 	buffer->size = buffer_descr.bytesused;
 	buffer->index = buffer_descr.index;
+	camera->currently_owned_frames--;
+	// log_info( "camera_get_frame: %u\n", camera->currently_owned_frames );
 	return RET_SUCCESS;
 }
 
@@ -639,6 +644,8 @@ ret_t camera_return_frame(
 	}
 	buffer->data = NULL;
 	buffer->size = 0;
+	camera->currently_owned_frames++;
+	// log_info( "camera_return_frame: %u\n", camera->currently_owned_frames );
 	return RET_SUCCESS;
 }
 

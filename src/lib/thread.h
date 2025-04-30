@@ -9,3 +9,7 @@ ret_t thread_create(
 		void* (*func)(void* p),
 		void* arg
 );
+
+ret_t thread_join_ret(
+		pthread_t thread
+);
