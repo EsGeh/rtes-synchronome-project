@@ -69,7 +69,7 @@ ret_t capture_run(
 					&data->camera,
 					&mode
 		));
-		log_info( "- %ux%u, %f\n",
+		log_info( "%ux%u, %f\n",
 				mode.frame_size.width,
 				mode.frame_size.height,
 				(float )mode.frame_interval.numerator

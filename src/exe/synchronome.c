@@ -122,6 +122,8 @@ void capture_print_cmd_line_info(
 		char* argv[]
 );
 
+ret_t print_platform_info();
+
 static void signal_handler(int signal);
 
 ret_t parse_size(
@@ -198,6 +200,10 @@ int main(
 			}
 			synchronome_print_args( &args );
 			log_info("---------------------------\n");
+			if( RET_SUCCESS != print_platform_info() ) {
+				return EXIT_FAILURE;
+			}
+			log_info("---------------------------\n");
 			log_init(
 					argv[0],
 					true, false,
@@ -238,6 +244,11 @@ int main(
 					return EXIT_FAILURE;
 				}
 			}
+			log_info("---------------------------\n");
+			if( RET_SUCCESS != print_platform_info() ) {
+				return EXIT_FAILURE;
+			}
+			log_info("---------------------------\n");
 			ret_t ret = capture_single(
 					&args
 			);
@@ -546,6 +557,27 @@ void capture_print_cmd_line_info(
 			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
 			synchronome_def_args.output_dir
 	);
+}
+
+ret_t print_platform_info()
+{
+	char cmd[] = "uname -a";
+	char str[STR_BUFFER_SIZE];
+	FILE* file = popen( cmd, "r" );
+	if( !file ) {
+		perror( "popen" );
+		return RET_FAILURE;
+	}
+	if( NULL == fgets(str, STR_BUFFER_SIZE, file) ) {
+		perror( "pclose" );
+		return RET_FAILURE;
+	}
+	log_info("%s", str);
+	if( -1 == pclose( file ) ) {
+		perror( "pclose" );
+		return RET_FAILURE;
+	}
+	return RET_SUCCESS;
 }
 
 ret_t parse_2_toks(
