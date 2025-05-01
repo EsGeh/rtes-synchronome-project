@@ -27,11 +27,6 @@
 // interval of this size:
 const uint avg_diff_count = 8;
 
-// how much must the image diff
-// be above average to be classified
-// as a tick:
-const float tick_threshold = 0.5f;
-
 DECL_RING_BUFFER(diff_buffer,float)
 
 typedef struct {
@@ -72,6 +67,7 @@ ret_t select_run(
 		const img_format_t src_format,
 		const float acq_interval,
 		const float clock_tick_interval,
+		const float tick_threshold,
 		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,

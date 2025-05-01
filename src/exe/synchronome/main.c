@@ -65,6 +65,7 @@ typedef struct {
 typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
+	float tick_threshold;
 	bool save_all;
 } select_parameters_t;
 
@@ -98,6 +99,7 @@ ret_t synchronome_main(
 		const uint frame_buffer_count,
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
+		const float tick_threshold,
 		const char* output_dir,
 		const bool save_all
 );
@@ -140,38 +142,34 @@ void* write_to_storage_thread_run(
 }
 
 ret_t synchronome_run(
-		const pixel_format_t pixel_format,
-		const frame_size_t size,
-		const frame_interval_t acq_interval,
-		const frame_interval_t clock_tick_interval,
-		const char* output_dir,
-		const bool save_all
+		const synchronome_args_t args
 )
 {
 	uint frame_buffer_count;
 	API_RUN( select_get_frame_acc_count(
-			(float )acq_interval.numerator / (float )acq_interval.denominator,
-			(float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
+			(float )args.acq_interval.numerator / (float )args.acq_interval.denominator,
+			(float )args.clock_tick_interval.numerator / (float )args.clock_tick_interval.denominator,
 			&frame_buffer_count
 	));
 	// add safety margin:
 	frame_buffer_count += 2;
 	log_info( "frame_buffer_count: %u\n", frame_buffer_count );
 	if( RET_SUCCESS != synchronome_init(
-				size,
+				args.size,
 				frame_buffer_count
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
 	};
 	if( RET_SUCCESS != synchronome_main(
-				pixel_format,
-				size,
+				args.pixel_format,
+				args.size,
 				frame_buffer_count,
-				acq_interval,
-				clock_tick_interval,
-				output_dir,
-				save_all
+				args.acq_interval,
+				args.clock_tick_interval,
+				args.tick_threshold,
+				args.output_dir,
+				args.save_all
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -244,6 +242,7 @@ ret_t synchronome_main(
 		const uint frame_buffer_count,
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
+		const float tick_threshold,
 		const char* output_dir,
 		const bool save_all
 )
@@ -269,6 +268,7 @@ ret_t synchronome_main(
 	select_parameters_t select_params = {
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
+		.tick_threshold = tick_threshold,
 		.save_all = save_all,
 	};
 	thread_create(
@@ -343,6 +343,7 @@ void* select_thread_run(
 			data.camera.format,
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
+			select_params.tick_threshold,
 			select_params.save_all,
 			&data.acq_queue,
 			&data.select_queue,

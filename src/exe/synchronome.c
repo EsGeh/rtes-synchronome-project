@@ -37,9 +37,11 @@ const  struct option long_options[] = {
 // synchronome:
 
 static const synchronome_args_t synchronome_def_args = {
+	.pixel_format = V4L2_PIX_FMT_YUYV,
 	.output_dir = "local/output/synchronome",
 	.acq_interval = { 1, 3 },
 	.clock_tick_interval = { 1, 1 },
+	.tick_threshold = 0.2,
 	.save_all = false,
 	.size = {
 			.width = 320,
@@ -47,13 +49,14 @@ static const synchronome_args_t synchronome_def_args = {
 	},
 };
 
-const char synchronome_short_options[] = "ho:s:a:c:x";
+const char synchronome_short_options[] = "ho:s:a:c:x:t";
 const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "output-dir", required_argument, 0, 'o' },
 	{ "size", required_argument, 0, 's' },
 	{ "acq-interval", required_argument, 0, 'a' },
 	{ "clock-tick", required_argument, 0, 'c' },
+	{ "tick-thresh", required_argument, 0, 't' },
 	{ "save-all", no_argument, 0, 'x' },
 	{ 0,0,0,0 },
 };
@@ -186,7 +189,6 @@ int main(
 					return EXIT_FAILURE;
 				}
 			}
-			const pixel_format_t pixel_format = V4L2_PIX_FMT_YUYV;
 			{
 				struct sigaction sa;
 				memset( &sa, 0, sizeof(sa));
@@ -210,12 +212,7 @@ int main(
 					true, true
 			);
 			ret_t ret = synchronome_run(
-					pixel_format,
-					args.size,
-					args.acq_interval,
-					args.clock_tick_interval,
-					args.output_dir,
-					args.save_all
+					args
 			);
 			log_exit();
 
@@ -392,6 +389,15 @@ int synchronome_parse_cmd_line_args(
 				}
 			}
 			break;
+			case 't': {
+				char* next_tok;
+				args->tick_threshold = strtof( optarg, &next_tok );
+				if( next_tok == optarg ) {
+					log_error( "failed parsing tick-threshold. expected: floating point value\n" );
+					return 1;
+				}
+			}
+			break;
 			case 'x': {
 					args->save_all = true;
 			}
@@ -442,6 +448,10 @@ void synchronome_print_cmd_line_info(
 			"--clock-tick|-c FREQ: tick interval of the external clock in seconds. Format: X/Y. default: %u/%u\n",
 			synchronome_def_args.clock_tick_interval.numerator,
 			synchronome_def_args.clock_tick_interval.denominator
+	);
+	printf(
+			"--tick-thresh|-t: threshold for tick detection (fraction of (max-avg)). default: %f\n",
+			synchronome_def_args.tick_threshold
 	);
 	printf(
 			"--save-all|-x: save all acquired frames to disk. default: false\n"

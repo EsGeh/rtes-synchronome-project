@@ -9,6 +9,7 @@ ret_t select_run(
 		const img_format_t src_format,
 		const float acq_interval,
 		const float clock_tick_interval,
+		const float tick_threshold,
 		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
