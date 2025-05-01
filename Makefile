@@ -130,6 +130,7 @@ $(OBJ_DIR)/select.o: \
 		$(SRC_DIR)/exe/synchronome/acq_queue.h \
 		$(SRC_DIR)/exe/synchronome/select_queue.h \
 		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/ring_buffer.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \

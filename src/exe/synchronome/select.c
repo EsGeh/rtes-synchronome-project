@@ -4,6 +4,7 @@
 
 #include "lib/image.h"
 #include "lib/output.h"
+#include "lib/ring_buffer.h"
 #include "lib/global.h"
 #include "lib/time.h"
 
@@ -24,12 +25,14 @@
 
 // calculate avg diff over an
 // interval of this size:
-const uint avg_diff_count = 10;
+const uint avg_diff_count = 8;
 
 // how much must the image diff
 // be above average to be classified
 // as a tick:
 const float tick_threshold = 1.5f;
+
+DECL_RING_BUFFER(diff_buffer,float)
 
 typedef struct {
 	float avg_diff;
@@ -37,6 +40,7 @@ typedef struct {
 	int last_tick_index;
 	timeval_t last_tick_time;
 	// timeval_t last_selected;
+	diff_buffer_t diff_buffer;
 } select_state_t;
 
 static select_state_t state;
@@ -57,10 +61,6 @@ void select_frame(
 /********************
  * Function Defs
 ********************/
-
-// TODO:
-// - if necessary, replace moving avg_diff hack
-//   by a real solution using a ring buffer of img diffs
 
 /*
  * Remark:
@@ -94,10 +94,10 @@ ret_t select_run(
 	log_info( "max_frame_acc_count: %u\n", max_frame_acc_count );
 	ASSERT( 1.0f/acq_interval >= 2.0 * (1.0f/clock_tick_interval) );
 	ASSERT( max_frame_acc_count > 2 );
+	diff_buffer_init( &state.diff_buffer, avg_diff_count );
 	while( true ) {
 		// cleanup:
 		if( state.frame_count >= max_frame_acc_count ) {
-			state.avg_diff -= (state.avg_diff / avg_diff_count);
 			// dump obsolete frames:
 			dump_frame( acq_queue_read_get(input_queue,0)->frame );
 			acq_queue_read_stop_dump(input_queue);
@@ -108,6 +108,7 @@ ret_t select_run(
 		acq_queue_read_start( input_queue );
 		if( acq_queue_get_should_stop( input_queue ) ) {
 			log_info( "select: stopping\n" );
+			diff_buffer_exit( &state.diff_buffer );
 			break;
 		}
 		state.frame_count++;
@@ -115,13 +116,14 @@ ret_t select_run(
 			continue;
 		}
 		// calc image difference:
-		float diff_value;
+		float diff_value_f;
 		API_RUN(image_diff(
 				src_format,
 				acq_queue_read_get(input_queue,state.frame_count-1)->frame.data,
 				acq_queue_read_get(input_queue,state.frame_count-2)->frame.data,
-				&diff_value
+				&diff_value_f
 		));
+		float diff_value = diff_value_f;
 		log_info( "select: frame %lu.%lu, diff: %.3f, avg: %.3f, acc_count: %u\n",
 				acq_queue_read_get(input_queue,state.frame_count-1)->time.tv_sec,
 				acq_queue_read_get(input_queue,state.frame_count-1)->time.tv_nsec / 1000 / 1000,
@@ -146,7 +148,24 @@ ret_t select_run(
 			state.last_tick_index = state.frame_count-1;
 			state.last_tick_time = tick_time;
 		}
-		state.avg_diff += (diff_value / avg_diff_count);
+		// update avg_diff:
+		if( diff_buffer_get_count(&state.diff_buffer) < avg_diff_count ) {
+			// cumulative average:
+			const uint n = diff_buffer_get_count(&state.diff_buffer);
+			log_info( "avg (cum): n: %u\n", n );
+			state.avg_diff =
+				(state.avg_diff * ((float )n) + diff_value)
+				/ ((float )(n+1));
+			diff_buffer_push( &state.diff_buffer, diff_value );
+		}
+		else {
+			float oldest_diff = *diff_buffer_get( &state.diff_buffer );
+			log_info( "avg (nor): oldest: %f\n", oldest_diff );
+			diff_buffer_pop( &state.diff_buffer );
+			diff_buffer_push( &state.diff_buffer, diff_value );
+			state.avg_diff -= oldest_diff / avg_diff_count;
+			state.avg_diff += diff_value / avg_diff_count;
+		}
 	}
 	return RET_SUCCESS;
 }
@@ -218,3 +237,5 @@ ret_t select_get_frame_acc_count(
 	ASSERT( (*frame_acc_count) > 2 );
 	return RET_SUCCESS;
 }
+
+DEF_RING_BUFFER(diff_buffer,float)
