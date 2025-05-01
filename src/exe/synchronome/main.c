@@ -5,6 +5,7 @@
 #include "exe/synchronome/rgb_queue.h"
 // services:
 #include "frame_acq.h"
+#include "lib/global.h"
 #include "select.h"
 #include "convert.h"
 #include "write_to_storage.h"
@@ -16,6 +17,7 @@
 
 #include <getopt.h>
 #include <pthread.h>
+#include <sched.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -247,6 +249,10 @@ ret_t synchronome_main(
 		const bool save_all
 )
 {
+	if( thread_get_cpu_count() < 4 ) {
+		log_error( "system provides less than 4 cpu cores" );
+		return RET_FAILURE;
+	}
 	time_add_timer(
 			sequencer,
 			1000*1000 * acq_interval.numerator / acq_interval.denominator
@@ -259,36 +265,48 @@ ret_t synchronome_main(
 			size,
 			&acq_interval
 	);
-	thread_create(
+	API_RUN( thread_create(
 			"capture",
 			&camera_thread.td,
 			camera_thread_run,
-			NULL
-	);
+			NULL,
+			SCHED_FIFO,
+			thread_get_max_priority(SCHED_FIFO),
+			1
+	) );
 	select_parameters_t select_params = {
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
 		.tick_threshold = tick_threshold,
 		.save_all = save_all,
 	};
-	thread_create(
+	API_RUN( thread_create(
 			"select",
 			&select_thread.td,
 			select_thread_run,
-			&select_params
-	);
-	thread_create(
+			&select_params,
+			SCHED_FIFO,
+			thread_get_max_priority(SCHED_FIFO),
+			2
+	));
+	API_RUN( thread_create(
 			"convert",
 			&convert_thread.td,
 			convert_thread_run,
-			NULL
-	);
-	thread_create(
+			NULL,
+			SCHED_FIFO,
+			thread_get_max_priority(SCHED_FIFO)-1,
+			2
+	));
+	API_RUN(thread_create(
 			"storage",
 			&write_to_storage_thread.td,
 			write_to_storage_thread_run,
-			(void* )output_dir
-	);
+			(void* )output_dir,
+			SCHED_NORMAL,
+			-1,
+			3	
+	));
 	ret_t ret = RET_SUCCESS;
 	if( RET_SUCCESS != thread_join_ret(
 				write_to_storage_thread.td
