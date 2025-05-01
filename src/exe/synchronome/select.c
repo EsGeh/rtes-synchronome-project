@@ -30,12 +30,13 @@ const uint avg_diff_count = 8;
 // how much must the image diff
 // be above average to be classified
 // as a tick:
-const float tick_threshold = 1.1f;
+const float tick_threshold = 0.5f;
 
 DECL_RING_BUFFER(diff_buffer,float)
 
 typedef struct {
 	float avg_diff;
+	float max_diff;
 	uint frame_count;
 	int last_tick_index;
 	timeval_t last_tick_time;
@@ -87,8 +88,6 @@ ret_t select_run(
 			clock_tick_interval,
 			&max_frame_acc_count
 	) );
-	log_info( "acq_interval: %f\n", acq_interval );
-	log_info( "clock_interval: %f\n", clock_tick_interval );
 	log_info( "max_frame_acc_count: %u\n", max_frame_acc_count );
 	diff_buffer_init( &state.diff_buffer, avg_diff_count );
 	while( true ) {
@@ -136,7 +135,7 @@ ret_t select_run(
 		else {
 			if(
 					state.frame_count >= max_frame_acc_count
-					&& diff_value > tick_threshold * state.avg_diff
+					&& ((diff_value - state.avg_diff) > tick_threshold * (state.max_diff - state.avg_diff) )
 			) {
 				log_info( "tick!\n" );
 				timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
@@ -153,6 +152,7 @@ ret_t select_run(
 		if( diff_buffer_get_count(&state.diff_buffer) < avg_diff_count ) {
 			// cumulative average:
 			const uint n = diff_buffer_get_count(&state.diff_buffer);
+			state.max_diff = MAX(state.max_diff,diff_value);
 			state.avg_diff =
 				(state.avg_diff * ((float )n) + diff_value)
 				/ ((float )(n+1));
@@ -162,6 +162,11 @@ ret_t select_run(
 			float oldest_diff = *diff_buffer_get( &state.diff_buffer );
 			diff_buffer_pop( &state.diff_buffer );
 			diff_buffer_push( &state.diff_buffer, diff_value );
+			// brute force, there might be a better strategy...:
+			state.max_diff = 0;
+			for( uint i=0; i<avg_diff_count; i++ ) {
+				state.max_diff = MAX(state.max_diff, *diff_buffer_get_index(&state.diff_buffer, i) );
+			}
 			state.avg_diff -= oldest_diff / avg_diff_count;
 			state.avg_diff += diff_value / avg_diff_count;
 		}

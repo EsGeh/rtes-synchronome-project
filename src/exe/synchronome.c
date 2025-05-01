@@ -458,11 +458,11 @@ void synchronome_print_args(
 {
 	log_info( "selected settings:\n" );
 	log_info( "size: %ux%u\n", args->size.width, args->size.height );
-	log_info( "acquisition interval: %u/%u\n",
+	log_info( "acquisition interval (in s): %u/%u\n",
 			args->acq_interval.numerator,
 			args->acq_interval.denominator
 	);
-	log_info( "clock tick interval: %f\n",
+	log_info( "clock tick interval (in s): %u/%u\n",
 			args->clock_tick_interval.numerator,
 			args->clock_tick_interval.denominator
 	);

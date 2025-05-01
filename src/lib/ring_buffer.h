@@ -35,6 +35,11 @@ ENTRY_T* NAME##_get( \
 		NAME##_t* buffer \
 ); \
  \
+ENTRY_T* NAME##_get_index( \
+		NAME##_t* buffer, \
+		const uint index \
+); \
+ \
 void NAME##_pop( \
 		NAME##_t* buffer \
 ); \
@@ -89,8 +94,16 @@ ENTRY_T* NAME##_get( \
 		NAME##_t* buffer \
 ) \
 { \
+	return NAME##_get_index(buffer, 0); \
+} \
+ \
+ENTRY_T* NAME##_get_index( \
+		NAME##_t* buffer, \
+		const uint index \
+) \
+{ \
 	return &buffer->entries[ \
-		buffer->read_pos % buffer->max_count \
+		(buffer->read_pos+index) % buffer->max_count \
 	]; \
 } \
  \
