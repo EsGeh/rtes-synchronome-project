@@ -50,12 +50,9 @@ static select_state_t state;
 ********************/
 
 void select_frame(
-		const uint max_frame_acc_count,
-		const float acq_interval,
 		const float clock_tick_interval,
 		acq_queue_t* input_queue,
-		select_queue_t* output_queue,
-		float diff_value
+		select_queue_t* output_queue
 );
 
 /********************
@@ -138,12 +135,9 @@ ret_t select_run(
 			log_info( "tick!\n" );
 			timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
 			select_frame(
-					max_frame_acc_count,
-					acq_interval,
 					clock_tick_interval,
 					input_queue,
-					output_queue,
-					diff_value
+					output_queue
 			);
 			state.last_tick_index = state.frame_count-1;
 			state.last_tick_time = tick_time;
@@ -171,12 +165,9 @@ ret_t select_run(
 }
 
 void select_frame(
-		const uint max_frame_acc_count,
-		const float acq_interval,
 		const float clock_tick_interval,
 		acq_queue_t* input_queue,
-		select_queue_t* output_queue,
-		float diff_value
+		select_queue_t* output_queue
 )
 {
 	timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;

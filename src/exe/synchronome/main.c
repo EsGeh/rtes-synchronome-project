@@ -309,6 +309,8 @@ ret_t synchronome_main(
 	return ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void* camera_thread_run(
 		void* p
 )
@@ -324,6 +326,7 @@ void* camera_thread_run(
 	}
 	return &camera_thread.ret;
 }
+#pragma GCC diagnostic pop
 
 void* select_thread_run(
 		void* p
@@ -344,6 +347,8 @@ void* select_thread_run(
 	return &select_thread.ret;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void* convert_thread_run(
 		void* p
 )
@@ -351,14 +356,14 @@ void* convert_thread_run(
 	convert_thread.ret = convert_run(
 			data.camera.format,
 			&data.select_queue,
-			&data.rgb_queue,
-			dump_frame
+			&data.rgb_queue
 	);
 	if( convert_thread.ret != RET_SUCCESS ) {
 		synchronome_stop();
 	}
 	return &convert_thread.ret;
 }
+#pragma GCC diagnostic pop
 
 void* write_to_storage_thread_run(
 		void* p

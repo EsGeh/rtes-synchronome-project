@@ -8,6 +8,5 @@
 ret_t convert_run(
 		const img_format_t src_format,
 		select_queue_t* input_queue,
-		rgb_queue_t* rgb_queue,
-		dump_frame_func_t dump_frame
+		rgb_queue_t* rgb_queue
 );
