@@ -1,5 +1,5 @@
-#include "lib/camera.h"
 #include "synchronome/main.h"
+#include "simple_capture/main.h"
 #include "lib/output.h"
 #include "lib/global.h"
 
@@ -7,67 +7,119 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdio.h> // <- work with files
+#include <stdio.h>
 #include <string.h>
 #include <signal.h>
 #include <semaphore.h>
 #include <errno.h>
+#include <time.h>
 
 
 /********************
  * Types
 ********************/
 
-typedef struct {
-	frame_size_t size;
-	frame_interval_t acq_interval;
-	frame_interval_t clock_tick_interval;
-	char* output_dir;
-} program_args_t;
+typedef enum {
+	RUN_SYNCHRONOME,
+	RUN_CAPTURE_SINGLE
+} command_t;
 
 /********************
  * Global Constants
 ********************/
 
-static const program_args_t def_args = {
+const char short_options[] = "h";
+const  struct option long_options[] = {
+	{ "help", no_argument, 0, 'h' },
+	{ 0,0,0,0 },
+};
+
+// synchronome:
+
+static const synchronome_args_t synchronome_def_args = {
 	.output_dir = "local/output/synchronome",
 	.acq_interval = { 1, 3 },
 	.clock_tick_interval = { 1, 1 },
+	.save_all = false,
 	.size = {
 			.width = 320,
 			.height = 240,
 	},
 };
 
-const char short_options[] = "ho:s:a:c:";
-const  struct option long_options[] = {
+const char synchronome_short_options[] = "ho:s:a:c:x";
+const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
+	{ "output-dir", required_argument, 0, 'o' },
 	{ "size", required_argument, 0, 's' },
 	{ "acq-interval", required_argument, 0, 'a' },
 	{ "clock-tick", required_argument, 0, 'c' },
-	{ "output-dir", required_argument, 0, 'o' },
+	{ "save-all", no_argument, 0, 'x' },
 	{ 0,0,0,0 },
 };
 
-const char dev_name[] = "/dev/video0";
-const char output_dir[] = "local/output/synchronome";
+// capture:
+
+static const capture_args_t capture_def_args = {
+	.output_dir = "local/output/synchronome",
+	.dev_name = "/dev/video0",
+	.acq_interval = { 1, 3 },
+	.size = {
+			.width = 320,
+			.height = 240,
+	},
+};
+
+const char capture_short_options[] = "ho:s:a:";
+const  struct option capture_long_options[] = {
+	{ "help", no_argument, 0, 'h' },
+	{ "output-dir", required_argument, 0, 'o' },
+	{ "size", required_argument, 0, 's' },
+	{ "acq-interval", required_argument, 0, 'a' },
+	{ 0,0,0,0 },
+};
 
 /********************
  * Function Decls
 ********************/
 
-void print_cmd_line_info(
-		// int argc,
-		char* argv[]
-);
 int parse_cmd_line_args(
 		int argc,
 		char* argv[],
-		program_args_t* args
+		int* rest_args,
+		command_t* command
 );
 
-void print_args(
-		program_args_t* args
+void print_cmd_line_info(
+		char* argv[]
+);
+
+// synchronome:
+
+int synchronome_parse_cmd_line_args(
+		int argc,
+		char* argv[],
+		synchronome_args_t* args
+);
+
+void synchronome_print_cmd_line_info(
+		char* argv[]
+);
+
+void synchronome_print_args(
+		synchronome_args_t* args
+);
+
+// capture:
+
+int capture_parse_cmd_line_args(
+		int argc,
+		char* argv[],
+		capture_args_t* args
+);
+
+void capture_print_cmd_line_info(
+		char* argv[]
 );
 
 static void signal_handler(int signal);
@@ -92,103 +144,201 @@ int main(
 		int argc,
 		char* argv[]
 ) {
-	program_args_t args = def_args;
-	// parse cmd line args:
+	command_t command;
+	int rest_args = 0;
 	{
 		int ret = parse_cmd_line_args(
-				argc, argv,
-				&args
+				argc,
+				argv,
+				&rest_args,
+				&command
 		);
 		// --help:
 		if( ret == -1 ) {
-			print_cmd_line_info( /*argc,*/ argv );
+			print_cmd_line_info( argv );
 			return EXIT_SUCCESS;
 		}
 		// error parsing cmd line args:
 		else if( ret != 0 ) {
-			print_cmd_line_info( /*argc,*/ argv );
+			print_cmd_line_info( argv );
 			return EXIT_FAILURE;
 		}
 	}
-	print_args( &args );
-	log_info("---------------------------\n");
-	log_init(
-			argv[0],
-			true, false,
-			true, true
-	);
-	{
-		struct sigaction sa;
-		memset( &sa, 0, sizeof(sa));
-		sa.sa_handler = signal_handler;
-		sigemptyset( &sa.sa_mask );
-		// sa.sa_flags = SA_RESTART;
-		if( -1 == sigaction( SIGINT, &sa, NULL ) ) {
-			log_error( "'sigaction': %s\n", strerror(errno) );
-			return EXIT_FAILURE;
-		}
-	}
-	// run:
-	{
-		const pixel_format_t pixel_format = V4L2_PIX_FMT_YUYV;
-		ret_t ret = synchronome_run(
-				pixel_format,
-				args.size,
-				args.acq_interval,
-				args.clock_tick_interval,
-				args.output_dir
-		);
-		log_exit();
+	switch( command ) {
+		case RUN_SYNCHRONOME: {
+			synchronome_args_t args = synchronome_def_args;
+			{
+				int ret = synchronome_parse_cmd_line_args(
+						argc-rest_args,
+						&argv[rest_args],
+						&args
+				);
+				// --help:
+				if( ret == -1 ) {
+					synchronome_print_cmd_line_info( argv );
+					return EXIT_SUCCESS;
+				}
+				// error parsing cmd line args:
+				else if( ret != 0 ) {
+					synchronome_print_cmd_line_info( argv );
+					return EXIT_FAILURE;
+				}
+			}
+			const pixel_format_t pixel_format = V4L2_PIX_FMT_YUYV;
+			{
+				struct sigaction sa;
+				memset( &sa, 0, sizeof(sa));
+				sa.sa_handler = signal_handler;
+				sigemptyset( &sa.sa_mask );
+				// sa.sa_flags = SA_RESTART;
+				if( -1 == sigaction( SIGINT, &sa, NULL ) ) {
+					log_error( "'sigaction': %s\n", strerror(errno) );
+					return EXIT_FAILURE;
+				}
+			}
+			synchronome_print_args( &args );
+			log_info("---------------------------\n");
+			log_init(
+					argv[0],
+					true, false,
+					true, true
+			);
+			ret_t ret = synchronome_run(
+					pixel_format,
+					args.size,
+					args.acq_interval,
+					args.clock_tick_interval,
+					args.output_dir,
+					args.save_all
+			);
+			log_exit();
 
-		if( RET_SUCCESS != ret ) {
-			log_error( "program failed!\n" );
-			return EXIT_FAILURE;
+			if( RET_SUCCESS != ret ) {
+				log_error( "program failed!\n" );
+				return EXIT_FAILURE;
+			}
 		}
-	}
-	log_info( "exit success\n" );
-	exit(EXIT_SUCCESS);
+		break;
+		case RUN_CAPTURE_SINGLE: {
+			capture_args_t args = capture_def_args;
+			{
+				int ret = capture_parse_cmd_line_args(
+						argc-rest_args,
+						&argv[rest_args],
+						&args
+				);
+				// --help:
+				if( ret == -1 ) {
+					capture_print_cmd_line_info( argv );
+					return EXIT_SUCCESS;
+				}
+				// error parsing cmd line args:
+				else if( ret != 0 ) {
+					capture_print_cmd_line_info( argv );
+					return EXIT_FAILURE;
+				}
+			}
+			ret_t ret = capture_single(
+					&args
+			);
+			log_exit();
+			if( RET_SUCCESS != ret ) {
+				log_error( "program failed!\n" );
+				return EXIT_FAILURE;
+			}
+		}
+		break;
+	};
+	return RET_SUCCESS;
 }
 
 /********************
  * Function Defs
 ********************/
 
+int parse_cmd_line_args(
+		int argc,
+		char* argv[],
+		int* rest_args,
+		command_t* command
+)
+{
+	(*command) = RUN_SYNCHRONOME;
+	int option_index = 0;
+	while( true ) {
+		int c = getopt_long(
+				argc, argv,
+				short_options,
+				long_options,
+				&option_index
+		);
+		if( c == -1 ) { break; }
+		switch( c ) {
+			case 'h':
+				return -1;
+			break;
+			case '?':
+				// log_error( "invalid arguments!\n" );
+				return 1;
+			break;
+			default:
+				log_error( "getopt returned %o\n", c );
+				return 1;
+		}
+	}
+	(*rest_args) = optind-1;
+	if( optind < argc ) {
+		(*rest_args) = optind;
+		char* cmd_str = argv[optind];
+		if( !strcmp( "synchronome", cmd_str ) ) {
+			(*command) = RUN_SYNCHRONOME;
+		}
+		else if( !strcmp( "capture", cmd_str ) ) {
+			(*command) = RUN_CAPTURE_SINGLE;
+		}
+		else {
+			log_error( "invalid COMMAND %s\n", cmd_str );
+			return 1;
+		}
+	}
+	return RET_SUCCESS;
+}
+
 void print_cmd_line_info(
-		// int argc,
 		char* argv[]
 )
 {
 	printf(
-			"usage: %s [OPTIONS]\n"
-			"\n"
-			"OPTIONS:\n",
+			"usage: %s [OPTIONS...] -- [COMMAND] [ARGUMENTS...]\n",
 			argv[0]
 	);
 	printf(
-			"--size|-s SIZE_DESCR: image size. Format WxH. default: 320x240\n"
+			"\n"
+			"try `$ %s -- COMMAND -h` to get help for specific commands\n",
+			argv[0]
 	);
 	printf(
-			"--acq-interval|-a RATE: frame sample interval in seconds. Format: X/Y. default: %u/%u\n",
-			def_args.acq_interval.numerator,
-			def_args.acq_interval.denominator
+			"\n"
+			"OPTIONS:\n"
 	);
 	printf(
-			"--clock-tick|-c FREQ: tick interval of the external clock in seconds. Format: X/Y. default: %u/%u\n",
-			def_args.clock_tick_interval.numerator,
-			def_args.clock_tick_interval.denominator
+			"--help|-h print help\n"
 	);
-	printf(
-			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
-			def_args.output_dir
+	printf( "\nCOMMAND: (default: synchronome)\n"
+			"  synchronome: run synchronomy\n"
+			"  capture: capture and save single frame\n"
 	);
 }
 
-int parse_cmd_line_args(
+// synchronome:
+
+int synchronome_parse_cmd_line_args(
 		int argc,
 		char* argv[],
-		program_args_t* args
+		synchronome_args_t* args
 )
 {
+	optind = 0; // reset getopt
 	// parse options:
 	// <getopt.h> globals:
 	// - optarg: the option argument, as in --some-opt=OPTARG
@@ -199,8 +349,8 @@ int parse_cmd_line_args(
 	while( true ) {
 		int c = getopt_long(
 				argc, argv,
-				short_options,
-				long_options,
+				synchronome_short_options,
+				synchronome_long_options,
 				&option_index
 		);
 		if( c == -1 ) { break; }
@@ -231,6 +381,10 @@ int parse_cmd_line_args(
 				}
 			}
 			break;
+			case 'x': {
+					args->save_all = true;
+			}
+			break;
 			case '?':
 				// log_error( "invalid arguments!\n" );
 				return 1;
@@ -240,11 +394,55 @@ int parse_cmd_line_args(
 				return 1;
 		}
 	}
+	if( optind < argc ) {
+		log_error( "unexpected argument %s\n", argv[optind] );
+		return 1;
+	}
 	return 0;
 }
 
-void print_args(
-		program_args_t* args
+void synchronome_print_cmd_line_info(
+		char* argv[]
+)
+{
+	printf(
+			"usage: %s synchronome [OPTIONS...]\n",
+			argv[0]
+	);
+	printf(
+			"\n"
+			"repeatedly capture frames from camera and save them to disk. \n"
+			"The camera observes an external ticking clock.\n"
+			"The process synchronizes itself to the external clock and save one image per tick.\n"
+	);
+	printf(
+			"\n"
+			"OPTIONS:\n"
+	);
+	printf(
+			"--size|-s SIZE_DESCR: image size. Format WxH. default: 320x240\n"
+	);
+	printf(
+			"--acq-interval|-a RATE: frame sample interval in seconds. Format: X/Y. default: %u/%u\n",
+			synchronome_def_args.acq_interval.numerator,
+			synchronome_def_args.acq_interval.denominator
+	);
+	printf(
+			"--clock-tick|-c FREQ: tick interval of the external clock in seconds. Format: X/Y. default: %u/%u\n",
+			synchronome_def_args.clock_tick_interval.numerator,
+			synchronome_def_args.clock_tick_interval.denominator
+	);
+	printf(
+			"--save-all|-x: save all acquired frames to disk. default: false\n"
+	);
+	printf(
+			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
+			synchronome_def_args.output_dir
+	);
+}
+
+void synchronome_print_args(
+		synchronome_args_t* args
 )
 {
 	log_info( "selected settings:\n" );
@@ -258,6 +456,96 @@ void print_args(
 			args->clock_tick_interval.denominator
 	);
 	log_info( "output dir: %s\n", args->output_dir );
+}
+
+// capture:
+
+int capture_parse_cmd_line_args(
+		int argc,
+		char* argv[],
+		capture_args_t* args
+)
+{
+	optind = 0; // reset getopt
+	// parse options:
+	// <getopt.h> globals:
+	// - optarg: the option argument, as in --some-opt=OPTARG
+	// - optind: next element to be processed by getopt_long
+	// - opterr: if 1, getop_long automatically prints errors
+	// - optopt: erroneous opt char (if error)
+	int option_index = 0;
+	while( true ) {
+		int c = getopt_long(
+				argc, argv,
+				synchronome_short_options,
+				synchronome_long_options,
+				&option_index
+		);
+		if( c == -1 ) { break; }
+		switch( c ) {
+			case 'h':
+				return -1;
+			break;
+			case 'o':
+				args->output_dir = optarg;
+			break;
+			case 's': {
+				if( RET_SUCCESS != parse_2_toks(optarg, 'x', &args->size.width, &args->size.height) ) {
+					log_error( "invalid format. expected: WxH\n" );
+					return 1;
+				}
+			}
+			break;
+			case 'a':
+				if( RET_SUCCESS != parse_2_toks(optarg, '/', &args->acq_interval.numerator, &args->acq_interval.denominator) ) {
+					log_error( "invalid format. expected: X/Y\n" );
+					return 1;
+				}
+			break;
+			case '?':
+				// log_error( "invalid arguments!\n" );
+				return 1;
+			break;
+			default:
+				log_error( "getopt returned %o\n", c );
+				return 1;
+		}
+	}
+	if( optind < argc ) {
+		log_error( "unexpected argument %s\n", argv[optind] );
+		return 1;
+	}
+	return 0;
+}
+
+void capture_print_cmd_line_info(
+		char* argv[]
+)
+{
+	printf(
+			"usage: %s capture [OPTIONS...]\n",
+			argv[0]
+	);
+	printf(
+			"\n"
+			"capture and save single frame\n"
+	);
+	printf(
+			"\n"
+			"OPTIONS:\n"
+	);
+	printf(
+			"--size|-s SIZE_DESCR: image size. Format WxH. default: 320x240\n"
+	);
+	printf(
+			"--acq-interval|-a RATE: frame sample interval in seconds. Format: X/Y. default: %u/%u\n",
+			synchronome_def_args.acq_interval.numerator,
+			synchronome_def_args.acq_interval.denominator
+	);
+	printf(
+			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",
+			synchronome_def_args.output_dir
+	);
 }
 
 ret_t parse_2_toks(

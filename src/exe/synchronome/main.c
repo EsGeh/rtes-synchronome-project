@@ -65,6 +65,7 @@ typedef struct {
 typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
+	bool save_all;
 } select_parameters_t;
 
 /********************
@@ -97,7 +98,8 @@ ret_t synchronome_main(
 		const uint frame_buffer_count,
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
-		const char* output_dir
+		const char* output_dir,
+		const bool save_all
 );
 
 void sequencer(int);
@@ -142,7 +144,8 @@ ret_t synchronome_run(
 		const frame_size_t size,
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
-		const char* output_dir
+		const char* output_dir,
+		const bool save_all
 )
 {
 	uint frame_buffer_count;
@@ -167,7 +170,8 @@ ret_t synchronome_run(
 				frame_buffer_count,
 				acq_interval,
 				clock_tick_interval,
-				output_dir
+				output_dir,
+				save_all
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -240,7 +244,8 @@ ret_t synchronome_main(
 		const uint frame_buffer_count,
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
-		const char* output_dir
+		const char* output_dir,
+		const bool save_all
 )
 {
 	time_add_timer(
@@ -264,6 +269,7 @@ ret_t synchronome_main(
 	select_parameters_t select_params = {
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
+		.save_all = save_all,
 	};
 	thread_create(
 			"select",
@@ -337,6 +343,7 @@ void* select_thread_run(
 			data.camera.format,
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
+			select_params.save_all,
 			&data.acq_queue,
 			&data.select_queue,
 			dump_frame

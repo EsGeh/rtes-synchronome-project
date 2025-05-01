@@ -30,7 +30,7 @@ const uint avg_diff_count = 8;
 // how much must the image diff
 // be above average to be classified
 // as a tick:
-const float tick_threshold = 1.5f;
+const float tick_threshold = 1.1f;
 
 DECL_RING_BUFFER(diff_buffer,float)
 
@@ -71,6 +71,7 @@ ret_t select_run(
 		const img_format_t src_format,
 		const float acq_interval,
 		const float clock_tick_interval,
+		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
 		dump_frame_func_t dump_frame
@@ -89,8 +90,6 @@ ret_t select_run(
 	log_info( "acq_interval: %f\n", acq_interval );
 	log_info( "clock_interval: %f\n", clock_tick_interval );
 	log_info( "max_frame_acc_count: %u\n", max_frame_acc_count );
-	ASSERT( 1.0f/acq_interval >= 2.0 * (1.0f/clock_tick_interval) );
-	ASSERT( max_frame_acc_count > 2 );
 	diff_buffer_init( &state.diff_buffer, avg_diff_count );
 	while( true ) {
 		// cleanup:
@@ -128,25 +127,32 @@ ret_t select_run(
 				state.avg_diff,
 				state.frame_count
 		);
-		if(
-				state.frame_count >= max_frame_acc_count
-				&& diff_value > tick_threshold * state.avg_diff
-		) {
-			log_info( "tick!\n" );
-			timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
-			select_frame(
-					clock_tick_interval,
-					input_queue,
-					output_queue
+		if( save_all ) {
+			select_queue_push(
+					output_queue,
+					*acq_queue_read_get(input_queue, state.frame_count-1)
 			);
-			state.last_tick_index = state.frame_count-1;
-			state.last_tick_time = tick_time;
+		}
+		else {
+			if(
+					state.frame_count >= max_frame_acc_count
+					&& diff_value > tick_threshold * state.avg_diff
+			) {
+				log_info( "tick!\n" );
+				timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
+				select_frame(
+						clock_tick_interval,
+						input_queue,
+						output_queue
+				);
+				state.last_tick_index = state.frame_count-1;
+				state.last_tick_time = tick_time;
+			}
 		}
 		// update avg_diff:
 		if( diff_buffer_get_count(&state.diff_buffer) < avg_diff_count ) {
 			// cumulative average:
 			const uint n = diff_buffer_get_count(&state.diff_buffer);
-			log_info( "avg (cum): n: %u\n", n );
 			state.avg_diff =
 				(state.avg_diff * ((float )n) + diff_value)
 				/ ((float )(n+1));
@@ -154,7 +160,6 @@ ret_t select_run(
 		}
 		else {
 			float oldest_diff = *diff_buffer_get( &state.diff_buffer );
-			log_info( "avg (nor): oldest: %f\n", oldest_diff );
 			diff_buffer_pop( &state.diff_buffer );
 			diff_buffer_push( &state.diff_buffer, diff_value );
 			state.avg_diff -= oldest_diff / avg_diff_count;
@@ -170,6 +175,7 @@ void select_frame(
 		select_queue_t* output_queue
 )
 {
+	assert( state.frame_count >= 2 );
 	timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
 	// if there was no previous tick:
 	if( state.last_tick_time.tv_sec == 0 && state.last_tick_time.tv_nsec == 0 )

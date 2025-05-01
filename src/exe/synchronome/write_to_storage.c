@@ -33,10 +33,12 @@ ret_t write_to_storage_run(
 					entry->time.tv_sec,
 					entry->time.tv_nsec / 1000 / 1000
 			);
+			/*
 			log_info( "write_to_storage: frame %lu.%lu\n",
 					entry->time.tv_sec,
 					entry->time.tv_nsec / 1000 / 1000
 			);
+			*/
 			// TODO: fix error handling:
 			if( RET_SUCCESS != image_save_ppm(
 				output_path,

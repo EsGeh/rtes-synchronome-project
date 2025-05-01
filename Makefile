@@ -35,6 +35,7 @@ clean:
 	rm -rf $(OUT_DIR)
 
 $(OUT_DIR)/synchronome: \
+		$(OBJ_DIR)/simple_capture.o \
 		$(OBJ_DIR)/synchronome.o \
 		$(OBJ_DIR)/synchronome_main.o \
 		$(OBJ_DIR)/frame_acq.o \
@@ -110,6 +111,16 @@ $(OBJ_DIR)/synchronome_main.o: \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/time.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/simple_capture.o: \
+		$(SRC_DIR)/exe/simple_capture/main.c $(SRC_DIR)/exe/simple_capture/main.h \
+		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/time.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs

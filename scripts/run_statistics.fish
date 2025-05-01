@@ -4,7 +4,7 @@ set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set SCRIPTS_DIR "$BASE_DIR/scripts"
 set CONFIG release
 set BIN_DIR "$BASE_DIR/build/$CONFIG"
-set OUTPUT_DIR "$BASE_DIR/local/img"
+set OUTPUT_DIR "$BASE_DIR/local/output/statistics/imgs"
 
 
 source "$SCRIPTS_DIR/utils.fish"

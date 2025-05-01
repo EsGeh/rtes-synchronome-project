@@ -39,6 +39,8 @@ const uint iterations_convert = 50;
 const uint iterations_image_diff = 10;
 const uint iterations_save_img = 10;
 
+const char* output_dir = "local/output/statistics/imgs";
+
 /********************
  * Function Decls
 ********************/
@@ -179,18 +181,6 @@ ret_t program_run( runtime_data_t* data )
 	};
 	for( uint i=0; i<modes.count; i++ ) {
 		const camera_mode_descr_t* mode = &modes.mode_descrs[i];
-		// remove doubles:
-		/*
-		{
-			bool skip = false;
-			for( uint selected_index=0; selected_index<selected_modes.count; selected_index++ ) {
-				if( camera_mode_descr_equal( mode, &selected_modes.mode_descrs[selected_index] ) ) {
-					skip = true;
-				}
-			}
-			if( skip ) continue;
-		}
-		*/
 		// only select YUYV formats:
 		if( strstr( (char* )mode->pixel_format_descr.description, "YUYV" ) != NULL ) {
 			selected_modes.mode_descrs[selected_modes.count] = *mode;
@@ -319,7 +309,10 @@ ret_t run_capture(
 			TIME_TEST_INIT( image_save_ppm )
 			char filename[STR_BUFFER_SIZE];
 			for( uint i=0; i<iterations_save_img; ++i ) {
-				snprintf( filename, STR_BUFFER_SIZE, "local/img/test%u.ppm", i );
+				snprintf( filename, STR_BUFFER_SIZE, "%s/test%u.ppm",
+						output_dir,
+						i
+				);
 				TIME_TEST_START(image_save_ppm)
 				API_RUN( image_save_ppm(
 						filename,
