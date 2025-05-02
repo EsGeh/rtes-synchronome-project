@@ -309,7 +309,7 @@ ret_t synchronome_main(
 			&write_to_storage_thread.td,
 			write_to_storage_thread_run,
 			(void* )output_dir,
-			SCHED_NORMAL,
+			SCHED_OTHER,
 			-1,
 			3	
 	));

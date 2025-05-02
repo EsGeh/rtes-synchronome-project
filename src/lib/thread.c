@@ -28,7 +28,7 @@ ret_t thread_create(
 		log_error( "pthread_attr_setinheritsched: %s\n", strerror( ret ) );
 		return RET_FAILURE;
 	}
-	if( sched_policy != SCHED_NORMAL )
+	if( sched_policy != SCHED_OTHER )
 	{ // set policy:
 		int ret = pthread_attr_setschedpolicy( &thread_attrs, SCHED_FIFO );
 		if( ret != 0 ) {
@@ -37,7 +37,7 @@ ret_t thread_create(
 		}
 	}
 	// set priority:
-	if( sched_policy == SCHED_NORMAL && priority == -1 ) {
+	if( sched_policy == SCHED_OTHER && priority == -1 ) {
 	}
 	else
 	{

@@ -52,7 +52,7 @@ static const synchronome_args_t synchronome_def_args = {
 	},
 };
 
-const char synchronome_short_options[] = "ho:s:a:c:x:d:t";
+const char synchronome_short_options[] = "ho:s:a:c:x:d:t:";
 const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "output-dir", required_argument, 0, 'o' },
