@@ -108,6 +108,7 @@ int main(
 	log_init(
 			argv[0],
 			true, false,
+			false, false,
 			true, true
 	);
 	time_init();

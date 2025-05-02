@@ -155,7 +155,7 @@ ret_t synchronome_run(
 	));
 	// add safety margin:
 	frame_buffer_count += 2;
-	log_info( "frame_buffer_count: %u\n", frame_buffer_count );
+	log_verbose( "frame_buffer_count: %u\n", frame_buffer_count );
 	if( RET_SUCCESS != synchronome_init(
 				args.size,
 				frame_buffer_count

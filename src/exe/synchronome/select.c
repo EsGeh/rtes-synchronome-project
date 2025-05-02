@@ -84,7 +84,7 @@ ret_t select_run(
 			clock_tick_interval,
 			&max_frame_acc_count
 	) );
-	log_info( "max_frame_acc_count: %u\n", max_frame_acc_count );
+	log_verbose( "max_frame_acc_count: %u\n", max_frame_acc_count );
 	diff_buffer_init( &state.diff_buffer, avg_diff_count );
 	while( true ) {
 		// cleanup:
@@ -98,7 +98,7 @@ ret_t select_run(
 		// get next frame:
 		acq_queue_read_start( input_queue );
 		if( acq_queue_get_should_stop( input_queue ) ) {
-			log_info( "select: stopping\n" );
+			log_verbose( "select: stopping\n" );
 			diff_buffer_exit( &state.diff_buffer );
 			break;
 		}
@@ -115,7 +115,7 @@ ret_t select_run(
 				&diff_value_f
 		));
 		float diff_value = diff_value_f;
-		log_info( "select: frame %lu.%lu, diff: %.3f, avg: %.3f, acc_count: %u\n",
+		log_verbose( "select: frame %lu.%lu, diff: %.3f, avg: %.3f, acc_count: %u\n",
 				acq_queue_read_get(input_queue,state.frame_count-1)->time.tv_sec,
 				acq_queue_read_get(input_queue,state.frame_count-1)->time.tv_nsec / 1000 / 1000,
 				diff_value,
@@ -133,7 +133,7 @@ ret_t select_run(
 					state.frame_count >= max_frame_acc_count
 					&& ((diff_value - state.avg_diff) > tick_threshold * (state.max_diff - state.avg_diff) )
 			) {
-				log_info( "tick!\n" );
+				log_verbose( "tick!\n" );
 				timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
 				select_frame(
 						clock_tick_interval,
@@ -181,7 +181,7 @@ void select_frame(
 	// if there was no previous tick:
 	if( state.last_tick_time.tv_sec == 0 && state.last_tick_time.tv_nsec == 0 )
 		return;
-	log_info( "\tlast_tick_time: %lu.%lu\n",
+	log_verbose( "\tlast_tick_time: %lu.%lu\n",
 			state.last_tick_time.tv_sec,
 			state.last_tick_time.tv_nsec
 			);
@@ -210,7 +210,7 @@ void select_frame(
 	int selected_frame_index = (state.last_tick_index + state.frame_count-1) / 2;
 	assert( selected_frame_index >= 0 );
 	assert( selected_frame_index < (int )(state.frame_count-1) );
-	log_info( "\tselected frame: %lu.%lu)\n",
+	log_verbose( "\tselected frame: %lu.%lu)\n",
 			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
 			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec
 	);

@@ -28,6 +28,8 @@ typedef enum {
  * Global Constants
 ********************/
 
+#define LOG_PREFIX "[Course #4] [Final Project]"
+
 const char short_options[] = "h";
 const  struct option long_options[] = {
 	{ "help", no_argument, 0, 'h' },
@@ -169,6 +171,12 @@ int main(
 			return EXIT_FAILURE;
 		}
 	}
+	log_init(
+			LOG_PREFIX,
+			false, false,
+			true, true,
+			true, true
+	);
 	switch( command ) {
 		case RUN_SYNCHRONOME: {
 			synchronome_args_t args = synchronome_def_args;
@@ -201,16 +209,9 @@ int main(
 				}
 			}
 			synchronome_print_args( &args );
-			log_info("---------------------------\n");
 			if( RET_SUCCESS != print_platform_info() ) {
 				return EXIT_FAILURE;
 			}
-			log_info("---------------------------\n");
-			log_init(
-					argv[0],
-					true, false,
-					true, true
-			);
 			ret_t ret = synchronome_run(
 					args
 			);
@@ -466,17 +467,17 @@ void synchronome_print_args(
 		synchronome_args_t* args
 )
 {
-	log_info( "selected settings:\n" );
-	log_info( "size: %ux%u\n", args->size.width, args->size.height );
-	log_info( "acquisition interval (in s): %u/%u\n",
+	log_verbose( "selected settings:\n" );
+	log_verbose( "size: %ux%u\n", args->size.width, args->size.height );
+	log_verbose( "acquisition interval (in s): %u/%u\n",
 			args->acq_interval.numerator,
 			args->acq_interval.denominator
 	);
-	log_info( "clock tick interval (in s): %u/%u\n",
+	log_verbose( "clock tick interval (in s): %u/%u\n",
 			args->clock_tick_interval.numerator,
 			args->clock_tick_interval.denominator
 	);
-	log_info( "output dir: %s\n", args->output_dir );
+	log_verbose( "output dir: %s\n", args->output_dir );
 }
 
 // capture:
