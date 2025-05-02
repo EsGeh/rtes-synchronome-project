@@ -45,13 +45,14 @@ static const synchronome_args_t synchronome_def_args = {
 	.clock_tick_interval = { 1, 1 },
 	.tick_threshold = 0.2,
 	.save_all = false,
+	.select_delay = 10,
 	.size = {
 			.width = 320,
 			.height = 240,
 	},
 };
 
-const char synchronome_short_options[] = "ho:s:a:c:x:t";
+const char synchronome_short_options[] = "ho:s:a:c:x:d:t";
 const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "output-dir", required_argument, 0, 'o' },
@@ -59,6 +60,7 @@ const  struct option synchronome_long_options[] = {
 	{ "acq-interval", required_argument, 0, 'a' },
 	{ "clock-tick", required_argument, 0, 'c' },
 	{ "tick-thresh", required_argument, 0, 't' },
+	{ "select-delay", required_argument, 0, 'd' },
 	{ "save-all", no_argument, 0, 'x' },
 	{ 0,0,0,0 },
 };
@@ -390,6 +392,15 @@ int synchronome_parse_cmd_line_args(
 				}
 			}
 			break;
+			case 'd': {
+				char* next_tok;
+				args->select_delay = strtoul( optarg, &next_tok, 10);
+				if( next_tok == optarg ) {
+					log_error( "failed parsing select-delay. expected: unsigned int\n" );
+					return 1;
+				}
+			}
+			break;
 			case 't': {
 				char* next_tok;
 				args->tick_threshold = strtof( optarg, &next_tok );
@@ -451,8 +462,12 @@ void synchronome_print_cmd_line_info(
 			synchronome_def_args.clock_tick_interval.denominator
 	);
 	printf(
-			"--tick-thresh|-t: threshold for tick detection (fraction of (max-avg)). default: %f\n",
+			"--tick-thresh|-t FLOAT: threshold for tick detection (fraction of (max-avg)). default: %f\n",
 			synchronome_def_args.tick_threshold
+	);
+	printf(
+			"--select-delay|-d DELAY: wait DELAY seconds before starting selection/saving of images. default: %u\n",
+			synchronome_def_args.select_delay
 	);
 	printf(
 			"--save-all|-x: save all acquired frames to disk. default: false\n"

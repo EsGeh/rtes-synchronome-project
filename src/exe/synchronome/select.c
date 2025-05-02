@@ -68,6 +68,7 @@ ret_t select_run(
 		const float acq_interval,
 		const float clock_tick_interval,
 		const float tick_threshold,
+		uint select_delay,
 		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
@@ -122,26 +123,28 @@ ret_t select_run(
 				state.avg_diff,
 				state.frame_count
 		);
-		if( save_all ) {
-			select_queue_push(
-					output_queue,
-					*acq_queue_read_get(input_queue, state.frame_count-1)
-			);
-		}
-		else {
-			if(
-					state.frame_count >= max_frame_acc_count
-					&& ((diff_value - state.avg_diff) > tick_threshold * (state.max_diff - state.avg_diff) )
-			) {
-				log_verbose( "tick!\n" );
-				timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
-				select_frame(
-						clock_tick_interval,
-						input_queue,
-						output_queue
+		if( time_us_from_timespec(&acq_queue_read_get(input_queue, state.frame_count-1)->time) / 1000 / 1000 > select_delay ) {
+			if( save_all ) {
+				select_queue_push(
+						output_queue,
+						*acq_queue_read_get(input_queue, state.frame_count-1)
 				);
-				state.last_tick_index = state.frame_count-1;
-				state.last_tick_time = tick_time;
+			}
+			else {
+				if(
+						state.frame_count >= max_frame_acc_count
+						&& ((diff_value - state.avg_diff) > tick_threshold * (state.max_diff - state.avg_diff) )
+				) {
+					log_verbose( "tick!\n" );
+					timeval_t tick_time = acq_queue_read_get(input_queue, state.frame_count-1)->time;
+					select_frame(
+							clock_tick_interval,
+							input_queue,
+							output_queue
+					);
+					state.last_tick_index = state.frame_count-1;
+					state.last_tick_time = tick_time;
+				}
 			}
 		}
 		// update avg_diff:

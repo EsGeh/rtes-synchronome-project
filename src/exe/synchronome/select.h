@@ -10,6 +10,7 @@ ret_t select_run(
 		const float acq_interval,
 		const float clock_tick_interval,
 		const float tick_threshold,
+		const uint select_delay,
 		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,

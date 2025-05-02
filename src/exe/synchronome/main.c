@@ -68,6 +68,7 @@ typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
 	float tick_threshold;
+	uint select_delay;
 	bool save_all;
 } select_parameters_t;
 
@@ -103,7 +104,8 @@ ret_t synchronome_main(
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
 		const char* output_dir,
-		const bool save_all
+		const bool save_all,
+		const uint select_delay
 );
 
 void sequencer(int);
@@ -171,7 +173,8 @@ ret_t synchronome_run(
 				args.clock_tick_interval,
 				args.tick_threshold,
 				args.output_dir,
-				args.save_all
+				args.save_all,
+				args.select_delay
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -246,7 +249,8 @@ ret_t synchronome_main(
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
 		const char* output_dir,
-		const bool save_all
+		const bool save_all,
+		const uint select_delay
 )
 {
 	if( thread_get_cpu_count() < 4 ) {
@@ -265,6 +269,7 @@ ret_t synchronome_main(
 			size,
 			&acq_interval
 	);
+	sleep(1);
 	API_RUN( thread_create(
 			"capture",
 			&camera_thread.td,
@@ -278,6 +283,7 @@ ret_t synchronome_main(
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
 		.tick_threshold = tick_threshold,
+		.select_delay = select_delay,
 		.save_all = save_all,
 	};
 	API_RUN( thread_create(
@@ -362,6 +368,7 @@ void* select_thread_run(
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
 			select_params.tick_threshold,
+			select_params.select_delay,
 			select_params.save_all,
 			&data.acq_queue,
 			&data.select_queue,
