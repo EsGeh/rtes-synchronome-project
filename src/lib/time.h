@@ -24,7 +24,9 @@ typedef struct timespec timeval_t;
 void time_init(void);
 
 // get elapsed time since 'time_init()':
-struct timespec time_measure_current_time(void);
+timeval_t time_measure_current_time(void);
+
+long long int time_measure_current_time_us(void);
 
 
 /***********************
@@ -44,16 +46,47 @@ void time_sleep(
  * Utilities
  ***********************/
 
+void  time_normalize_timeval(
+		struct timespec* time
+);
+
 // calculate time difference:
-// 		delta_t = stop - start
+// 		delta = stop - start
 void time_delta(
 		const struct timespec* stop,
 		const struct timespec* start,
-		struct timespec* delta_t
+		struct timespec* delta
+);
+
+// calculate time sum:
+//   result = t0 + t1
+void time_add(
+		const struct timespec* t0,
+		const struct timespec* t1,
+		struct timespec* result
+);
+
+// calculate time sum:
+//   result = t0 + t1
+void time_add_us(
+		const struct timespec* t0,
+		const USEC t1_us,
+		struct timespec* result
+);
+
+void time_mul_i(
+		const struct timespec* t0,
+		const uint i,
+		struct timespec* result
 );
 
 USEC time_us_from_timespec(
 		const struct timespec* delta
+);
+
+void time_timespec_from_us(
+		const USEC usec,
+		struct timespec* time
 );
 
 #endif

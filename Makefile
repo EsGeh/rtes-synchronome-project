@@ -51,7 +51,7 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/thread.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 $(OUT_DIR)/statistics: \
 		$(OBJ_DIR)/statistics.o \
