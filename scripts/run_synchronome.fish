@@ -15,5 +15,5 @@ begin
 	set --local CMD "$BIN_DIR/synchronome"
 	test -f "$CMD"
 	or error "'$CMD' not found. Did you run '$SCRIPTS_DIR/build.fish'?"
-	and run_cmd -- sudo "'$CMD'" (string escape -- $argv)
+	and run_cmd -- "'$CMD'" (string escape -- $argv)
 end

@@ -33,7 +33,7 @@ ret_t write_to_storage_run(
 					entry->time.tv_sec,
 					entry->time.tv_nsec / 1000 / 1000
 			);
-			log_info( "[Frame Count: %u] [Image Capture Start Time: %lu.%lu second]\n",
+			log_info( "[Frame Count: %4u] [Image Capture Start Time: %4lu.%03lu second]\n",
 					counter,
 					entry->time.tv_sec,
 					entry->time.tv_nsec / 1000 / 1000

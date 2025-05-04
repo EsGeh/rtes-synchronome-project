@@ -24,17 +24,13 @@ typedef enum {
 	RUN_CAPTURE_SINGLE
 } command_t;
 
+
 /********************
  * Global Constants
 ********************/
 
 #define LOG_PREFIX "[Course #4] [Final Project]"
 
-const char short_options[] = "h";
-const  struct option long_options[] = {
-	{ "help", no_argument, 0, 'h' },
-	{ 0,0,0,0 },
-};
 
 // synchronome:
 
@@ -52,7 +48,7 @@ static const synchronome_args_t synchronome_def_args = {
 	},
 };
 
-const char synchronome_short_options[] = "ho:s:a:c:x:d:t:";
+const char synchronome_short_options[] = "ho:s:a:c:d:t:xv";
 const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "output-dir", required_argument, 0, 'o' },
@@ -62,6 +58,7 @@ const  struct option synchronome_long_options[] = {
 	{ "tick-thresh", required_argument, 0, 't' },
 	{ "select-delay", required_argument, 0, 'd' },
 	{ "save-all", no_argument, 0, 'x' },
+	{ "verbose", no_argument, 0, 'v' },
 	{ 0,0,0,0 },
 };
 
@@ -106,6 +103,7 @@ void print_cmd_line_info(
 int synchronome_parse_cmd_line_args(
 		int argc,
 		char* argv[],
+		bool* verbose,
 		synchronome_args_t* args
 );
 
@@ -173,19 +171,15 @@ int main(
 			return EXIT_FAILURE;
 		}
 	}
-	log_init(
-			LOG_PREFIX,
-			false, false,
-			true, true,
-			true, true
-	);
 	switch( command ) {
 		case RUN_SYNCHRONOME: {
+			bool verbose = false;
 			synchronome_args_t args = synchronome_def_args;
 			{
 				int ret = synchronome_parse_cmd_line_args(
 						argc-rest_args,
 						&argv[rest_args],
+						&verbose,
 						&args
 				);
 				// --help:
@@ -199,6 +193,12 @@ int main(
 					return EXIT_FAILURE;
 				}
 			}
+			log_init(
+					LOG_PREFIX,
+					false, verbose,
+					true, true,
+					true, true
+			);
 			{
 				struct sigaction sa;
 				memset( &sa, 0, sizeof(sa));
@@ -244,6 +244,12 @@ int main(
 					return EXIT_FAILURE;
 				}
 			}
+			log_init(
+					LOG_PREFIX,
+					false, false,
+					true, true,
+					true, true
+			);
 			log_info("---------------------------\n");
 			if( RET_SUCCESS != print_platform_info() ) {
 				return EXIT_FAILURE;
@@ -274,45 +280,25 @@ int parse_cmd_line_args(
 		command_t* command
 )
 {
+	(*rest_args) = 0;
 	(*command) = RUN_SYNCHRONOME;
-	int option_index = 0;
-	while( true ) {
-		int c = getopt_long(
-				argc, argv,
-				short_options,
-				long_options,
-				&option_index
-		);
-		if( c == -1 ) { break; }
-		switch( c ) {
-			case 'h':
+	if( argc > 1 ) {
+		if( strstr( argv[1], "-") != NULL ) {
+			if( !strcmp("-h", argv[1]) || !strcmp("--help", argv[1] ) ) {
 				return -1;
-			break;
-			case '?':
-				// log_error( "invalid arguments!\n" );
-				return 1;
-			break;
-			default:
-				log_error( "getopt returned %o\n", c );
-				return 1;
+			}
+			return 0;
 		}
-	}
-	(*rest_args) = optind-1;
-	if( optind < argc ) {
-		(*rest_args) = optind;
-		char* cmd_str = argv[optind];
-		if( !strcmp( "synchronome", cmd_str ) ) {
+		if( !strcmp( "synchronome", argv[1] ) ) {
+			(*rest_args) = 1;
 			(*command) = RUN_SYNCHRONOME;
 		}
-		else if( !strcmp( "capture", cmd_str ) ) {
+		if( !strcmp( "capture", argv[1] ) ) {
+			(*rest_args) = 1;
 			(*command) = RUN_CAPTURE_SINGLE;
 		}
-		else {
-			log_error( "invalid COMMAND %s\n", cmd_str );
-			return 1;
-		}
 	}
-	return RET_SUCCESS;
+	return 0;
 }
 
 void print_cmd_line_info(
@@ -346,6 +332,7 @@ void print_cmd_line_info(
 int synchronome_parse_cmd_line_args(
 		int argc,
 		char* argv[],
+		bool* verbose,
 		synchronome_args_t* args
 )
 {
@@ -412,6 +399,10 @@ int synchronome_parse_cmd_line_args(
 			break;
 			case 'x': {
 					args->save_all = true;
+			}
+			break;
+			case 'v': {
+					(*verbose) = true;
 			}
 			break;
 			case '?':
