@@ -39,7 +39,7 @@ Generate .PDF documentation:
 
 ## Run
 
-    $ ./scripts/run_capture.fish
+    $ ./scripts/run_synchronome.fish [--help]
 
 ## Measure Timing / Statistics
 
