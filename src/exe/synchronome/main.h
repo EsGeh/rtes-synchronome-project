@@ -15,7 +15,6 @@ typedef struct {
 	frame_interval_t clock_tick_interval;
 	float tick_threshold;
 	uint select_delay;
-	bool save_all;
 	char* output_dir;
 } synchronome_args_t;
 

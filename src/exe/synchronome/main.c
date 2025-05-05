@@ -69,7 +69,6 @@ typedef struct {
 	float clock_tick_interval;
 	float tick_threshold;
 	uint select_delay;
-	bool save_all;
 } select_parameters_t;
 
 /********************
@@ -104,7 +103,6 @@ ret_t synchronome_main(
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
 		const char* output_dir,
-		const bool save_all,
 		const uint select_delay
 );
 
@@ -173,7 +171,6 @@ ret_t synchronome_run(
 				args.clock_tick_interval,
 				args.tick_threshold,
 				args.output_dir,
-				args.save_all,
 				args.select_delay
 	) ) {
 		synchronome_exit();
@@ -249,7 +246,6 @@ ret_t synchronome_main(
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
 		const char* output_dir,
-		const bool save_all,
 		const uint select_delay
 )
 {
@@ -284,7 +280,6 @@ ret_t synchronome_main(
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
 		.tick_threshold = tick_threshold,
 		.select_delay = select_delay,
-		.save_all = save_all,
 	};
 	API_RUN( thread_create(
 			"select",
@@ -369,7 +364,6 @@ void* select_thread_run(
 			select_params.clock_tick_interval,
 			select_params.tick_threshold,
 			select_params.select_delay,
-			select_params.save_all,
 			&data.acq_queue,
 			&data.select_queue,
 			dump_frame

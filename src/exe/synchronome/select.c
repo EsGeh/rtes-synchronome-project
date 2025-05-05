@@ -87,7 +87,6 @@ ret_t select_run(
 		const float clock_tick_interval,
 		const float tick_threshold,
 		uint select_delay,
-		const bool save_all,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
 		dump_frame_func_t dump_frame
@@ -364,6 +363,9 @@ ret_t select_run(
 
 		// if this was a "tick" frame:
 		if( phase < 0 + epsilon ) {
+			if( time_us_from_timespec( &current_time ) < (USEC )select_delay * 1000*1000 ) {
+				continue;
+			}
 			// select frame from recent recorded
 			// frames:
 			select_frame(
