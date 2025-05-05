@@ -3,6 +3,7 @@
 *REMARK*:
 This project is under rapid development.
 Some functionality might still be missing or incomplete.
+Important milestones are marked via git tags.
 
 ![system block diagram](./doc/imgs/diagrams/1_block-diagram.svg)
 
@@ -19,6 +20,8 @@ This project is the [fourth part](https://www.coursera.org/learn/real-time-proje
 According to the [course description](https://www.coursera.org/learn/real-time-project-embedded-systems) successful completion of this project proofs advanced level applied knowledge about realtime embedded engineering.
 
 For details about grading and requirements for passing this course, see `./doc/0_requirements.md`.
+
+![homelab synchronome setup ("it's so berlin")](./doc/imgs/homelab-setup.jpg)
 
 # Documentation
 
