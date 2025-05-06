@@ -31,6 +31,8 @@ run_cmd ssh $REMOTE \
 run_cmd rsync \
 	--delete \
 	--recursive \
+	--exclude "local/" \
+	--exclude "build/" \
 	"$SRC_DIR/" \
 	"$REMOTE:$REMOTE_DIR/"
 

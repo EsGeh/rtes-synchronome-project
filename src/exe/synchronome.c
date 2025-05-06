@@ -194,7 +194,6 @@ int main(
 	}
 	switch( command ) {
 		case RUN_SYNCHRONOME: {
-			bool verbose = false;
 			synchronome_args_t args = synchronome_def_args;
 			{
 				int ret = synchronome_parse_cmd_line_args(
