@@ -51,6 +51,8 @@ typedef struct {
 	diff_buffer_t diff_buffer;
 	float avg_diff;
 	float max_diff;
+	// selection data:
+	int last_tick_index;
 
 } select_state_t;
 
@@ -115,7 +117,6 @@ ret_t select_run(
 			dump_frame( acq_queue_read_get(input_queue,0)->frame );
 			acq_queue_read_stop_dump(input_queue);
 			state.frame_acc_count--;
-			// state.last_tick_index--;
 		}
 		// get next frame:
 		acq_queue_read_start( input_queue );
@@ -196,6 +197,7 @@ ret_t select_run(
 						state.first_tick_time = current_time;
 						state.executed_tick_count = 0;
 						state.measured_tick_count = 0;
+						state.last_tick_index = state.frame_acc_count-1;
 						DB_PRINT( "TICK 0\n" );
 #if TEST_DRIFT_AHEAD
 						/* start with internal clock early
@@ -206,7 +208,7 @@ ret_t select_run(
 								- sampling_precision * clock_tick_interval * 1000 * 1000,
 								&state.first_tick_time
 						);
-#elif TEST_DRIFT_LAG
+						state.last_tick_index--;
 						DB_PRINT( "EMULATE TICK 0 <- 0.333\n" );
 #elif TEST_DRIFT_BEHIND
 						/* start with internal clock lagging
@@ -217,8 +219,10 @@ ret_t select_run(
 								-2* sampling_precision * clock_tick_interval * 1000 * 1000,
 								&state.first_tick_time
 						);
+						state.last_tick_index -= 2;
 						DB_PRINT( "EMULATE TICK 0 <- 0.666\n" );
 #endif
+						state.last_tick_index--;
 					}
 					state.last_tick_time = current_time;
 					continue;
@@ -380,10 +384,10 @@ ret_t select_run(
 		// if this was a "tick" frame:
 		if( phase < 0 + epsilon ) {
 			if( time_us_from_timespec( &current_time ) < (USEC )select_delay * 1000*1000 ) {
+				state.last_tick_index = state.frame_acc_count-1;
 				continue;
 			}
-			// select frame from recent recorded
-			// frames:
+			// select frame from recent recorded frames:
 			select_frame(
 					acq_interval,
 					clock_tick_interval,
@@ -391,7 +395,7 @@ ret_t select_run(
 					output_queue
 			);
 		}
-
+		state.last_tick_index--;
 	}
 	return RET_SUCCESS;
 }
@@ -403,8 +407,7 @@ void select_frame(
 		select_queue_t* output_queue
 )
 {
-	const float sampling_frequency = clock_tick_interval / acq_interval;
-	int selected_frame_index = state.frame_acc_count-1 - (int )ceilf(0.5f * sampling_frequency);
+	int selected_frame_index = (state.last_tick_index + state.frame_acc_count-1) / 2;
 	assert( selected_frame_index >= 0 );
 	assert( selected_frame_index < (int )(state.frame_acc_count-1) );
 	log_verbose( "\tselected frame: %lu.%lu)\n",
@@ -415,6 +418,7 @@ void select_frame(
 			output_queue,
 			*acq_queue_read_get(input_queue,selected_frame_index)
 	);
+	state.last_tick_index = state.frame_acc_count-1;
 }
 
 
