@@ -194,15 +194,31 @@ ret_t select_run(
 					if( state.sync_status == sync_threshold ) {
 						// initialize next phase:
 						state.first_tick_time = current_time;
-						/* test drift correction: */
-						time_add_us(
-								&state.first_tick_time,
-								-sampling_precision * clock_tick_interval * 1000 * 1000,
-								&state.first_tick_time
-						);
 						state.executed_tick_count = 0;
 						state.measured_tick_count = 0;
 						DB_PRINT( "TICK 0\n" );
+#if TEST_DRIFT_AHEAD
+						/* start with internal clock early
+						 * to test resync:
+						 */
+						time_add_us(
+								&state.first_tick_time,
+								- sampling_precision * clock_tick_interval * 1000 * 1000,
+								&state.first_tick_time
+						);
+#elif TEST_DRIFT_LAG
+						DB_PRINT( "EMULATE TICK 0 <- 0.333\n" );
+#elif TEST_DRIFT_BEHIND
+						/* start with internal clock lagging
+						 * to test resync:
+						 */
+						time_add_us(
+								&state.first_tick_time,
+								-2* sampling_precision * clock_tick_interval * 1000 * 1000,
+								&state.first_tick_time
+						);
+						DB_PRINT( "EMULATE TICK 0 <- 0.666\n" );
+#endif
 					}
 					state.last_tick_time = current_time;
 					continue;

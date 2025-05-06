@@ -9,14 +9,18 @@ BUILD_DIR=build
 CONFIG=debug
 
 CC=gcc
+
+CDEFS=
+
 ifeq (${CONFIG},debug)
-CFLAGS=-O0 -Wall -Wextra -g -D_GNU_SOURCE -I$(SRC_DIR)
+CFLAGS=-O0 -Wall -Wextra -g -D_GNU_SOURCE $(CDEFS) -I$(SRC_DIR)
 else ifeq (${CONFIG},test)
-CFLAGS=-O0 -Wall -Wextra -g -D_GNU_SOURCE -I$(SRC_DIR) \
+CFLAGS=-O0 -Wall -Wextra -g -D_GNU_SOURCE $(CDEFS) -I$(SRC_DIR) \
  -fprofile-arcs -ftest-coverage
 else
-CFLAGS=-O3 -Wall -Wextra -D_GNU_SOURCE -I$(SRC_DIR) 
+CFLAGS=-O3 -Wall -Wextra -D_GNU_SOURCE $(CDEFS) -I$(SRC_DIR) 
 endif
+
 OUT_DIR=$(BUILD_DIR)/$(CONFIG)
 OBJ_DIR=$(OUT_DIR)/objs
 
