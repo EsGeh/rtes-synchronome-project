@@ -8,6 +8,9 @@
 void log_init(
 		const char* prefix,
 
+		bool time_enable_print,
+		bool time_enable_log,
+
 		bool verbose_enable_print,
 		bool verbose_enable_log,
 
@@ -18,6 +21,11 @@ void log_init(
 		bool error_enable_log
 );
 void log_exit(void);
+
+void log_time(
+		char* fmt,
+		...
+);
 
 void log_verbose(
 		char* fmt,

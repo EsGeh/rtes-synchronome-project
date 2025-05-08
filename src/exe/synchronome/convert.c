@@ -12,6 +12,10 @@
 	} \
 }
 
+// #define LOG_TIME(FMT,...)
+#define LOG_TIME(FMT,...) log_time( "convert %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+
+
 ret_t convert_run(
 		const img_format_t src_format,
 		select_queue_t* input_queue,
@@ -19,12 +23,16 @@ ret_t convert_run(
 )
 {
 	select_entry_t entry;
+	timeval_t current_time;
 	while( true ) {
 		select_queue_read_start( input_queue );
 		if( select_queue_get_should_stop( input_queue ) ) {
 			log_info( "convert: stopping\n" );
 			break;
 		}
+		current_time = time_measure_current_time();
+		timeval_t start_time = current_time;
+		LOG_TIME( "START\n" );
 		select_queue_read_get(input_queue, &entry);
 		{
 			/*
@@ -49,8 +57,18 @@ ret_t convert_run(
 			rgb_queue_push_end( rgb_queue );
 		}
 		select_queue_read_stop_dump(input_queue);
-		// frames are dumped be the `select` service!,
-		// so nothing to do here!
+		// log timing info:
+		current_time = time_measure_current_time();
+		timeval_t end_time = current_time;
+		LOG_TIME( "END\n" );
+		{
+			timeval_t runtime;
+			time_delta( &end_time, &start_time, &runtime );
+			LOG_TIME( "RUNTIME: %04lu.%06lu\n",
+					runtime.tv_sec,
+					runtime.tv_nsec / 1000
+			);
+		}
 	}
 	return RET_SUCCESS;
 }

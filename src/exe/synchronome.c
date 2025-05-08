@@ -1,3 +1,4 @@
+#include "lib/time.h"
 #include "synchronome/main.h"
 #include "simple_capture/main.h"
 #include "lib/output.h"
@@ -25,6 +26,10 @@ typedef enum {
 } command_t;
 
 typedef struct {
+
+	bool time_enable_print;
+	bool time_enable_log;
+
 	bool verbose_enable_print;
 	bool verbose_enable_log;
 
@@ -59,6 +64,8 @@ static const synchronome_args_t synchronome_def_args = {
 };
 
 static const logging_args_t logging_def_args= {
+	.time_enable_print = false,
+	.time_enable_log = false,
 	.verbose_enable_print = false,
 	.verbose_enable_log = false,
 	.info_enable_print = true,
@@ -79,6 +86,8 @@ const  struct option synchronome_long_options[] = {
 	{ "verbose", no_argument, 0, 'v' },
 	{ "verbose-print", required_argument, 0, 0 },
 	{ "verbose-log", required_argument, 0, 0 },
+	{ "timing-print", required_argument, 0, 0 },
+	{ "timing-log", required_argument, 0, 0 },
 	{ 0,0,0,0 },
 };
 
@@ -215,6 +224,8 @@ int main(
 			}
 			log_init(
 					LOG_PREFIX,
+					logging_args.time_enable_print,
+					logging_args.time_enable_log,
 					logging_args.verbose_enable_print,
 					logging_args.verbose_enable_log,
 					logging_args.info_enable_print,
@@ -237,6 +248,7 @@ int main(
 			if( RET_SUCCESS != print_platform_info() ) {
 				return EXIT_FAILURE;
 			}
+			time_init();
 			ret_t ret = synchronome_run(
 					args
 			);
@@ -269,6 +281,7 @@ int main(
 			}
 			log_init(
 					LOG_PREFIX,
+					false, false,
 					false, false,
 					true, true,
 					true, true
@@ -386,9 +399,25 @@ int synchronome_parse_cmd_line_args(
 						return 1;
 					}
 				}
-				if( !strcmp("verbose-log", long_option.name) ) {
+				else if( !strcmp("verbose-log", long_option.name) ) {
 					char* next_tok;
 					logging_args->verbose_enable_log = (bool )strtol(optarg, &next_tok, 10);
+					if( next_tok == optarg) {
+						log_error( "invalid argument for %s\n", long_option.name );
+						return 1;
+					}
+				}
+				else if( !strcmp("timing-print", long_option.name) ) {
+					char* next_tok;
+					logging_args->time_enable_print = (bool )strtol(optarg, &next_tok, 10);
+					if( next_tok == optarg) {
+						log_error( "invalid argument for %s\n", long_option.name );
+						return 1;
+					}
+				}
+				else if( !strcmp("timing-log", long_option.name) ) {
+					char* next_tok;
+					logging_args->time_enable_log = (bool )strtol(optarg, &next_tok, 10);
 					if( next_tok == optarg) {
 						log_error( "invalid argument for %s\n", long_option.name );
 						return 1;
@@ -510,6 +539,14 @@ void synchronome_print_cmd_line_info(
 	printf(
 			"--verbose-log BOOL: print verbose messages to log. default: %u\n",
 			logging_def_args.verbose_enable_log
+	);
+	printf(
+			"--timing-print BOOL: print profiling messages to stdout. default: %u\n",
+			logging_def_args.time_enable_print
+	);
+	printf(
+			"--verbose-log BOOL: print profiling messages to log. default: %u\n",
+			logging_def_args.time_enable_log
 	);
 	printf(
 			"--output-dir|-o DIR: output recorded images here. default: '%s'\n",

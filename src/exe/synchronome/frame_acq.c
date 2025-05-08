@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-
 int set_camera_format(
 		camera_t* camera,
 		const pixel_format_t pixel_format,
@@ -30,6 +29,9 @@ int set_camera_format(
 		return RET_FAILURE; \
 	} \
 }
+
+#define LOG_TIME(FMT,...) log_time( "frame_acq %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+static timeval_t current_time;
 
 ret_t frame_acq_init(
 		camera_t* camera,
@@ -74,7 +76,6 @@ ret_t frame_acq_run(
 )
 {
 	acq_entry_t acq_entry;
-	timeval_t t0 = time_measure_current_time();
 	while( true ) {
 		if( sem_wait( sem ) ) {
 			perror("sem_wait");
@@ -84,18 +85,23 @@ ret_t frame_acq_run(
 			log_info( "frame_acc: stopping\n" );
 			break;
 		}
-		timeval_t time = time_measure_current_time();
-		timeval_t delta;
-		time_delta( &time, &t0, &delta );
-		acq_entry.time = delta;
+		current_time = time_measure_current_time();
+		timeval_t start_time = current_time;
+		LOG_TIME( "START\n" );
+		acq_entry.time = current_time;
 		CAMERA_RUN( camera_get_frame( camera, &acq_entry.frame ));
-		/*
-		log_info( "frame_acc: write %lu.%lu\n",
-				delta.tv_sec,
-				delta.tv_nsec / 1000 / 1000
-		);
-		*/
 		acq_queue_push( acq_queue, acq_entry );
+		current_time = time_measure_current_time();
+		timeval_t end_time = current_time;
+		LOG_TIME( "END\n" );
+		{
+			timeval_t runtime;
+			time_delta( &end_time, &start_time, &runtime );
+			LOG_TIME( "RUNTIME: %4lu.%06lu\n",
+					runtime.tv_sec,
+					runtime.tv_nsec / 1000
+			);
+		}
 	}
 	return RET_SUCCESS;
 }

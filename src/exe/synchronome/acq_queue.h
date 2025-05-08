@@ -29,11 +29,11 @@ void acq_queue_init(
 void acq_queue_exit(acq_queue_t* queue);
 
 uint acq_queue_get_max_count(
-		acq_queue_t* queue
+		const acq_queue_t* queue
 );
 
 bool acq_queue_get_should_stop(
-		acq_queue_t* queue
+		const acq_queue_t* queue
 );
 
 void acq_queue_set_should_stop(
@@ -47,7 +47,7 @@ void acq_queue_read_start(
 );
 
 acq_entry_t* acq_queue_read_get(
-		acq_queue_t* queue,
+		const acq_queue_t* queue,
 		const uint index
 );
 

@@ -42,14 +42,14 @@ void acq_queue_exit(acq_queue_t* queue)
 }
 
 uint acq_queue_get_max_count(
-		acq_queue_t* queue
+		const acq_queue_t* queue
 )
 {
 	return queue->max_count;
 }
 
 bool acq_queue_get_should_stop(
-		acq_queue_t* queue
+		const acq_queue_t* queue
 )
 {
 	return queue->stop;
@@ -73,7 +73,7 @@ void acq_queue_read_start(
 }
 
 acq_entry_t* acq_queue_read_get(
-		acq_queue_t* queue,
+		const acq_queue_t* queue,
 		const uint index
 )
 {

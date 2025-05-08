@@ -108,6 +108,7 @@ int main(
 	log_init(
 			argv[0],
 			false, false,
+			false, false,
 			true, false,
 			true, true
 	);
