@@ -128,5 +128,6 @@ void rgb_queue_push_end(
 		rgb_queue_t* queue
 )
 {
+	queue->write_pos = (queue->write_pos+1) % queue->max_count;
 	sem_post( &queue->read_sem );
 }
