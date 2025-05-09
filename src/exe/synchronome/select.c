@@ -101,7 +101,7 @@ float calc_phase(
 		const float clock_tick_interval
 );
 
-void select_frame(
+ret_t select_frame(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
@@ -200,16 +200,16 @@ ret_t select_run(
 			diff_buffer_exit( &state.diff_statistics.diff_buffer );
 			break;
 		}
-		timeval_t frame_time = acq_queue_read_get(input_queue,state.frame_acc_count-1)->time;
 		current_time = time_measure_current_time();
 		timeval_t start_time = current_time;
 		LOG_TIME( "START\n" );
 		state.frame_acc_count++;
+		timeval_t frame_time = acq_queue_read_get(input_queue,state.frame_acc_count-1)->time;
 		if( state.frame_acc_count < 2 ) {
 			LOG_TIME_END()
 			continue;
 		}
-		assert( state.frame_acc_count >= 2 );
+		ASSERT( state.frame_acc_count >= 2 );
 		// calc image difference:
 		float diff_value;
 		API_RUN(image_diff(
@@ -226,7 +226,7 @@ ret_t select_run(
 				continue;
 			}
 		}
-		assert( diff_buffer_get_count(&state.diff_statistics.diff_buffer) >= diff_buffer_max_count );
+		ASSERT( diff_buffer_get_count(&state.diff_statistics.diff_buffer) >= diff_buffer_max_count );
 
 		bool tick_detected = (diff_value - state.diff_statistics.avg_diff) > tick_threshold * (state.diff_statistics.max_diff - state.diff_statistics.avg_diff);
 
@@ -239,6 +239,9 @@ ret_t select_run(
 					clock_tick_interval,
 					&state.synchronize_state
 			);
+			if( 1 == ret ) {
+				return RET_FAILURE;
+			}
 			if( -1 == ret ) {
 				LOG_TIME_END()
 				continue;
@@ -264,6 +267,7 @@ ret_t select_run(
 
 		// phase [0..1] - how much time has passed since last (executed) tick?
 		float phase = calc_phase( &state.tick_parser_state, &frame_time, clock_tick_interval );
+		ASSERT( phase >= 0 );
 
 		// autonomously execute tick every clock_tick_rate:
 		if( phase > 1 - epsilon ) {
@@ -274,7 +278,7 @@ ret_t select_run(
 			);
 		}
 
-		assert( phase <= 1.0 );
+		ASSERT( phase < 1.0 );
 
 		// register measured ticks and if the measurements
 		// pass certain sanity criteria,
@@ -297,14 +301,14 @@ ret_t select_run(
 				continue;
 			}
 			// select frame from recent recorded frames:
-			select_frame(
+			API_RUN( select_frame(
 					frame_time,
 					acq_interval,
 					clock_tick_interval,
 					input_queue,
 					&state,
 					output_queue
-			);
+			));
 		}
 		state.last_tick_index--;
 	}
@@ -327,7 +331,7 @@ ret_t select_get_frame_acc_count(
 	return RET_SUCCESS;
 }
 
-void select_frame(
+ret_t select_frame(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
@@ -337,8 +341,8 @@ void select_frame(
 )
 {
 	int selected_frame_index = (state->last_tick_index + state->frame_acc_count-1) / 2;
-	assert( selected_frame_index >= 0 );
-	assert( selected_frame_index < (int )(state->frame_acc_count-1) );
+	ASSERT( selected_frame_index >= 0 );
+	ASSERT( selected_frame_index < (int )(state->frame_acc_count-1) );
 	VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%06lu)\n",
 			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
 			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec
@@ -348,6 +352,7 @@ void select_frame(
 			*acq_queue_read_get(input_queue,selected_frame_index)
 	);
 	state->last_tick_index = state->frame_acc_count-1;
+	return RET_SUCCESS;
 }
 
 
@@ -433,7 +438,7 @@ int synchronize(
 				&delta
 		);
 		float phase = ((float )time_us_from_timespec( &delta ) / 1000 / 1000) / clock_tick_interval;
-		assert( phase > 0 );
+		ASSERT( phase > 0 );
 		// if this tick is out of sync, reset and begin anew:
 		if( !(phase > 1 - epsilon && phase < 1 + epsilon) ) {
 			state->sync_status = 0;
