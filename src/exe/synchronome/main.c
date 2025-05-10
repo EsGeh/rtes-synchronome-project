@@ -82,8 +82,8 @@ static select_thread_t select_thread;
 static convert_thread_t convert_thread;
 static write_to_storage_thread_t write_to_storage_thread;
 
-const uint select_queue_count = 10;
-const uint rgb_queue_count = 10;
+const uint select_queue_count = 16;
+const uint rgb_queue_count = 64;
 
 /********************
  * Function Decls
