@@ -29,12 +29,13 @@ const uint sync_threshold = 4;
 
 // calculate avg diff over an
 // interval of this size:
-const uint diff_buffer_max_count = 32;
+#define diff_buffer_max_count 32
 
 DECL_RING_BUFFER(diff_buffer,float)
 
 typedef struct {
 	diff_buffer_t diff_buffer;
+	float median_diff;
 	float avg_diff;
 	float max_diff;
 	float min_diff;
@@ -173,6 +174,7 @@ ret_t select_run(
 	VERBOSE_PRINT( "max_frame_acc_count: %4u\n", max_frame_acc_count );
 	VERBOSE_PRINT( "sampling_resolution: %d\n", sampling_resolution );
 	diff_buffer_init( &state.diff_statistics.diff_buffer, diff_buffer_max_count );
+	state.diff_statistics.median_diff = -1;
 	state.diff_statistics.max_diff = 0;
 	state.diff_statistics.min_diff = 100;
 	while( true ) {
@@ -213,7 +215,7 @@ ret_t select_run(
 		}
 		ASSERT( diff_buffer_get_count(&state.diff_statistics.diff_buffer) >= diff_buffer_max_count );
 
-		bool tick_detected = (diff_value - state.diff_statistics.min_diff) > tick_threshold * (state.diff_statistics.max_diff - state.diff_statistics.min_diff);
+		bool tick_detected = (diff_value / state.diff_statistics.median_diff) - 1 > tick_threshold;
 
 		// initial sync phase:
 		{
@@ -316,11 +318,22 @@ void cleanup_frames(
 	}
 }
 
+int compare_float( const void* p1, const void* p2 ) {
+	if( *((const float* )p1) < *((const float* ) p2) ) {
+		return -1;
+	}
+	else if( *((const float* )p1) > *((const float* ) p2) ) {
+		return 1;
+	}
+	return 0;
+}
+
 int update_img_diff(
 		const timeval_t frame_time,
 		const float diff_value,
 		diff_statistics_t* diff_statistics
 ) {
+	static float sorted[diff_buffer_max_count];
 	if( diff_buffer_get_count(&diff_statistics->diff_buffer) < diff_buffer_max_count ) {
 		// cumulative average:
 		const uint n = diff_buffer_get_count(&diff_statistics->diff_buffer);
@@ -335,33 +348,30 @@ int update_img_diff(
 		float oldest_diff = *diff_buffer_get( &diff_statistics->diff_buffer );
 		diff_buffer_pop( &diff_statistics->diff_buffer );
 		diff_buffer_push( &diff_statistics->diff_buffer, diff_value );
-		// update min/max:
-		diff_statistics->min_diff = MIN(diff_statistics->min_diff, diff_value );
-		diff_statistics->max_diff = MAX(diff_statistics->max_diff, diff_value );
-		/*
-		// brute force calculation of moving min/max
-		diff_statistics->min_diff = 100;
-		diff_statistics->max_diff = 0;
+		// not very efficient, but works:
 		for( uint i=0; i<diff_buffer_max_count; i++ ) {
-			diff_statistics->min_diff = MIN(diff_statistics->min_diff, *diff_buffer_get_index(&diff_statistics->diff_buffer, i) );
-			diff_statistics->max_diff = MAX(diff_statistics->max_diff, *diff_buffer_get_index(&diff_statistics->diff_buffer, i) );
+			sorted[i] = *diff_buffer_get_index(&diff_statistics->diff_buffer, i);
 		}
-		*/
+		qsort(&sorted, diff_buffer_max_count, sizeof(float), compare_float);
+		diff_statistics->min_diff = sorted[0];
+		diff_statistics->max_diff = sorted[diff_buffer_max_count-1];
+		diff_statistics->median_diff = sorted[diff_buffer_max_count/2];
 		diff_statistics->avg_diff -= oldest_diff / diff_buffer_max_count;
 		diff_statistics->avg_diff += diff_value / diff_buffer_max_count;
 	}
-	VERBOSE_PRINT_FRAME( "diff value: %f, avg: %f, range: %f...%f\n",
-			diff_value,
-			diff_statistics->avg_diff,
+	VERBOSE_PRINT_FRAME( "diff value: %f, median: %f, range: %f...%f, avg: %f\n",
+			diff_value  / diff_statistics->median_diff,
+			diff_statistics->median_diff,
 			diff_statistics->min_diff,
-			diff_statistics->max_diff
+			diff_statistics->max_diff,
+			diff_statistics->avg_diff
 	);
 	// wait until diff statistics are stable
 	if( diff_buffer_get_count(&diff_statistics->diff_buffer) < diff_buffer_max_count ) {
 		VERBOSE_PRINT_FRAME( "collect diff statistics: %u/%u\n",
 				diff_buffer_get_count(&diff_statistics->diff_buffer),
 				diff_buffer_max_count
-				);
+		);
 		return -1;
 	}
 	return 0;
