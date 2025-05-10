@@ -37,6 +37,7 @@ typedef struct {
 	diff_buffer_t diff_buffer;
 	float avg_diff;
 	float max_diff;
+	float min_diff;
 } diff_statistics_t;
 
 typedef struct {
@@ -179,6 +180,8 @@ ret_t select_run(
 	VERBOSE_PRINT( "max_frame_acc_count: %4u\n", max_frame_acc_count );
 	VERBOSE_PRINT( "sampling_resolution: %d\n", sampling_resolution );
 	diff_buffer_init( &state.diff_statistics.diff_buffer, diff_buffer_max_count );
+	state.diff_statistics.max_diff = 0;
+	state.diff_statistics.min_diff = 100;
 	while( true ) {
 		// cleanup obsolete old frames:
 		cleanup_frames( max_frame_acc_count, dump_frame, &state.frame_acc_count, input_queue );
@@ -217,7 +220,7 @@ ret_t select_run(
 		}
 		ASSERT( diff_buffer_get_count(&state.diff_statistics.diff_buffer) >= diff_buffer_max_count );
 
-		bool tick_detected = (diff_value - state.diff_statistics.avg_diff) > tick_threshold * (state.diff_statistics.max_diff - state.diff_statistics.avg_diff);
+		bool tick_detected = (diff_value - state.diff_statistics.min_diff) > tick_threshold * (state.diff_statistics.max_diff - state.diff_statistics.min_diff);
 
 		// initial sync phase:
 		{
@@ -368,6 +371,7 @@ int update_img_diff(
 		// cumulative average:
 		const uint n = diff_buffer_get_count(&diff_statistics->diff_buffer);
 		diff_statistics->max_diff = MAX(diff_statistics->max_diff,diff_value);
+		diff_statistics->min_diff = MIN(diff_statistics->min_diff,diff_value);
 		diff_statistics->avg_diff =
 			(diff_statistics->avg_diff * ((float )n) + diff_value)
 			/ ((float )(n+1));
@@ -377,17 +381,25 @@ int update_img_diff(
 		float oldest_diff = *diff_buffer_get( &diff_statistics->diff_buffer );
 		diff_buffer_pop( &diff_statistics->diff_buffer );
 		diff_buffer_push( &diff_statistics->diff_buffer, diff_value );
-		// brute force, there might be a better strategy...:
+		// update min/max:
+		diff_statistics->min_diff = MIN(diff_statistics->min_diff, diff_value );
+		diff_statistics->max_diff = MAX(diff_statistics->max_diff, diff_value );
+		/*
+		// brute force calculation of moving min/max
+		diff_statistics->min_diff = 100;
 		diff_statistics->max_diff = 0;
 		for( uint i=0; i<diff_buffer_max_count; i++ ) {
+			diff_statistics->min_diff = MIN(diff_statistics->min_diff, *diff_buffer_get_index(&diff_statistics->diff_buffer, i) );
 			diff_statistics->max_diff = MAX(diff_statistics->max_diff, *diff_buffer_get_index(&diff_statistics->diff_buffer, i) );
 		}
+		*/
 		diff_statistics->avg_diff -= oldest_diff / diff_buffer_max_count;
 		diff_statistics->avg_diff += diff_value / diff_buffer_max_count;
 	}
-	VERBOSE_PRINT_FRAME( "diff value: %f, avg: %f, max: %f\n",
+	VERBOSE_PRINT_FRAME( "diff value: %f, avg: %f, range: %f...%f\n",
 			diff_value,
 			diff_statistics->avg_diff,
+			diff_statistics->min_diff,
 			diff_statistics->max_diff
 	);
 	// wait until diff statistics are stable
