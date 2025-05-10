@@ -93,28 +93,21 @@ int synchronize(
 		synchronize_state_t* state
 );
 
-ret_t select_frame(
-		const timeval_t frame_time,
-		const float acq_interval,
-		const float clock_tick_interval,
-		const acq_queue_t* input_queue,
-		select_state_t* state,
-		select_queue_t* output_queue
-);
-
-
 void tick_parser_init(
 		const timeval_t frame_time,
 		tick_parser_state_t* state
 );
 
-void tick_parser(
+int tick_parser(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
-		// const float phase,
 		const bool tick_detected,
-		tick_parser_state_t* state
+		const uint frame_acc_count,
+		tick_parser_state_t* state,
+		acq_queue_t* input_queue,
+		select_queue_t* output_queue,
+		int* last_tick_index
 );
 
 /********************
@@ -232,6 +225,7 @@ ret_t select_run(
 					&state.synchronize_state
 			);
 			if( 1 == ret ) {
+				diff_buffer_exit( &state.diff_statistics.diff_buffer );
 				return RET_FAILURE;
 			}
 			if( -1 == ret ) {
@@ -253,9 +247,6 @@ ret_t select_run(
 		}
 		state.tick_parser_state.frame_index ++;
 
-		// phase [0..sampling_precision] - how much time has passed since last (executed) tick?
-		const int phase = state.tick_parser_state.frame_index % sampling_resolution;
-
 		// autonomously execute tick every clock_tick_rate:
 		if( state.tick_parser_state.frame_index % sampling_resolution == 0 ) {
 			VERBOSE_PRINT_FRAME( "TICK %4u!\n",
@@ -266,33 +257,21 @@ ret_t select_run(
 		// register measured ticks and if the measurements
 		// pass certain sanity criteria,
 		// counteract drift if necessary
-		tick_parser(
+		if( 1 == tick_parser(
 				frame_time,
 				acq_interval,
 				clock_tick_interval,
-				// phase,
 				tick_detected,
-				&state.tick_parser_state
-		);
-
-		// if this was a "tick" frame:
-		if( phase == 0 ) {
-			// do nothing if initial delay is not yet over:
-			if( time_us_from_timespec( &frame_time ) < (USEC )select_delay * 1000*1000 ) {
-				state.last_tick_index = state.frame_acc_count-1;
-				LOG_TIME_END()
-				continue;
-			}
-			// select frame from recent recorded frames:
-			API_RUN( select_frame(
-					frame_time,
-					acq_interval,
-					clock_tick_interval,
-					input_queue,
-					&state,
-					output_queue
-			));
+				state.frame_acc_count,
+				&state.tick_parser_state,
+				input_queue,
+				output_queue,
+				&state.last_tick_index
+		)) {
+			diff_buffer_exit( &state.diff_statistics.diff_buffer );
+			return RET_FAILURE;
 		}
+
 		state.last_tick_index--;
 	}
 	return RET_SUCCESS;
@@ -306,45 +285,20 @@ ret_t select_get_frame_acc_count(
 		uint* frame_acc_count
 )
 {
+	const int sampling_resolution = clock_tick_interval / acq_interval ;
 	ASSERT( acq_interval > 0.001 );
 	ASSERT( clock_tick_interval > 0.001 );
-	ASSERT( 1.0f/acq_interval >= 2.0 * (1.0f/clock_tick_interval) );
-	(*frame_acc_count) =  1.5 * clock_tick_interval / acq_interval;
+	ASSERT( sampling_resolution >= 3 );
+	(*frame_acc_count) =
+		sampling_resolution
+		+ 1 // frame select is one frame AFTER internal tick
+		+ 1 // one frame deadline for further processing
+		+ 2 // some headroom, just to be safe...
+	;
 	ASSERT( (*frame_acc_count) > 2 );
 	return RET_SUCCESS;
 }
 
-ret_t select_frame(
-		const timeval_t frame_time,
-		const float acq_interval,
-		const float clock_tick_interval,
-		const acq_queue_t* input_queue,
-		select_state_t* state,
-		select_queue_t* output_queue
-)
-{
-	// select the frame in the middle between
-	// last tick and current tick frame.
-	// lean towards the last/current depending
-	// on the preference flag:
-	int selected_frame_index = 
-		( state->last_tick_index + state->frame_acc_count-1 + state->tick_parser_state.select_prefer_latest )
-		/ 2
-	;
-	// selected_frame_index += state->tick_parser_state.select_prefer_latest;
-	ASSERT( selected_frame_index >= 0 );
-	ASSERT( selected_frame_index < (int )(state->frame_acc_count-1) );
-	VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%06lu)\n",
-			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
-			acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec
-	);
-	select_queue_push(
-			output_queue,
-			*acq_queue_read_get(input_queue,selected_frame_index)
-	);
-	state->last_tick_index = state->frame_acc_count-1;
-	return RET_SUCCESS;
-}
 
 
 // cleanup obsolete old frames:
@@ -474,20 +428,23 @@ void tick_parser_init(
 )
 {
 	state->frame_index = 0;
-	state->measured_tick_count = -1;
+	state->measured_tick_count = 0;
 	state->drift_correction = 0;
 	state->requested_drift_correction = 0;
 	state->select_prefer_latest = 0;
 }
 
 // register detected ticks and drift:
-void tick_parser(
+int tick_parser(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
-		// const float phase,
 		const bool tick_detected,
-		tick_parser_state_t* state
+		const uint frame_acc_count,
+		tick_parser_state_t* state,
+		acq_queue_t* input_queue,
+		select_queue_t* output_queue,
+		int* last_tick_index
 )
 {
 	const int sampling_resolution = clock_tick_interval / acq_interval;
@@ -518,6 +475,7 @@ void tick_parser(
 						state->measured_tick_count+1,
 						phase
 				);
+				state->select_prefer_latest = 1;
 			}
 			else {
 				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d<-- (TOO LATE!)\n",
@@ -556,6 +514,7 @@ void tick_parser(
 	// - was there exactly 1 measured tick?
 	// - was the detected tick on time?
 	if( phase == 1 ) {
+		int selected_frame_index = ( (*last_tick_index) + frame_acc_count-2 ) / 2;
 		// we have detected ticks for every executed tick
 		if( state->measured_tick_count == tick_count ) {
 			VERBOSE_PRINT_FRAME( "ADJUST requested: %d/%d\n",
@@ -563,14 +522,7 @@ void tick_parser(
 					adjustment_inertia
 			);
 			if( (uint )abs(state->requested_drift_correction) > 0 ) {
-				if( state->requested_drift_correction > 0 ) {
-					state->select_prefer_latest = 1;
-					VERBOSE_PRINT_FRAME( "prefer_latest: %d\n", state->select_prefer_latest);
-				}
-				else if( state->requested_drift_correction < 0 ) {
-					state->select_prefer_latest = 0;
-					VERBOSE_PRINT_FRAME( "prefer_latest: %d\n", state->select_prefer_latest);
-				}
+				selected_frame_index += state->select_prefer_latest;
 				if( (uint )abs(state->requested_drift_correction) >= adjustment_inertia ) {
 					if( state->requested_drift_correction < 0 ) {
 						state->frame_index += 1;
@@ -608,7 +560,23 @@ void tick_parser(
 			state->measured_tick_count = tick_count;
 			state->requested_drift_correction = 0;
 		}
+		if( tick_count != 0 ) {
+			ASSERT( selected_frame_index >= 0 );
+			ASSERT( selected_frame_index < (int )(frame_acc_count-1) );
+			VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%06lu)\n",
+				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
+				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec
+			);
+			select_queue_push(
+					output_queue,
+					*acq_queue_read_get(input_queue,selected_frame_index)
+			);
+			(*last_tick_index) = frame_acc_count-2;
+		}
+		// reset:
+		state->select_prefer_latest = 0;
 	}
+	return 0;
 }
 
 DEF_RING_BUFFER(diff_buffer,float)
