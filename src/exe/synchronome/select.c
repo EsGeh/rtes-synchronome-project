@@ -8,8 +8,6 @@
 #include "lib/global.h"
 #include "lib/time.h"
 
-#include <math.h>
-
 
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
@@ -47,10 +45,11 @@ typedef struct {
 } synchronize_state_t;
 
 typedef struct {
-	timeval_t first_tick_time;
-	int executed_tick_count;
+	int frame_index;
 	int measured_tick_count;
-	float requested_drift_correction;
+	int drift_correction;
+	int requested_drift_correction;
+	int select_prefer_latest;
 } tick_parser_state_t;
 
 typedef struct {
@@ -67,8 +66,6 @@ typedef struct {
 	diff_statistics_t diff_statistics;
 
 } select_state_t;
-
-// static select_state_t state;
 
 /********************
  * Function Decls
@@ -95,12 +92,6 @@ int synchronize(
 		synchronize_state_t* state
 );
 
-float calc_phase(
-		const tick_parser_state_t* state,
-		const timeval_t* frame_time,
-		const float clock_tick_interval
-);
-
 ret_t select_frame(
 		const timeval_t frame_time,
 		const float acq_interval,
@@ -120,7 +111,7 @@ void tick_parser(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
-		const float phase,
+		// const float phase,
 		const bool tick_detected,
 		tick_parser_state_t* state
 );
@@ -183,12 +174,10 @@ ret_t select_run(
 			&max_frame_acc_count
 	) );
 	static select_state_t state;
-	state.tick_parser_state.executed_tick_count = -1;
 	state.tick_parser_state.measured_tick_count = -1;
-	const float sampling_precision = acq_interval / clock_tick_interval ;
-	const float epsilon = sampling_precision/2;
+	const int sampling_resolution = clock_tick_interval / acq_interval ;
 	VERBOSE_PRINT( "max_frame_acc_count: %4u\n", max_frame_acc_count );
-	VERBOSE_PRINT( "sampling_precision: %f\n", sampling_precision );
+	VERBOSE_PRINT( "sampling_resolution: %d\n", sampling_resolution );
 	diff_buffer_init( &state.diff_statistics.diff_buffer, diff_buffer_max_count );
 	while( true ) {
 		// cleanup obsolete old frames:
@@ -254,31 +243,22 @@ ret_t select_run(
 				);
 				state.last_tick_index = state.frame_acc_count-1;
 				VERBOSE_PRINT_FRAME( "TICK 0\n" );
-#if TEST_DRIFT_AHEAD
-				state.last_tick_index--;
-#elif TEST_DRIFT_BEHIND
-				state.last_tick_index -= 2;
-#endif
 				state.last_tick_index--;
 				LOG_TIME_END()
 				continue;
 			}
 		}
+		state.tick_parser_state.frame_index ++;
 
-		// phase [0..1] - how much time has passed since last (executed) tick?
-		float phase = calc_phase( &state.tick_parser_state, &frame_time, clock_tick_interval );
-		ASSERT( phase >= 0 );
+		// phase [0..sampling_precision] - how much time has passed since last (executed) tick?
+		const int phase = state.tick_parser_state.frame_index % sampling_resolution;
 
 		// autonomously execute tick every clock_tick_rate:
-		if( phase > 1 - epsilon ) {
-			state.tick_parser_state.executed_tick_count++;
-			phase -= 1;
+		if( state.tick_parser_state.frame_index % sampling_resolution == 0 ) {
 			VERBOSE_PRINT_FRAME( "TICK %4u!\n",
-					state.tick_parser_state.executed_tick_count
+					state.tick_parser_state.frame_index / sampling_resolution
 			);
 		}
-
-		ASSERT( phase < 1.0 );
 
 		// register measured ticks and if the measurements
 		// pass certain sanity criteria,
@@ -287,13 +267,13 @@ ret_t select_run(
 				frame_time,
 				acq_interval,
 				clock_tick_interval,
-				phase,
+				// phase,
 				tick_detected,
 				&state.tick_parser_state
 		);
 
 		// if this was a "tick" frame:
-		if( phase < 0 + epsilon ) {
+		if( phase == 0 ) {
 			// do nothing if initial delay is not yet over:
 			if( time_us_from_timespec( &frame_time ) < (USEC )select_delay * 1000*1000 ) {
 				state.last_tick_index = state.frame_acc_count-1;
@@ -340,7 +320,15 @@ ret_t select_frame(
 		select_queue_t* output_queue
 )
 {
-	int selected_frame_index = (state->last_tick_index + state->frame_acc_count-1) / 2;
+	// select the frame in the middle between
+	// last tick and current tick frame.
+	// lean towards the last/current depending
+	// on the preference flag:
+	int selected_frame_index = 
+		( state->last_tick_index + state->frame_acc_count-1 + state->tick_parser_state.select_prefer_latest )
+		/ 2
+	;
+	// selected_frame_index += state->tick_parser_state.select_prefer_latest;
 	ASSERT( selected_frame_index >= 0 );
 	ASSERT( selected_frame_index < (int )(state->frame_acc_count-1) );
 	VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%06lu)\n",
@@ -397,6 +385,11 @@ int update_img_diff(
 		diff_statistics->avg_diff -= oldest_diff / diff_buffer_max_count;
 		diff_statistics->avg_diff += diff_value / diff_buffer_max_count;
 	}
+	VERBOSE_PRINT_FRAME( "diff value: %f, avg: %f, max: %f\n",
+			diff_value,
+			diff_statistics->avg_diff,
+			diff_statistics->max_diff
+	);
 	// wait until diff statistics are stable
 	if( diff_buffer_get_count(&diff_statistics->diff_buffer) < diff_buffer_max_count ) {
 		VERBOSE_PRINT_FRAME( "collect diff statistics: %u/%u\n",
@@ -423,12 +416,12 @@ int synchronize(
 	if( tick_detected ) {
 		// first tick seen:
 		if( state->sync_status == 0 ) {
+			state->last_tick_time = frame_time;
+			state->sync_status++;
 			VERBOSE_PRINT_FRAME( "sync: %u/%u\n",
 					state->sync_status,
 					sync_threshold
 			);
-			state->last_tick_time = frame_time;
-			state->sync_status++;
 			return -1;
 		}
 		timeval_t delta;
@@ -463,65 +456,16 @@ int synchronize(
 	return -1;
 }
 
-float calc_phase(
-		const tick_parser_state_t* state,
-		const timeval_t* frame_time,
-		const float clock_tick_interval
-) {
-	timeval_t last_executed_tick_time;
-	timeval_t clock_tick_interval_;
-	time_timespec_from_us(
-			clock_tick_interval * 1000 * 1000,
-			&clock_tick_interval_
-	);
-	time_mul_i(
-			&clock_tick_interval_,
-			state->executed_tick_count,
-			&last_executed_tick_time
-	);
-	time_add(
-			&state->first_tick_time,
-			&last_executed_tick_time,
-			&last_executed_tick_time
-	);
-	timeval_t delta;
-	time_delta(
-			frame_time,
-			&last_executed_tick_time,
-			&delta
-	);
-	return ((float )time_us_from_timespec( &delta ) / 1000 / 1000) / clock_tick_interval;
-}
-
 void tick_parser_init(
 		const timeval_t frame_time,
 		tick_parser_state_t* state
 )
 {
-	state->first_tick_time = frame_time;
-	state->executed_tick_count = 0;
-	state->measured_tick_count = 0;
-#if TEST_DRIFT_AHEAD
-	/* start with internal clock early
-	 * to test resync:
-	 */
-	time_add_us(
-			&state.first_tick_time,
-			- sampling_precision * clock_tick_interval * 1000 * 1000,
-			&state.first_tick_time
-			);
-	VERBOSE_PRINT_FRAME( "EMULATE TICK 0 <- 0.333\n" );
-#elif TEST_DRIFT_BEHIND
-	/* start with internal clock lagging
-	 * to test resync:
-	 */
-	time_add_us(
-			&state.first_tick_time,
-			-2* sampling_precision * clock_tick_interval * 1000 * 1000,
-			&state.first_tick_time
-			);
-	VERBOSE_PRINT_FRAME( "EMULATE TICK 0 <- 0.666\n" );
-#endif
+	state->frame_index = 0;
+	state->measured_tick_count = -1;
+	state->drift_correction = 0;
+	state->requested_drift_correction = 0;
+	state->select_prefer_latest = 0;
 }
 
 // register detected ticks and drift:
@@ -529,94 +473,114 @@ void tick_parser(
 		const timeval_t frame_time,
 		const float acq_interval,
 		const float clock_tick_interval,
-		const float phase,
+		// const float phase,
 		const bool tick_detected,
 		tick_parser_state_t* state
 )
 {
-	const float sampling_precision = acq_interval / clock_tick_interval ;
-	const float epsilon = sampling_precision/2;
+	const int sampling_resolution = clock_tick_interval / acq_interval;
+	const int tick_count = state->frame_index / sampling_resolution;
+	const int phase = state->frame_index % sampling_resolution;
 	// 1. register measured ticks:
 	if( tick_detected ) {
-		// we are urgently wating to detect a tick already executed:
-		if( state->measured_tick_count == state->executed_tick_count - 1 ) {
-			if( phase < 0 + epsilon ) {
+		// we are wating to detect a tick already executed:
+		if( state->measured_tick_count == tick_count - 1 ) {
+			if( phase == 0 ) {
 				// measured tick is on time for the latest executed tick:
-				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f\n",
+				// vote against drift correction:
+				if( state->requested_drift_correction < 0 ) {
+					state->requested_drift_correction += 1;
+				}
+				else if( state->requested_drift_correction > 0 ) {
+					state->requested_drift_correction -= 1;
+				}
+				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d\n",
 						state->measured_tick_count+1,
 						phase
 				);
 			}
-			else if( phase < 0 + sampling_precision + epsilon ) {
+			else if( phase == 1 ) {
 				// measured tick is 1 sample late for the latest executed tick:
-				state->requested_drift_correction += + sampling_precision / adjustment_inertia;
-				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f<- (late)\n",
+				state->requested_drift_correction += 1;
+				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d<- (late)\n",
 						state->measured_tick_count+1,
 						phase
 				);
 			}
 			else {
-				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f<-- (TOO LATE!)\n",
+				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d<-- (TOO LATE!)\n",
 						state->measured_tick_count+1,
 						phase
 				);
 			}
 		}
 		// we are "even" so the tick can only be for the next predicted tick:
-		else if( state->measured_tick_count == state->executed_tick_count ) {
-			if( 1 - phase < sampling_precision + epsilon ) {
+		else if( state->measured_tick_count == tick_count ) {
+			if( phase == sampling_resolution - 1 ) {
 				// measured tick is 1 sample ahead of the upcoming predicted tick:
-				state->requested_drift_correction += - sampling_precision / adjustment_inertia;
-				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f-> (early)\n",
+				state->requested_drift_correction -= 1;
+				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d-> (early)\n",
 						state->measured_tick_count+1,
 						phase
 				);
 			}
 			else {
-				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f--> (TOO EARLY!)\n",
+				VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d--> (TOO EARLY!)\n",
 						state->measured_tick_count+1,
 						phase
 				);
 			}
 		}
 		else {
-			VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %f (?)\n",
+			VERBOSE_PRINT_FRAME( "~TICK %4u, phase: %d (?)\n",
 					state->measured_tick_count+1,
 					phase
 			);
 		}
 		state->measured_tick_count++;
 	}
-	// at exactly 1 sample after an (internal) tick,
+	// 2. at exactly 1 sample after an (internal) tick,
 	// we take stocK:
 	// - was there exactly 1 measured tick?
-	// - was the measured tick on time?
-	if( phase > sampling_precision - epsilon && phase < sampling_precision + epsilon ) {
-		// we have measured ticks for every executed tick
-		if( state->measured_tick_count == state->executed_tick_count ) {
-			VERBOSE_PRINT_FRAME( "ADJUST requested: %f\n", state->requested_drift_correction );
-			if( fabsf(state->requested_drift_correction) > sampling_precision - epsilon ) {
-				float adjustment = copysign(
-						sampling_precision * clock_tick_interval, // value
-						state->requested_drift_correction // sign
-				);
-				VERBOSE_PRINT_FRAME( "ADJUST: %f\n", adjustment );
-				time_add_us(
-						&state->first_tick_time,
-						adjustment * 1000 * 1000,
-						&state->first_tick_time
-				);
-				state->requested_drift_correction = 0;
+	// - was the detected tick on time?
+	if( phase == 1 ) {
+		// we have detected ticks for every executed tick
+		if( state->measured_tick_count == tick_count ) {
+			VERBOSE_PRINT_FRAME( "ADJUST requested: %d/%d\n",
+					state->requested_drift_correction,
+					adjustment_inertia
+			);
+			if( (uint )abs(state->requested_drift_correction) > 0 ) {
+				if( state->requested_drift_correction > 0 ) {
+					state->select_prefer_latest = 1;
+					VERBOSE_PRINT_FRAME( "prefer_latest: %d\n", state->select_prefer_latest);
+				}
+				else if( state->requested_drift_correction < 0 ) {
+					state->select_prefer_latest = 0;
+					VERBOSE_PRINT_FRAME( "prefer_latest: %d\n", state->select_prefer_latest);
+				}
+				if( (uint )abs(state->requested_drift_correction) >= adjustment_inertia ) {
+					if( state->requested_drift_correction < 0 ) {
+						state->frame_index += 1;
+						VERBOSE_PRINT_FRAME( "ADJUST applied: %d\n", +1);
+					}
+					else {
+						state->frame_index -= 1;
+						VERBOSE_PRINT_FRAME( "ADJUST applied: %d\n", -1);
+
+					}
+					state->requested_drift_correction = 0;
+				}
 			}
 		}
 		else {
 			// ERROR:
-			if( state->measured_tick_count > state->executed_tick_count ) {
+			if( state->measured_tick_count > tick_count ) {
 				log_error( "select %4lu.%3lu: superfluous TICKs: %d > %d!\n",
 					frame_time.tv_sec,
 					frame_time.tv_nsec /1000/1000,
 					state->measured_tick_count,
-					state->executed_tick_count
+					tick_count
 				);
 			}
 			else {
@@ -625,11 +589,11 @@ void tick_parser(
 					frame_time.tv_sec,
 					frame_time.tv_nsec/1000/1000,
 					state->measured_tick_count,
-					state->executed_tick_count
+					tick_count
 				);
 			}
 			// simple error recovery measure:
-			state->measured_tick_count = state->executed_tick_count;
+			state->measured_tick_count = tick_count;
 			state->requested_drift_correction = 0;
 		}
 	}
