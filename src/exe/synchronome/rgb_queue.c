@@ -119,9 +119,7 @@ void rgb_queue_push_start(
 )
 {
 	sem_wait( &queue->write_sem );
-	(*entry) = &queue->entries[
-		queue->write_pos % queue->max_count
-	];
+	(*entry) = &queue->entries[queue->write_pos];
 }
 
 void rgb_queue_push_end(
