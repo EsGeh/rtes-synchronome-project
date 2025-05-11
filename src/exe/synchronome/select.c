@@ -52,6 +52,7 @@ typedef struct {
 	int drift_correction;
 	int requested_drift_correction;
 	int select_prefer_latest;
+	bool sleep_one_frame;
 } tick_parser_state_t;
 
 typedef struct {
@@ -442,6 +443,7 @@ void tick_parser_init(
 	state->drift_correction = 0;
 	state->requested_drift_correction = 0;
 	state->select_prefer_latest = 0;
+	state->sleep_one_frame = false;
 }
 
 // register detected ticks and drift:
@@ -524,6 +526,10 @@ int tick_parser(
 	// - was there exactly 1 measured tick?
 	// - was the detected tick on time?
 	if( phase == 1 ) {
+		if( state->sleep_one_frame ) {
+			state->sleep_one_frame = false;
+			return 0;
+		}
 		int selected_frame_index = ( (*last_tick_index) + frame_acc_count-2 ) / 2;
 		// we have detected ticks for every executed tick
 		if( state->measured_tick_count == tick_count ) {
@@ -541,7 +547,7 @@ int tick_parser(
 					else {
 						state->frame_index -= 1;
 						VERBOSE_PRINT_FRAME( "ADJUST applied: %d\n", -1);
-
+						state->sleep_one_frame = true;
 					}
 					state->requested_drift_correction = 0;
 				}
@@ -573,9 +579,9 @@ int tick_parser(
 		if( tick_count != 0 ) {
 			ASSERT( selected_frame_index >= 0 );
 			ASSERT( selected_frame_index < (int )(frame_acc_count-1) );
-			VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%06lu)\n",
+			VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%03lu\n",
 				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
-				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec
+				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec/1000/1000
 			);
 			select_queue_push(
 					output_queue,
