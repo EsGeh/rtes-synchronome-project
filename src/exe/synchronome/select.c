@@ -106,6 +106,7 @@ int tick_parser(
 		const float clock_tick_interval,
 		const bool tick_detected,
 		const uint frame_acc_count,
+		const int max_frames, // -1 means no limit
 		tick_parser_state_t* state,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
@@ -157,6 +158,7 @@ ret_t select_run(
 		const float acq_interval,
 		const float clock_tick_interval,
 		const float tick_threshold,
+		const int max_frames, // -1 means no limit
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
 		dump_frame_func_t dump_frame
@@ -264,19 +266,27 @@ ret_t select_run(
 		// register measured ticks and if the measurements
 		// pass certain sanity criteria,
 		// counteract drift if necessary
-		if( 1 == tick_parser(
-				frame_time,
-				acq_interval,
-				clock_tick_interval,
-				tick_detected,
-				state.frame_acc_count,
-				&state.tick_parser_state,
-				input_queue,
-				output_queue,
-				&state.last_tick_index
-		)) {
-			diff_buffer_exit( &state.diff_statistics.diff_buffer );
-			return RET_FAILURE;
+		{
+			int ret = tick_parser(
+					frame_time,
+					acq_interval,
+					clock_tick_interval,
+					tick_detected,
+					state.frame_acc_count,
+					max_frames,
+					&state.tick_parser_state,
+					input_queue,
+					output_queue,
+					&state.last_tick_index
+			);
+			if( ret == 1 ) {
+				diff_buffer_exit( &state.diff_statistics.diff_buffer );
+				return RET_FAILURE;
+			}
+			else if( ret == -1 ) {
+				diff_buffer_exit( &state.diff_statistics.diff_buffer );
+				break;
+			}
 		}
 
 		state.last_tick_index--;
@@ -457,6 +467,7 @@ int tick_parser(
 		const float clock_tick_interval,
 		const bool tick_detected,
 		const uint frame_acc_count,
+		const int max_frames, // -1 means no limit
 		tick_parser_state_t* state,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
@@ -579,6 +590,9 @@ int tick_parser(
 			// simple error recovery measure:
 			state->measured_tick_count = tick_count;
 			state->requested_drift_correction = 0;
+		}
+		if( max_frames >= 0 && tick_count > (int )max_frames ) {
+			return -1;
 		}
 		if( tick_count != 0 ) {
 			ASSERT( selected_frame_index >= 0 );

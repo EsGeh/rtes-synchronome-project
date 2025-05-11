@@ -71,6 +71,7 @@ typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
 	float tick_threshold;
+	const int max_frames;
 } select_parameters_t;
 
 /********************
@@ -104,6 +105,7 @@ ret_t synchronome_main(
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
+		const int max_frames,
 		const char* output_dir
 );
 
@@ -171,6 +173,7 @@ ret_t synchronome_run(
 				args.acq_interval,
 				args.clock_tick_interval,
 				args.tick_threshold,
+				args.max_frames,
 				args.output_dir
 	) ) {
 		synchronome_exit();
@@ -245,6 +248,7 @@ ret_t synchronome_main(
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
+		const int max_frames,
 		const char* output_dir
 )
 {
@@ -280,6 +284,7 @@ ret_t synchronome_main(
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
 		.tick_threshold = tick_threshold,
+		.max_frames = max_frames,
 	};
 	API_RUN( thread_create(
 			"select",
@@ -346,9 +351,7 @@ void* camera_thread_run(
 			&data.stop,
 			&data.acq_queue
 	);
-	if( camera_thread.ret != RET_SUCCESS ) {
-		synchronome_stop();
-	}
+	synchronome_stop();
 	return &camera_thread.ret;
 }
 #pragma GCC diagnostic pop
@@ -364,13 +367,12 @@ void* select_thread_run(
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
 			select_params.tick_threshold,
+			select_params.max_frames,
 			&data.acq_queue,
 			&data.select_queue,
 			dump_frame
 	);
-	if( select_thread.ret != RET_SUCCESS ) {
-		synchronome_stop();
-	}
+	synchronome_stop();
 	return &select_thread.ret;
 }
 
@@ -386,9 +388,7 @@ void* convert_thread_run(
 			&data.select_queue,
 			&data.rgb_queue
 	);
-	if( convert_thread.ret != RET_SUCCESS ) {
-		synchronome_stop();
-	}
+	synchronome_stop();
 	return &convert_thread.ret;
 }
 #pragma GCC diagnostic pop
@@ -402,9 +402,7 @@ void* write_to_storage_thread_run(
 			&data.rgb_queue,
 			output_dir
 	);
-	if( write_to_storage_thread.ret != RET_SUCCESS ) {
-		synchronome_stop();
-	}
+	synchronome_stop();
 	return &write_to_storage_thread.ret;
 }
 

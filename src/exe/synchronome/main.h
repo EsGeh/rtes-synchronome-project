@@ -14,6 +14,7 @@ typedef struct {
 	frame_interval_t acq_interval;
 	frame_interval_t clock_tick_interval;
 	float tick_threshold;
+	uint max_frames;
 	char* output_dir;
 } synchronome_args_t;
 

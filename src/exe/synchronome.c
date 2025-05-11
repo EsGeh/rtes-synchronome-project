@@ -56,6 +56,7 @@ static const synchronome_args_t synchronome_def_args = {
 	.acq_interval = { 1, 3 },
 	.clock_tick_interval = { 1, 1 },
 	.tick_threshold = 0.15,
+	.max_frames = -1,
 	.size = {
 			.width = 320,
 			.height = 240,
@@ -73,7 +74,7 @@ static const logging_args_t logging_def_args= {
 	.error_enable_log = true,
 };
 
-const char synchronome_short_options[] = "ho:s:a:c:t:xv";
+const char synchronome_short_options[] = "ho:s:a:c:t:n:v";
 const  struct option synchronome_long_options[] = {
 	{ "help", no_argument, 0, 'h' },
 	{ "output-dir", required_argument, 0, 'o' },
@@ -81,6 +82,7 @@ const  struct option synchronome_long_options[] = {
 	{ "acq-interval", required_argument, 0, 'a' },
 	{ "clock-tick", required_argument, 0, 'c' },
 	{ "tick-thresh", required_argument, 0, 't' },
+	{ "max-frames", required_argument, 0, 'n' },
 	{ "verbose", no_argument, 0, 'v' },
 	{ "verbose-print", required_argument, 0, 0 },
 	{ "verbose-log", required_argument, 0, 0 },
@@ -458,6 +460,15 @@ int synchronome_parse_cmd_line_args(
 				}
 			}
 			break;
+			case 'n': {
+				char* next_tok;
+				args->max_frames = strtol( optarg, &next_tok, 10);
+				if( next_tok == optarg ) {
+					log_error( "failed parsing max-frames. expected: integer\n" );
+					return 1;
+				}
+			}
+			break;
 			case 'v': {
 					logging_args->verbose_enable_print = true;
 					logging_args->verbose_enable_log = true;
@@ -513,6 +524,10 @@ void synchronome_print_cmd_line_info(
 	printf(
 			"--tick-thresh|-t FLOAT: threshold for tick detection (fraction of (max-avg)). default: %f\n",
 			synchronome_def_args.tick_threshold
+	);
+	printf(
+			"--max-frames|-n NUMBER: number of frames select (-1 means no limit). default: %d\n",
+			synchronome_def_args.max_frames
 	);
 	printf(
 			"--verbose|-v: show verbose messages (stdout + log)\n"
