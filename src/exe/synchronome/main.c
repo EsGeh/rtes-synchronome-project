@@ -71,7 +71,6 @@ typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
 	float tick_threshold;
-	uint select_delay;
 } select_parameters_t;
 
 /********************
@@ -105,8 +104,7 @@ ret_t synchronome_main(
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
-		const char* output_dir,
-		const uint select_delay
+		const char* output_dir
 );
 
 void sequencer(int);
@@ -173,8 +171,7 @@ ret_t synchronome_run(
 				args.acq_interval,
 				args.clock_tick_interval,
 				args.tick_threshold,
-				args.output_dir,
-				args.select_delay
+				args.output_dir
 	) ) {
 		synchronome_exit();
 		return RET_FAILURE;
@@ -248,8 +245,7 @@ ret_t synchronome_main(
 		const frame_interval_t acq_interval,
 		const frame_interval_t clock_tick_interval,
 		const float tick_threshold,
-		const char* output_dir,
-		const uint select_delay
+		const char* output_dir
 )
 {
 	data.deadline_select_us = (float )acq_interval.numerator / (float )acq_interval.denominator * 1000 * 1000 / 2;
@@ -284,7 +280,6 @@ ret_t synchronome_main(
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
 		.tick_threshold = tick_threshold,
-		.select_delay = select_delay,
 	};
 	API_RUN( thread_create(
 			"select",
@@ -369,7 +364,6 @@ void* select_thread_run(
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
 			select_params.tick_threshold,
-			select_params.select_delay,
 			&data.acq_queue,
 			&data.select_queue,
 			dump_frame

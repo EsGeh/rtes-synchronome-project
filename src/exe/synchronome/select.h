@@ -11,7 +11,6 @@ ret_t select_run(
 		const float acq_interval,
 		const float clock_tick_interval,
 		const float tick_threshold,
-		const uint select_delay,
 		acq_queue_t* input_queue,
 		select_queue_t* output_queue,
 		dump_frame_func_t dump_frame
