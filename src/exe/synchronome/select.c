@@ -216,7 +216,7 @@ ret_t select_run(
 		}
 		ASSERT( diff_buffer_get_count(&state.diff_statistics.diff_buffer) >= diff_buffer_max_count );
 
-		bool tick_detected = (diff_value / state.diff_statistics.median_diff) - 1 > tick_threshold;
+		bool tick_detected = ((diff_value - state.diff_statistics.median_diff) / (state.diff_statistics.max_diff - state.diff_statistics.median_diff)) > tick_threshold;
 
 		// initial sync phase:
 		{
@@ -355,13 +355,13 @@ int update_img_diff(
 		}
 		qsort(&sorted, diff_buffer_max_count, sizeof(float), compare_float);
 		diff_statistics->min_diff = sorted[0];
-		diff_statistics->max_diff = sorted[diff_buffer_max_count-1];
+		diff_statistics->max_diff = sorted[diff_buffer_max_count-1-2];
 		diff_statistics->median_diff = sorted[diff_buffer_max_count/2];
 		diff_statistics->avg_diff -= oldest_diff / diff_buffer_max_count;
 		diff_statistics->avg_diff += diff_value / diff_buffer_max_count;
 	}
 	VERBOSE_PRINT_FRAME( "diff value: %f, median: %f, range: %f...%f, avg: %f\n",
-			diff_value  / diff_statistics->median_diff,
+			(diff_value  - diff_statistics->median_diff) / (diff_statistics->max_diff - diff_statistics->median_diff),
 			diff_statistics->median_diff,
 			diff_statistics->min_diff,
 			diff_statistics->max_diff,
