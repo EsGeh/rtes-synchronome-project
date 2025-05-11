@@ -40,6 +40,9 @@ typedef struct {
 	rgb_queue_t rgb_queue;
 	// 
 	bool stop;
+	// deadlines:
+	USEC deadline_select_us;
+	USEC deadline_convert_us;
 } runtime_data_t;
 
 typedef struct {
@@ -249,6 +252,8 @@ ret_t synchronome_main(
 		const uint select_delay
 )
 {
+	data.deadline_select_us = (float )acq_interval.numerator / (float )acq_interval.denominator * 1000 * 1000 / 2;
+	data.deadline_convert_us = (float )acq_interval.numerator / (float )acq_interval.denominator * 1000 * 1000 / 2;
 	if( thread_get_cpu_count() < 4 ) {
 		log_error( "system provides less than 4 cpu cores" );
 		return RET_FAILURE;
@@ -359,6 +364,7 @@ void* select_thread_run(
 {
 	const select_parameters_t select_params = *((select_parameters_t *)p);
 	select_thread.ret = select_run(
+			data.deadline_select_us,
 			data.camera.format,
 			select_params.acq_interval,
 			select_params.clock_tick_interval,
@@ -381,6 +387,7 @@ void* convert_thread_run(
 )
 {
 	convert_thread.ret = convert_run(
+			data.deadline_convert_us,
 			data.camera.format,
 			&data.select_queue,
 			&data.rgb_queue

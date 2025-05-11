@@ -6,6 +6,7 @@
 #include <semaphore.h>
 
 ret_t select_run(
+		const USEC deadline_us,
 		const img_format_t src_format,
 		const float acq_interval,
 		const float clock_tick_interval,

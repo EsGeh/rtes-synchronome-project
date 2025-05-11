@@ -157,6 +157,7 @@ $(OBJ_DIR)/convert.o: \
 		$(SRC_DIR)/exe/synchronome/select_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/time.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs

@@ -3,6 +3,7 @@
 #include "lib/image.h"
 #include "lib/output.h"
 #include "lib/global.h"
+#include "lib/time.h"
 
 
 #define API_RUN( FUNC_CALL ) { \
@@ -17,6 +18,7 @@
 
 
 ret_t convert_run(
+		const USEC deadline_us,
 		const img_format_t src_format,
 		select_queue_t* input_queue,
 		rgb_queue_t* rgb_queue
@@ -64,6 +66,9 @@ ret_t convert_run(
 		{
 			timeval_t runtime;
 			time_delta( &end_time, &start_time, &runtime );
+			if( time_us_from_timespec( &runtime ) > deadline_us  ) {
+				return RET_FAILURE;
+			}
 			LOG_TIME( "RUNTIME: %04lu.%06lu\n",
 					runtime.tv_sec,
 					runtime.tv_nsec / 1000

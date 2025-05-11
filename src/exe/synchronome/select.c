@@ -134,6 +134,10 @@ static timeval_t current_time;
 		{ \
 			timeval_t runtime; \
 			time_delta( &end_time, &start_time, &runtime ); \
+			if( time_us_from_timespec( &runtime ) > deadline_us ) { \
+				log_error( "select: deadline failed %fs", acq_interval / 2 ); \
+				return RET_FAILURE; \
+			} \
 			LOG_TIME( "RUNTIME: %04lu.%06lu\n", \
 					runtime.tv_sec, \
 					runtime.tv_nsec / 1000 \
@@ -148,6 +152,7 @@ static timeval_t current_time;
  * a segfault!
  */
 ret_t select_run(
+		const USEC deadline_us,
 		const img_format_t src_format,
 		const float acq_interval,
 		const float clock_tick_interval,
