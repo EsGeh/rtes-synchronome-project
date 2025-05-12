@@ -107,10 +107,18 @@ int main(
 	}
 	log_init(
 			argv[0],
-			false, false,
-			false, false,
-			true, false,
-			true, true
+			(log_config_t){
+				.time_enable_print = false,
+				.time_enable_log = false,
+				.verbose_enable_print = false,
+				.verbose_enable_log = false,
+				.info_enable_print = true,
+				.info_enable_log = false,
+				.warning_enable_print = true,
+				.warning_enable_log = false,
+				.error_enable_print = true,
+				.error_enable_log = false,
+			}
 	);
 	time_init();
 	// run:

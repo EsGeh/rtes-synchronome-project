@@ -4,17 +4,24 @@
 #include <syslog.h> // <- write to syslog
 #include <stdio.h>
 
-static bool g_time_enable_print = false;
-static bool g_time_enable_log = false;
+static log_config_t g_config = {
 
-static bool g_verbose_enable_print = false;
-static bool g_verbose_enable_log = false;
+	.time_enable_print = false,
+	.time_enable_log = false,
 
-static bool g_info_enable_print = true;
-static bool g_info_enable_log = false;
+	.verbose_enable_print = false,
+	.verbose_enable_log = false,
 
-static bool g_error_enable_print = true;
-static bool g_error_enable_log = true;
+	.info_enable_print = true,
+	.info_enable_log = true,
+
+	.warning_enable_print = true,
+	.warning_enable_log = true,
+
+	.error_enable_print = true,
+	.error_enable_log = true,
+
+};
 
 /***********************
  * Function Declarations
@@ -22,19 +29,7 @@ static bool g_error_enable_log = true;
 
 void log_init(
 		const char* prefix,
-
-		bool time_enable_print,
-		bool time_enable_log,
-
-		bool verbose_enable_print,
-		bool verbose_enable_log,
-
-		bool info_enable_print,
-		bool info_enable_log,
-
-		bool error_enable_print,
-		bool error_enable_log
-
+		const log_config_t config
 )
 {
 	openlog(
@@ -42,14 +37,7 @@ void log_init(
 			LOG_CONS,
 			LOG_USER
 	);
-	g_time_enable_print = time_enable_print;
-	g_time_enable_log = time_enable_log;
-	g_verbose_enable_print = verbose_enable_print;
-	g_verbose_enable_log = verbose_enable_log;
-	g_info_enable_print = info_enable_print;
-	g_info_enable_log = info_enable_log;
-	g_error_enable_print = error_enable_print;
-	g_error_enable_log = error_enable_log;
+	g_config = config;
 }
 
 void log_exit(void)
@@ -62,13 +50,13 @@ void log_time(
 		...
 )
 {
-	if( g_time_enable_print ) {
+	if( g_config.time_enable_print ) {
 		va_list args;
 		va_start( args, fmt );
 		vfprintf( stdout, fmt, args );
 		va_end( args );
 	}
-	if( g_time_enable_log ) {
+	if( g_config.time_enable_log ) {
 		va_list args;
 		va_start( args, fmt );
 		vsyslog( LOG_INFO, fmt, args );
@@ -81,13 +69,13 @@ void log_verbose(
 		...
 )
 {
-	if( g_verbose_enable_print ) {
+	if( g_config.verbose_enable_print ) {
 		va_list args;
 		va_start( args, fmt );
 		vfprintf( stdout, fmt, args );
 		va_end( args );
 	}
-	if( g_verbose_enable_log ) {
+	if( g_config.verbose_enable_log ) {
 		va_list args;
 		va_start( args, fmt );
 		vsyslog( LOG_INFO, fmt, args );
@@ -100,16 +88,36 @@ void log_info(
 		...
 )
 {
-	if( g_info_enable_print ) {
+	if( g_config.info_enable_print ) {
 		va_list args;
 		va_start( args, fmt );
 		vfprintf( stdout, fmt, args );
 		va_end( args );
 	}
-	if( g_info_enable_log ) {
+	if( g_config.info_enable_log ) {
 		va_list args;
 		va_start( args, fmt );
 		vsyslog( LOG_INFO, fmt, args );
+		va_end( args );
+	}
+}
+
+void log_warning(
+		char* fmt,
+		...
+)
+{
+	if( g_config.warning_enable_print ) {
+		va_list args;
+		va_start( args, fmt );
+		fprintf( stderr, "WARNING: " );
+		vfprintf( stderr, fmt, args );
+		va_end( args );
+	}
+	if( g_config.warning_enable_log ) {
+		va_list args;
+		va_start( args, fmt );
+		vsyslog( LOG_WARNING, fmt, args );
 		va_end( args );
 	}
 }
@@ -119,14 +127,14 @@ void log_error(
 		...
 )
 {
-	if( g_error_enable_print ) {
+	if( g_config.error_enable_print ) {
 		va_list args;
 		va_start( args, fmt );
 		fprintf( stderr, "ERROR: " );
 		vfprintf( stderr, fmt, args );
 		va_end( args );
 	}
-	if( g_error_enable_log ) {
+	if( g_config.error_enable_log ) {
 		va_list args;
 		va_start( args, fmt );
 		vsyslog( LOG_ERR, fmt, args );

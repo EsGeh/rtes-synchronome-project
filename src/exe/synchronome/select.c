@@ -571,7 +571,7 @@ int tick_parser(
 		else {
 			// ERROR:
 			if( state->measured_tick_count > tick_count ) {
-				log_error( "select %4lu.%3lu: superfluous TICKs: %d > %d!\n",
+				log_warning( "select %4lu.%3lu: superfluous TICKs: %d > %d!\n",
 					frame_time.tv_sec,
 					frame_time.tv_nsec /1000/1000,
 					state->measured_tick_count,
@@ -580,7 +580,7 @@ int tick_parser(
 			}
 			else {
 				// missing detected ticks!
-				log_error( "select %4lu.%3lu: missing TICKs: %d < %d!\n",
+				log_warning( "select %4lu.%3lu: missing TICKs: %d < %d!\n",
 					frame_time.tv_sec,
 					frame_time.tv_nsec/1000/1000,
 					state->measured_tick_count,
