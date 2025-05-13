@@ -6,8 +6,15 @@
 #include "lib/global.h"
 #include "lib/time.h"
 #include "lib/thread.h"
+#include "lib/ring_buffer.h"
 
 #include <stdio.h>
+#include <pthread.h>
+
+
+/********************
+ * Function Decls
+********************/
 
 int set_camera_format(
 		camera_t* camera,
@@ -15,6 +22,24 @@ int set_camera_format(
 		const frame_size_t size,
 		const frame_interval_t* acq_interval
 );
+
+DECL_RING_BUFFER(frames,frame_buffer_t)
+
+/********************
+ * Global Data:
+********************/
+
+typedef struct {
+	frames_t frames;
+	pthread_mutex_t mutex;
+} frame_dumpster_t;
+
+// frames that may be returned to the camera:
+static frame_dumpster_t frame_dumpster;
+
+/********************
+ * Function Defs
+********************/
 
 #define CAMERA_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
@@ -58,6 +83,8 @@ ret_t frame_acq_init(
 			buffer_size
 	));
 	CAMERA_RUN( camera_stream_start( camera ));
+	frames_init( &frame_dumpster.frames, buffer_size );
+	pthread_mutex_init( &frame_dumpster.mutex, 0);
 	return RET_SUCCESS;
 }
 
@@ -66,6 +93,8 @@ ret_t frame_acq_exit(
 )
 {
 	CAMERA_RUN( camera_stream_stop( camera ));
+	pthread_mutex_destroy( &frame_dumpster.mutex);
+	frames_exit( &frame_dumpster.frames );
 	return RET_SUCCESS;
 }
 
@@ -78,6 +107,7 @@ ret_t frame_acq_run(
 )
 {
 	thread_info( "frame_acq" );
+	log_verbose( "frame_acq: deadline: %06luus", deadline_us  );
 	acq_entry_t acq_entry;
 	while( true ) {
 		if( sem_wait( sem ) ) {
@@ -91,7 +121,19 @@ ret_t frame_acq_run(
 		current_time = time_measure_current_time();
 		timeval_t start_time = current_time;
 		LOG_TIME( "START\n" );
-		acq_entry.time = current_time;
+		// return dumped frames back to camera:
+		{
+			pthread_mutex_lock( &frame_dumpster.mutex );
+			while( frames_get_count(&frame_dumpster.frames) > 0 ) {
+				frame_buffer_t* frame = frames_get( &frame_dumpster.frames );
+				camera_return_frame( camera, frame );
+				frames_pop( &frame_dumpster.frames );
+			}
+			pthread_mutex_unlock( &frame_dumpster.mutex );
+		}
+		current_time = time_measure_current_time();
+		// acquire next frame:
+		acq_entry.time = start_time;
 		CAMERA_RUN( camera_get_frame( camera, &acq_entry.frame ));
 		acq_queue_push( acq_queue, acq_entry );
 		current_time = time_measure_current_time();
@@ -112,6 +154,15 @@ ret_t frame_acq_run(
 		}
 	}
 	return RET_SUCCESS;
+}
+
+void frame_acq_return_frame(
+		frame_buffer_t frame
+)
+{
+	pthread_mutex_lock( &frame_dumpster.mutex );
+	frames_push(&frame_dumpster.frames, frame);
+	pthread_mutex_unlock( &frame_dumpster.mutex );
 }
 
 int set_camera_format(
@@ -166,3 +217,5 @@ int set_camera_format(
 	}
 	return RET_SUCCESS;
 }
+
+DEF_RING_BUFFER(frames,frame_buffer_t)

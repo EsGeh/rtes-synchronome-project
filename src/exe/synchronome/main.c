@@ -194,10 +194,7 @@ void synchronome_stop(void)
 
 void dump_frame(frame_buffer_t frame)
 {
-	camera_return_frame( 
-			&data.camera,
-			&frame
-	);
+	frame_acq_return_frame( frame );
 }
 
 ret_t synchronome_init(

@@ -25,3 +25,10 @@ ret_t frame_acq_run(
 		bool* stop,
 		acq_queue_t* acq_queue
 );
+
+// this never blocks, but
+// simply enqueues the frame to
+// be returned to the camera
+void frame_acq_return_frame(
+		frame_buffer_t frame
+);
