@@ -5,6 +5,7 @@
 #include "lib/output.h"
 #include "lib/global.h"
 #include "lib/time.h"
+#include "lib/thread.h"
 
 
 #define LOG_TIME(FMT,...) log_time( "write_to_storage %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
@@ -14,6 +15,7 @@ ret_t write_to_storage_run(
 		const char* output_dir
 )
 {
+	thread_info( "write_to_storage" );
 	char output_path[STR_BUFFER_SIZE];
 	char timestamp_str[STR_BUFFER_SIZE];
 	int counter = 0;

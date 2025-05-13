@@ -7,6 +7,7 @@
 #include "lib/ring_buffer.h"
 #include "lib/global.h"
 #include "lib/time.h"
+#include "lib/thread.h"
 
 
 #define API_RUN( FUNC_CALL ) { \
@@ -135,14 +136,15 @@ static timeval_t current_time;
 		{ \
 			timeval_t runtime; \
 			time_delta( &end_time, &start_time, &runtime ); \
-			if( time_us_from_timespec( &runtime ) > deadline_us ) { \
-				log_error( "select: deadline failed %fs", acq_interval / 2 ); \
-				return RET_FAILURE; \
-			} \
 			LOG_TIME( "RUNTIME: %04lu.%06lu\n", \
 					runtime.tv_sec, \
 					runtime.tv_nsec / 1000 \
 			); \
+			USEC rt_us = time_us_from_timespec( &runtime ); \
+			if( rt_us > deadline_us ) { \
+				log_error( "select: deadline failed %06luus > %06luus\n", rt_us , deadline_us ); \
+				return RET_FAILURE; \
+			} \
 		}
 
 /* Remark:
@@ -164,6 +166,7 @@ ret_t select_run(
 		dump_frame_func_t dump_frame
 )
 {
+	thread_info( "select" );
 	current_time = time_measure_current_time();
 	// this val must be big enough
 	// that there is always at least 2
@@ -288,8 +291,8 @@ ret_t select_run(
 				break;
 			}
 		}
-
 		state.last_tick_index--;
+		LOG_TIME_END()
 	}
 	return RET_SUCCESS;
 }

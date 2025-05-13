@@ -24,6 +24,7 @@ typedef struct {
 	sem_t write_sem;
 	bool stop;
 	frame_size_t frame_size;
+	_Atomic int count; // (experimental, just for debugging)
 } rgb_queue_t;
 
 void rgb_queue_init(

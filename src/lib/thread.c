@@ -1,6 +1,7 @@
 #include "thread.h"
 #include "lib/global.h"
 #include "output.h"
+#include <pthread.h>
 #include <string.h>
 
 #include <sched.h>
@@ -120,4 +121,27 @@ int thread_get_min_priority(const int sched_policy)
 uint thread_get_cpu_count()
 {
 	return get_nprocs();
+}
+
+void thread_info(const char* thread_name)
+{
+	uint cpu;
+	if( getcpu(&cpu, NULL) ) {
+		log_error( "getcpu: %s\n", strerror( errno ) );
+	}
+	int policy;
+	struct sched_param param;
+	int ret = pthread_getschedparam( pthread_self(), &policy, &param);
+	if( ret != 0 ) {
+		log_error( "pthread_: %s\n", strerror( ret ) );
+	}
+	log_verbose( "%s: cpu: %d, policy: %s, priority: %d\n",
+			thread_name,
+			cpu,
+			(policy == SCHED_FIFO) ? "SCHED_FIFO" : 
+			(policy == SCHED_RR) ? "SCHED_RR" : 
+			(policy == SCHED_OTHER) ? "SCHED_OTHER" :
+			"???",
+			param.sched_priority
+	);
 }

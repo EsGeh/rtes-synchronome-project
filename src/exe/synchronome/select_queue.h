@@ -15,6 +15,7 @@ typedef struct {
 	sem_t read_sem;
 	sem_t write_sem;
 	bool stop;
+	_Atomic int count; // (experimental, just for debugging)
 } select_queue_t;
 
 void select_queue_init(

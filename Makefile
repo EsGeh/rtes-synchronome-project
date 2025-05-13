@@ -135,6 +135,7 @@ $(OBJ_DIR)/frame_acq.o: \
 		$(SRC_DIR)/exe/synchronome/acq_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -147,6 +148,7 @@ $(OBJ_DIR)/select.o: \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/ring_buffer.h \
 		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -158,6 +160,7 @@ $(OBJ_DIR)/convert.o: \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/time.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -168,6 +171,7 @@ $(OBJ_DIR)/write_to_storage.o: \
 		$(SRC_DIR)/exe/synchronome/rgb_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -177,6 +181,7 @@ $(OBJ_DIR)/acq_queue.o: \
 		$(SRC_DIR)/exe/synchronome/acq_queue.c $(SRC_DIR)/exe/synchronome/acq_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -186,6 +191,7 @@ $(OBJ_DIR)/select_queue.o: \
 		$(SRC_DIR)/exe/synchronome/select_queue.c $(SRC_DIR)/exe/synchronome/select_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -195,6 +201,7 @@ $(OBJ_DIR)/rgb_queue.o: \
 		$(SRC_DIR)/exe/synchronome/rgb_queue.c $(SRC_DIR)/exe/synchronome/rgb_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
+		$(SRC_DIR)/lib/thread.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs

@@ -16,6 +16,7 @@ void acq_queue_init(
 	CALLOC( queue->entries, queue->max_count, sizeof(acq_entry_t));
 	queue->read_pos = 0;
 	queue->write_pos = 0;
+	queue->count = 0;
 	if( 0 != sem_init( &queue->read_sem, 0, 0 ) ) {
 		log_error( "'sem_init' failed!" );
 		exit(EXIT_FAILURE);
@@ -88,6 +89,8 @@ void acq_queue_read_stop_dump(
 {
 	queue->read_pos = (queue->read_pos + 1) % queue->max_count;
 	sem_post( &queue->write_sem );
+	queue->count--;
+	log_verbose( "acq_queue: %d/%d", queue->count, queue->max_count);
 }
 
 // WRITE:
@@ -98,6 +101,8 @@ void acq_queue_push(
 )
 {
 	sem_wait( &queue->write_sem );
+	queue->count++;
+	log_verbose( "acq_queue: %d/%d", queue->count, queue->max_count);
 	queue->entries[
 		queue->write_pos % queue->max_count
 	] = entry;

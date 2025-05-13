@@ -258,10 +258,6 @@ ret_t synchronome_main(
 		log_error( "system provides less than 4 cpu cores" );
 		return RET_FAILURE;
 	}
-	time_add_timer(
-			sequencer,
-			1000*1000 * acq_interval.numerator / acq_interval.denominator
-	);
 	frame_acq_init(
 			&data.camera,
 			"/dev/video0",
@@ -271,11 +267,21 @@ ret_t synchronome_main(
 			&acq_interval
 	);
 	sleep(1);
+	USEC capture_deadline = acq_interval.numerator * 1000 * 1000 / acq_interval.denominator;
+	// loosen the constraints a bit
+	// theoretically, we have to be strict.
+	// But the camera seems to take some more
+	// time for some frames and less on others.
+	// This is ok, as long as it evens out over time.
+	if( acq_interval.denominator > 1 ) {
+		capture_deadline = acq_interval.numerator * 1000 * 1000 / (acq_interval.denominator-1);
+	}
+	capture_deadline = 1000*1000;
 	API_RUN( thread_create(
 			"capture",
 			&camera_thread.td,
 			camera_thread_run,
-			NULL,
+			&capture_deadline,
 			SCHED_FIFO,
 			thread_get_max_priority(SCHED_FIFO),
 			1
@@ -313,6 +319,11 @@ ret_t synchronome_main(
 			-1,
 			3	
 	));
+	sleep(1);
+	time_add_timer(
+			sequencer,
+			1000*1000 * acq_interval.numerator / acq_interval.denominator
+	);
 	ret_t ret = RET_SUCCESS;
 	if( RET_SUCCESS != thread_join_ret(
 				write_to_storage_thread.td
@@ -345,7 +356,9 @@ void* camera_thread_run(
 		void* p
 )
 {
+	const USEC deadline_us = *((USEC* )p);
 	camera_thread.ret = frame_acq_run(
+			deadline_us,
 			&data.camera,
 			&camera_thread.sem,
 			&data.stop,

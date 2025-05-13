@@ -19,6 +19,7 @@ ret_t frame_acq_exit(
 );
 
 ret_t frame_acq_run(
+		const USEC deadline_us,
 		camera_t* camera,
 		sem_t* sem,
 		bool* stop,

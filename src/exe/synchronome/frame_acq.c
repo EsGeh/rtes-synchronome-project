@@ -5,6 +5,7 @@
 #include "lib/output.h"
 #include "lib/global.h"
 #include "lib/time.h"
+#include "lib/thread.h"
 
 #include <stdio.h>
 
@@ -69,12 +70,14 @@ ret_t frame_acq_exit(
 }
 
 ret_t frame_acq_run(
+		const USEC deadline_us,
 		camera_t* camera,
 		sem_t* sem,
 		bool* stop,
 		acq_queue_t* acq_queue
 )
 {
+	thread_info( "frame_acq" );
 	acq_entry_t acq_entry;
 	while( true ) {
 		if( sem_wait( sem ) ) {
@@ -101,6 +104,11 @@ ret_t frame_acq_run(
 					runtime.tv_sec,
 					runtime.tv_nsec / 1000
 			);
+			USEC rt_us = time_us_from_timespec( &runtime );
+			if( rt_us > deadline_us ) {
+				log_error( "frame_acq: deadline failed %06luus > %06luus\n", rt_us , deadline_us );
+				return RET_FAILURE;
+			}
 		}
 	}
 	return RET_SUCCESS;

@@ -18,6 +18,7 @@ void rgb_queue_init(
 	CALLOC( queue->entries, queue->max_count, sizeof(rgb_entry_t));
 	queue->read_pos = 0;
 	queue->write_pos = 0;
+	queue->count = 0;
 	for( uint i=0; i<max_count; ++i ) {
 		queue->entries[i].frame.data = NULL;
 		queue->entries[i].frame.size = image_rgb_size( size.width, size.height );
@@ -109,6 +110,8 @@ void rgb_queue_read_stop_dump(
 {
 	queue->read_pos = (queue->read_pos + 1) % queue->max_count;
 	sem_post( &queue->write_sem );
+	queue->count--;
+	log_verbose( "rgb_queue: %d/%d", queue->count, queue->max_count);
 }
 
 // WRITE:
@@ -119,6 +122,8 @@ void rgb_queue_push_start(
 )
 {
 	sem_wait( &queue->write_sem );
+	queue->count++;
+	log_verbose( "rgb_queue: %d/%d", queue->count, queue->max_count);
 	(*entry) = &queue->entries[queue->write_pos];
 }
 

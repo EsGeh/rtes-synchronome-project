@@ -20,6 +20,7 @@ typedef struct {
 	sem_t read_sem;
 	sem_t write_sem;
 	bool stop;
+	_Atomic int count; // (experimental, just for debugging)
 } acq_queue_t;
 
 void acq_queue_init(

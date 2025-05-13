@@ -4,6 +4,7 @@
 #include "lib/output.h"
 #include "lib/global.h"
 #include "lib/time.h"
+#include "lib/thread.h"
 
 
 #define API_RUN( FUNC_CALL ) { \
@@ -24,6 +25,7 @@ ret_t convert_run(
 		rgb_queue_t* rgb_queue
 )
 {
+	thread_info( "convert" );
 	select_entry_t entry;
 	timeval_t current_time;
 	while( true ) {
@@ -66,13 +68,15 @@ ret_t convert_run(
 		{
 			timeval_t runtime;
 			time_delta( &end_time, &start_time, &runtime );
-			if( time_us_from_timespec( &runtime ) > deadline_us  ) {
-				return RET_FAILURE;
-			}
 			LOG_TIME( "RUNTIME: %04lu.%06lu\n",
 					runtime.tv_sec,
 					runtime.tv_nsec / 1000
 			);
+			USEC rt_us = time_us_from_timespec( &runtime );
+			if( rt_us > deadline_us  ) {
+				log_error( "convert: deadline failed %06luus > %06luus\n", rt_us , deadline_us );
+				return RET_FAILURE;
+			}
 		}
 	}
 	return RET_SUCCESS;

@@ -22,3 +22,4 @@ int thread_get_min_priority(const int sched_policy);
 
 uint thread_get_cpu_count();
 
+void thread_info(const char* thread_name);
