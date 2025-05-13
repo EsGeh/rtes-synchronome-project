@@ -1,5 +1,5 @@
 /****************************
- * Ring Buffer (no synchronization
+ * Ring Buffer (no synchronization)
  ***************************/
 #pragma once
 
@@ -123,9 +123,7 @@ void NAME##_push( \
 ) \
 { \
 	assert( buffer->count < buffer->max_count ); \
-	buffer->entries[ \
-		buffer->write_pos % buffer->max_count \
-	] = entry; \
+	buffer->entries[buffer->write_pos] = entry; \
 	buffer->write_pos = (buffer->write_pos+1) % buffer->max_count; \
 	buffer->count++; \
 }

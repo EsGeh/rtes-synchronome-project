@@ -103,9 +103,7 @@ void acq_queue_push(
 	sem_wait( &queue->write_sem );
 	queue->count++;
 	log_verbose( "acq_queue: %d/%d", queue->count, queue->max_count);
-	queue->entries[
-		queue->write_pos % queue->max_count
-	] = entry;
+	queue->entries[queue->write_pos] = entry;
 	queue->write_pos = (queue->write_pos+1) % queue->max_count;
 	sem_post( &queue->read_sem );
 }
