@@ -1,9 +1,11 @@
 #include "acq_queue.h"
 
 #include "lib/output.h"
+#include "lib/semaphore.h"
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
 
 
 void acq_queue_init(
@@ -61,7 +63,10 @@ void acq_queue_set_should_stop(
 )
 {
 	queue->stop = true;
-	sem_post( &queue->read_sem );
+	if( sem_post( &queue->read_sem ) ) {
+		log_error( "acq_queue_set_should_stop: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
 
 // READ:
@@ -70,7 +75,10 @@ void acq_queue_read_start(
 		acq_queue_t* queue
 )
 {
-	sem_wait( &queue->read_sem );
+	if( sem_wait_nointr( &queue->read_sem ) ) {
+		log_error( "acq_queue_read_start: 'sem_wait' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
 
 acq_entry_t* acq_queue_read_get(
@@ -88,7 +96,10 @@ void acq_queue_read_stop_dump(
 )
 {
 	queue->read_pos = (queue->read_pos + 1) % queue->max_count;
-	sem_post( &queue->write_sem );
+	if( sem_post( &queue->write_sem ) == -1 ) {
+		log_error( "acq_queue_read_stop_dump: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 	queue->count--;
 	log_verbose( "acq_queue: %d/%d", queue->count, queue->max_count);
 }
@@ -100,10 +111,16 @@ void acq_queue_push(
 		acq_entry_t entry
 )
 {
-	sem_wait( &queue->write_sem );
+	if( sem_wait( &queue->write_sem ) ) {
+		log_error( "acq_queue_push: 'sem_wait' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 	queue->count++;
 	log_verbose( "acq_queue: %d/%d", queue->count, queue->max_count);
 	queue->entries[queue->write_pos] = entry;
 	queue->write_pos = (queue->write_pos+1) % queue->max_count;
-	sem_post( &queue->read_sem );
+	if( sem_post( &queue->read_sem ) == -1 ) {
+		log_error( "acq_queue_push: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }

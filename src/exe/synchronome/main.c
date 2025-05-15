@@ -189,7 +189,10 @@ void synchronome_stop(void)
 	acq_queue_set_should_stop( &data.acq_queue );
 	select_queue_set_should_stop( &data.select_queue );
 	rgb_queue_set_should_stop( &data.rgb_queue );
-	sem_post( &camera_thread.sem );
+	if( sem_post( &camera_thread.sem ) ) {
+		log_error( "synchronome_stop: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
 
 void dump_frame(frame_buffer_t frame)
@@ -418,6 +421,10 @@ void* write_to_storage_thread_run(
 
 void sequencer(int sig) {
 	if( sig == SIGALRM ) {
-		sem_post( &camera_thread.sem );
+		if( sem_post( &camera_thread.sem ) == -1 ) {
+			// TODO: check if this is legal in a signal handler:
+			log_error( "sequencer: 'sem_post' failed: %s", strerror( errno ) );
+			exit(1);
+		}
 	}
 }

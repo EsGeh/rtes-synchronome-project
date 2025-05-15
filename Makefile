@@ -136,6 +136,7 @@ $(OBJ_DIR)/frame_acq.o: \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/semaphore.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -182,6 +183,7 @@ $(OBJ_DIR)/acq_queue.o: \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/semaphore.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -192,6 +194,7 @@ $(OBJ_DIR)/select_queue.o: \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/semaphore.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs
@@ -202,6 +205,7 @@ $(OBJ_DIR)/rgb_queue.o: \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/semaphore.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs

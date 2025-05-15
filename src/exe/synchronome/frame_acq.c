@@ -7,9 +7,10 @@
 #include "lib/time.h"
 #include "lib/thread.h"
 #include "lib/ring_buffer.h"
+#include "lib/semaphore.h"
 
-#include <stdio.h>
 #include <pthread.h>
+#include <string.h>
 
 
 /********************
@@ -110,8 +111,8 @@ ret_t frame_acq_run(
 	log_verbose( "frame_acq: deadline: %06luus", deadline_us  );
 	acq_entry_t acq_entry;
 	while( true ) {
-		if( sem_wait( sem ) ) {
-			perror("sem_wait");
+		if( sem_wait_nointr( sem ) ) {
+			log_error( "frame_acq_run: 'sem_wait' failed: %s", strerror( errno ) );
 			return RET_FAILURE;
 		}
 		if( (*stop) ) {

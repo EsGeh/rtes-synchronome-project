@@ -1,10 +1,11 @@
 #include "rgb_queue.h"
 #include "lib/image.h"
-
+#include "lib/semaphore.h"
 #include "lib/output.h"
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
 
 
 void rgb_queue_init(
@@ -84,7 +85,10 @@ void rgb_queue_set_should_stop(
 )
 {
 	queue->stop = true;
-	sem_post( &queue->read_sem );
+	if( sem_post( &queue->read_sem ) == -1 ) {
+		log_error( "rgb_queue_set_should_stop: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
 
 // READ:
@@ -93,7 +97,10 @@ void rgb_queue_read_start(
 		rgb_queue_t* queue
 )
 {
-	sem_wait( &queue->read_sem );
+	if( sem_wait_nointr(&queue->read_sem) ) {
+		log_error( "rgb_queue_read_start: 'sem_wait' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
 
 void rgb_queue_read_get(
@@ -109,7 +116,10 @@ void rgb_queue_read_stop_dump(
 )
 {
 	queue->read_pos = (queue->read_pos + 1) % queue->max_count;
-	sem_post( &queue->write_sem );
+	if( sem_post(&queue->write_sem) ) {
+		log_error( "rgb_queue_read_stop_dump: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 	queue->count--;
 	log_verbose( "rgb_queue: %d/%d", queue->count, queue->max_count);
 }
@@ -121,7 +131,10 @@ void rgb_queue_push_start(
 		rgb_entry_t** entry
 )
 {
-	sem_wait( &queue->write_sem );
+	if( sem_wait_nointr( &queue->write_sem ) ) {
+		log_error( "rgb_queue_push_start: 'sem_wait' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 	queue->count++;
 	log_verbose( "rgb_queue: %d/%d", queue->count, queue->max_count);
 	(*entry) = &queue->entries[queue->write_pos];
@@ -132,5 +145,8 @@ void rgb_queue_push_end(
 )
 {
 	queue->write_pos = (queue->write_pos+1) % queue->max_count;
-	sem_post( &queue->read_sem );
+	if( sem_post( &queue->read_sem ) ) {
+		log_error( "rgb_queue_push_end: 'sem_post' failed: %s", strerror( errno ) );
+		exit(1);
+	}
 }
