@@ -12,6 +12,7 @@
 
 ret_t write_to_storage_run(
 		rgb_queue_t* rgb_queue,
+		const frame_size_t frame_size,
 		const char* output_dir
 )
 {
@@ -19,7 +20,7 @@ ret_t write_to_storage_run(
 	char output_path[STR_BUFFER_SIZE];
 	char timestamp_str[STR_BUFFER_SIZE];
 	int counter = 0;
-	frame_size_t frame_size = rgb_queue_get_frame_size( rgb_queue );
+	// frame_size_t frame_size = rgb_queue_get_frame_size( rgb_queue );
 	timeval_t current_time;
 	while( true ) {
 		rgb_queue_read_start( rgb_queue );
@@ -35,8 +36,8 @@ ret_t write_to_storage_run(
 				counter
 		);
 		{
-			rgb_entry_t* entry;
-			rgb_queue_read_get(rgb_queue, &entry);
+			rgb_entry_t* entry = rgb_queue_read_get(rgb_queue);
+			// rgb_queue_read_get(rgb_queue, &entry);
 			snprintf(timestamp_str, STR_BUFFER_SIZE, "%lu.%lu",
 					entry->time.tv_sec,
 					entry->time.tv_nsec / 1000 / 1000

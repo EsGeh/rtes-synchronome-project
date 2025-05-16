@@ -109,7 +109,6 @@ ret_t frame_acq_run(
 {
 	thread_info( "frame_acq" );
 	log_verbose( "frame_acq: deadline: %06luus", deadline_us  );
-	acq_entry_t acq_entry;
 	while( true ) {
 		if( sem_wait_nointr( sem ) ) {
 			log_error( "frame_acq_run: 'sem_wait' failed: %s", strerror( errno ) );
@@ -136,9 +135,13 @@ ret_t frame_acq_run(
 		}
 		current_time = time_measure_current_time();
 		// acquire next frame:
-		acq_entry.time = start_time;
-		CAMERA_RUN( camera_get_frame( camera, &acq_entry.frame ));
-		acq_queue_push( acq_queue, acq_entry );
+		{
+			acq_entry_t* acq_entry = NULL;
+			acq_queue_push_start( acq_queue, &acq_entry );
+			acq_entry->time = start_time;
+			CAMERA_RUN( camera_get_frame( camera, &acq_entry->frame ));
+			acq_queue_push_end( acq_queue );
+		}
 		current_time = time_measure_current_time();
 		timeval_t end_time = current_time;
 		LOG_TIME( "END\n" );

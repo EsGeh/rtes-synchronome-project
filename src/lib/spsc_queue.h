@@ -8,10 +8,8 @@
 #include "global.h"
 #include "semaphore.h"
 
-#include <string.h>
 
-
-#define DECL_SPSC_QUEUE(NAME,ENTRY_T, DBG_LOG,ERR_LOG) \
+#define DECL_SPSC_QUEUE(NAME,ENTRY_T) \
 \
 typedef struct { \
 	ENTRY_T* entries; \

@@ -2,7 +2,6 @@
 
 #include "global.h"
 #include "lib/spsc_queue.h"
-#include "lib/spsc_queue.h"
 
 #include <stdarg.h>
 #include <sys/syslog.h>
@@ -11,6 +10,7 @@
 #include <pthread.h>
 #include <threads.h>
 #include <time.h>
+#include <string.h>
 
 
 /***********************
@@ -29,7 +29,7 @@ typedef struct {
 	fprintf( stderr, fmt, ## __VA_ARGS__ ); \
 	exit(EXIT_FAILURE); \
 }
-DECL_SPSC_QUEUE(log_queue,log_entry_t,DB_LOG,ERR_LOG)
+DECL_SPSC_QUEUE(log_queue,log_entry_t)
 
 /***********************
  * Global Data

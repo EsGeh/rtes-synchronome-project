@@ -1,5 +1,6 @@
 #include "convert.h"
 
+#include "select_queue.h"
 #include "lib/image.h"
 #include "lib/output.h"
 #include "lib/global.h"
@@ -37,7 +38,7 @@ ret_t convert_run(
 		current_time = time_measure_current_time();
 		timeval_t start_time = current_time;
 		LOG_TIME( "START\n" );
-		select_queue_read_get(input_queue, &entry);
+		entry = *select_queue_read_get(input_queue);
 		{
 			/*
 			log_info( "convert: frame %lu.%lu\n",

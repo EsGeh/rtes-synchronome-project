@@ -201,7 +201,7 @@ ret_t select_run(
 		timeval_t start_time = current_time;
 		LOG_TIME( "START\n" );
 		state.frame_acc_count++;
-		timeval_t frame_time = acq_queue_read_get(input_queue,state.frame_acc_count-1)->time;
+		timeval_t frame_time = acq_queue_read_get_index(input_queue,state.frame_acc_count-1)->time;
 		if( state.frame_acc_count < 2 ) {
 			LOG_TIME_END()
 			continue;
@@ -211,8 +211,8 @@ ret_t select_run(
 		float diff_value;
 		API_RUN(image_diff(
 				src_format,
-				acq_queue_read_get(input_queue,state.frame_acc_count-1)->frame.data,
-				acq_queue_read_get(input_queue,state.frame_acc_count-2)->frame.data,
+				acq_queue_read_get_index(input_queue,state.frame_acc_count-1)->frame.data,
+				acq_queue_read_get_index(input_queue,state.frame_acc_count-2)->frame.data,
 				&diff_value
 		));
 		// update image diff statistics
@@ -331,7 +331,7 @@ void cleanup_frames(
 ) {
 	if( (*frame_acc_count) >= max_frame_acc_count ) {
 		// dump obsolete frames:
-		dump_frame( acq_queue_read_get(input_queue,0)->frame );
+		dump_frame( acq_queue_read_get_index(input_queue,0)->frame );
 		acq_queue_read_stop_dump(input_queue);
 		(*frame_acc_count)--;
 	}
@@ -608,13 +608,15 @@ int tick_parser(
 			ASSERT( selected_frame_index >= 0 );
 			ASSERT( selected_frame_index < (int )(frame_acc_count-1) );
 			VERBOSE_PRINT_FRAME( "\tselected frame: %4lu.%03lu\n",
-				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_sec,
-				acq_queue_read_get(input_queue,selected_frame_index)->time.tv_nsec/1000/1000
+				acq_queue_read_get_index(input_queue,selected_frame_index)->time.tv_sec,
+				acq_queue_read_get_index(input_queue,selected_frame_index)->time.tv_nsec/1000/1000
 			);
-			select_queue_push(
-					output_queue,
-					*acq_queue_read_get(input_queue,selected_frame_index)
-			);
+			{
+				select_entry_t* push_dst;
+				select_queue_push_start( output_queue, &push_dst );
+				(*push_dst) = (*acq_queue_read_get_index(input_queue,selected_frame_index));
+				select_queue_push_end( output_queue );
+			}
 			(*last_tick_index) = frame_acc_count-2;
 		}
 		// reset:

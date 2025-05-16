@@ -78,6 +78,11 @@ typedef struct {
 } log_thread_t;
 
 typedef struct {
+	frame_size_t frame_size;
+	const char* output_dir;
+} write_to_storage_parameters_t;
+
+typedef struct {
 	float acq_interval;
 	float clock_tick_interval;
 	float tick_threshold;
@@ -289,9 +294,9 @@ ret_t synchronome_init(
 	);
 	rgb_queue_init(
 			&data.rgb_queue,
-			size,
 			rgb_queue_count
 	);
+	rgb_queue_init_frames( &data.rgb_queue, size );
 	// semaphore
 	if( sem_init( &camera_thread.sem, 0, 0 ) ) {
 		log_error( "'sem_init': %s\n", strerror(errno) );
@@ -309,6 +314,7 @@ ret_t synchronome_exit(void)
 		ret = RET_FAILURE;
 	}
 	log_info( "shutdown\n" );
+	rgb_queue_exit_frames( &data.rgb_queue );
 	rgb_queue_exit( &data.rgb_queue );
 	select_queue_exit( &data.select_queue );
 	acq_queue_exit( &data.acq_queue );
@@ -397,12 +403,16 @@ ret_t synchronome_main(
 			thread_get_max_priority(SCHED_FIFO),
 			2
 	));
+	write_to_storage_parameters_t write_to_storage_params = {
+		.frame_size = size,
+		.output_dir = output_dir,
+	};
 	convert_thread.running = true;
 	API_RUN(thread_create(
 			"storage",
 			&write_to_storage_thread.td,
 			write_to_storage_thread_run,
-			(void* )output_dir,
+			(void* )&write_to_storage_params,
 			SCHED_OTHER,
 			-1,
 			3	
@@ -473,10 +483,11 @@ void* write_to_storage_thread_run(
 		void* p
 )
 {
-	char* output_dir = p;
+	write_to_storage_parameters_t* params = p;
 	write_to_storage_thread.ret = write_to_storage_run(
 			&data.rgb_queue,
-			output_dir
+			params->frame_size,
+			params->output_dir
 	);
 	synchronome_stop();
 	return &write_to_storage_thread.ret;
