@@ -124,6 +124,7 @@ ret_t frame_acq_run(
 		LOG_TIME( "START\n" );
 		// return dumped frames back to camera:
 		{
+			log_verbose( "dumpster: read START\n" );
 			pthread_mutex_lock( &frame_dumpster.mutex );
 			while( frames_get_count(&frame_dumpster.frames) > 0 ) {
 				frame_buffer_t* frame = frames_get( &frame_dumpster.frames );
@@ -131,6 +132,7 @@ ret_t frame_acq_run(
 				frames_pop( &frame_dumpster.frames );
 			}
 			pthread_mutex_unlock( &frame_dumpster.mutex );
+			log_verbose( "dumpster: read STOP\n" );
 		}
 		current_time = time_measure_current_time();
 		// acquire next frame:
@@ -161,9 +163,14 @@ void frame_acq_return_frame(
 		frame_buffer_t frame
 )
 {
+	log_verbose( "dumpster: add START\n" );
 	pthread_mutex_lock( &frame_dumpster.mutex );
-	frames_push(&frame_dumpster.frames, frame);
+	frame_buffer_t* frame_dst = NULL;
+	frames_push_start(&frame_dumpster.frames, &frame_dst);
+	(*frame_dst) = frame;
+	frames_push_end(&frame_dumpster.frames);
 	pthread_mutex_unlock( &frame_dumpster.mutex );
+	log_verbose( "dumpster: add STOP\n" );
 }
 
 int set_camera_format(

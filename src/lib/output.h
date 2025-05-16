@@ -31,26 +31,30 @@ void log_init(
 void log_exit(void);
 
 void log_time(
-		char* fmt,
+		const char* fmt,
 		...
 );
 
 void log_verbose(
-		char* fmt,
+		const char* fmt,
 		...
 );
 
 void log_info(
-		char* fmt,
+		const char* fmt,
 		...
 );
 
 void log_warning(
-		char* fmt,
+		const char* fmt,
 		...
 );
 
 void log_error(
-		char* fmt,
+		const char* fmt,
 		...
 );
+
+void log_run(void);
+
+void log_stop(void);

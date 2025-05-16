@@ -46,26 +46,36 @@ typedef struct {
 } runtime_data_t;
 
 typedef struct {
+	bool running;
 	pthread_t td;
 	ret_t ret;
 	sem_t sem;
 } camera_thread_t;
 
 typedef struct {
+	bool running;
 	pthread_t td;
 	ret_t ret;
 } select_thread_t;
 
 typedef struct {
+	bool running;
 	pthread_t td;
 	ret_t ret;
 } convert_thread_t;
 
 typedef struct {
+	bool running;
 	pthread_t td;
 	ret_t ret;
 	// parameters:
 } write_to_storage_thread_t;
+
+typedef struct {
+	bool running;
+	pthread_t td;
+	ret_t ret;
+} log_thread_t;
 
 typedef struct {
 	float acq_interval;
@@ -84,6 +94,7 @@ static camera_thread_t camera_thread;
 static select_thread_t select_thread;
 static convert_thread_t convert_thread;
 static write_to_storage_thread_t write_to_storage_thread;
+static log_thread_t log_thread;
 
 const uint select_queue_count = 16;
 const uint rgb_queue_count = 64;
@@ -96,7 +107,7 @@ ret_t synchronome_init(
 		const frame_size_t size,
 		const uint frame_buffer_count
 );
-void synchronome_exit(void);
+ret_t synchronome_exit(void);
 
 ret_t synchronome_main(
 		const pixel_format_t pixel_format,
@@ -108,6 +119,8 @@ ret_t synchronome_main(
 		const int max_frames,
 		const char* output_dir
 );
+
+ret_t synchronome_wait(void);
 
 void sequencer(int);
 
@@ -124,6 +137,10 @@ void* convert_thread_run(
 );
 
 void* write_to_storage_thread_run(
+		void* thread_args
+);
+
+void* log_thread_run(
 		void* thread_args
 );
 
@@ -166,6 +183,7 @@ ret_t synchronome_run(
 		synchronome_exit();
 		return RET_FAILURE;
 	};
+	ret_t ret = RET_SUCCESS;
 	if( RET_SUCCESS != synchronome_main(
 				args.pixel_format,
 				args.size,
@@ -176,22 +194,75 @@ ret_t synchronome_run(
 				args.max_frames,
 				args.output_dir
 	) ) {
-		synchronome_exit();
-		return RET_FAILURE;
+		synchronome_stop();
+		ret = RET_FAILURE;
 	};
-	synchronome_exit();
-	return RET_SUCCESS;
+	if( RET_SUCCESS != synchronome_wait() ) {
+		ret = RET_FAILURE;
+	}
+	if( RET_SUCCESS !=  synchronome_exit() ) {
+		ret = RET_FAILURE;
+	}
+	return ret;
+}
+
+ret_t synchronome_wait(void)
+{
+	ret_t ret = RET_SUCCESS;
+	if( write_to_storage_thread.running ) {
+		if( RET_SUCCESS != thread_join_ret(
+					write_to_storage_thread.td
+		)) {
+			ret = RET_FAILURE;
+		}
+	}
+	if( convert_thread.running ) {
+		if( RET_SUCCESS != thread_join_ret(
+					convert_thread.td
+		)) {
+			ret = RET_FAILURE;
+		}
+	}
+	if( select_thread.running ) {
+
+		if( RET_SUCCESS != thread_join_ret(
+					select_thread.td
+		)) {
+			ret = RET_FAILURE;
+		}
+	}
+	if( camera_thread.running ) {
+		if( RET_SUCCESS != thread_join_ret(
+					camera_thread.td
+		)) {
+			ret = RET_FAILURE;
+		}
+	}
+	if( log_thread.running ) {
+		if( RET_SUCCESS != thread_join_ret(
+					log_thread.td
+		)) {
+			ret = RET_FAILURE;
+		}
+	}
+	log_info( "done\n" );
+	return ret;
 }
 
 void synchronome_stop(void)
 {
-	data.stop = true;
-	acq_queue_set_should_stop( &data.acq_queue );
-	select_queue_set_should_stop( &data.select_queue );
-	rgb_queue_set_should_stop( &data.rgb_queue );
-	if( sem_post( &camera_thread.sem ) ) {
-		log_error( "synchronome_stop: 'sem_post' failed: %s", strerror( errno ) );
-		exit(1);
+	log_verbose( "synchronome_stop\n" );
+	if( !data.stop ) {
+		log_verbose( "synchronome_stop: stopping\n" );
+		data.stop = true;
+		log_stop();
+		acq_queue_set_should_stop( &data.acq_queue );
+		select_queue_set_should_stop( &data.select_queue );
+		rgb_queue_set_should_stop( &data.rgb_queue );
+		rgb_queue_set_should_stop( &data.rgb_queue );
+		if( sem_post( &camera_thread.sem ) ) {
+			log_error( "synchronome_stop: 'sem_post' failed: %s", strerror( errno ) );
+		}
 	}
 }
 
@@ -229,16 +300,20 @@ ret_t synchronome_init(
 	return RET_SUCCESS;
 }
 
-void synchronome_exit(void)
+ret_t synchronome_exit(void)
 {
+	ret_t ret = RET_SUCCESS;
+	frame_acq_exit( &data.camera );
 	if( sem_destroy ( &camera_thread.sem ) ) {
 		log_error( "'sem_destroy': %s\n", strerror(errno) );
+		ret = RET_FAILURE;
 	}
 	log_info( "shutdown\n" );
 	rgb_queue_exit( &data.rgb_queue );
 	select_queue_exit( &data.select_queue );
 	acq_queue_exit( &data.acq_queue );
 	camera_exit( &data.camera );
+	return ret;
 }
 
 ret_t synchronome_main(
@@ -278,6 +353,16 @@ ret_t synchronome_main(
 	}
 	capture_deadline = 1000*1000;
 	API_RUN( thread_create(
+			"log",
+			&log_thread.td,
+			log_thread_run,
+			NULL,
+			SCHED_OTHER,
+			-1,
+			0
+	) );
+	log_thread.running = true;
+	API_RUN( thread_create(
 			"capture",
 			&camera_thread.td,
 			camera_thread_run,
@@ -286,6 +371,7 @@ ret_t synchronome_main(
 			thread_get_max_priority(SCHED_FIFO),
 			1
 	) );
+	camera_thread.running = true;
 	select_parameters_t select_params = {
 		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
 		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
@@ -298,18 +384,20 @@ ret_t synchronome_main(
 			select_thread_run,
 			&select_params,
 			SCHED_FIFO,
-			thread_get_max_priority(SCHED_FIFO),
+			thread_get_max_priority(SCHED_FIFO)-1,
 			2
 	));
+	select_thread.running = true;
 	API_RUN( thread_create(
 			"convert",
 			&convert_thread.td,
 			convert_thread_run,
 			NULL,
 			SCHED_FIFO,
-			thread_get_max_priority(SCHED_FIFO)-1,
+			thread_get_max_priority(SCHED_FIFO),
 			2
 	));
+	convert_thread.running = true;
 	API_RUN(thread_create(
 			"storage",
 			&write_to_storage_thread.td,
@@ -319,39 +407,15 @@ ret_t synchronome_main(
 			-1,
 			3	
 	));
+	write_to_storage_thread.running = true;
 	sleep(1);
 	time_add_timer(
 			sequencer,
 			1000*1000 * acq_interval.numerator / acq_interval.denominator
 	);
-	ret_t ret = RET_SUCCESS;
-	if( RET_SUCCESS != thread_join_ret(
-				write_to_storage_thread.td
-	)) {
-		ret = RET_FAILURE;
-	}
-	if( RET_SUCCESS != thread_join_ret(
-				convert_thread.td
-	)) {
-		ret = RET_FAILURE;
-	}
-	if( RET_SUCCESS != thread_join_ret(
-				select_thread.td
-	)) {
-		ret = RET_FAILURE;
-	}
-	if( RET_SUCCESS != thread_join_ret(
-				camera_thread.td
-	)) {
-		ret = RET_FAILURE;
-	}
-	frame_acq_exit( &data.camera );
-	log_info( "done\n" );
-	return ret;
+	return RET_SUCCESS;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 void* camera_thread_run(
 		void* p
 )
@@ -367,7 +431,6 @@ void* camera_thread_run(
 	synchronome_stop();
 	return &camera_thread.ret;
 }
-#pragma GCC diagnostic pop
 
 void* select_thread_run(
 		void* p
@@ -418,6 +481,18 @@ void* write_to_storage_thread_run(
 	synchronome_stop();
 	return &write_to_storage_thread.ret;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void* log_thread_run(
+		void* thread_args
+)
+{
+	log_thread.ret = RET_SUCCESS;
+	log_run();
+	return &log_thread.ret;
+}
+#pragma GCC diagnostic pop
 
 void sequencer(int sig) {
 	if( sig == SIGALRM ) {

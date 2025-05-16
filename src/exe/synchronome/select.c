@@ -193,7 +193,7 @@ ret_t select_run(
 		// get next frame:
 		acq_queue_read_start( input_queue );
 		if( acq_queue_get_should_stop( input_queue ) ) {
-			VERBOSE_PRINT( "select: stopping\n" );
+			VERBOSE_PRINT( "stopping\n" );
 			diff_buffer_exit( &state.diff_statistics.diff_buffer );
 			break;
 		}
@@ -294,6 +294,7 @@ ret_t select_run(
 		state.last_tick_index--;
 		LOG_TIME_END()
 	}
+	VERBOSE_PRINT( "finished\n" );
 	return RET_SUCCESS;
 }
 
@@ -360,12 +361,18 @@ int update_img_diff(
 		diff_statistics->avg_diff =
 			(diff_statistics->avg_diff * ((float )n) + diff_value)
 			/ ((float )(n+1));
-		diff_buffer_push( &diff_statistics->diff_buffer, diff_value );
+		float* dst = NULL;
+		diff_buffer_push_start( &diff_statistics->diff_buffer, &dst );
+		(*dst) = diff_value;
+		diff_buffer_push_end( &diff_statistics->diff_buffer );
 	}
 	else {
 		float oldest_diff = *diff_buffer_get( &diff_statistics->diff_buffer );
 		diff_buffer_pop( &diff_statistics->diff_buffer );
-		diff_buffer_push( &diff_statistics->diff_buffer, diff_value );
+		float* dst = NULL;
+		diff_buffer_push_start( &diff_statistics->diff_buffer, &dst );
+		(*dst) = diff_value;
+		diff_buffer_push_end( &diff_statistics->diff_buffer );
 		// not very efficient, but works:
 		for( uint i=0; i<diff_buffer_max_count; i++ ) {
 			sorted[i] = *diff_buffer_get_index(&diff_statistics->diff_buffer, i);

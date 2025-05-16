@@ -44,9 +44,13 @@ void NAME##_pop( \
 		NAME##_t* buffer \
 ); \
  \
-void NAME##_push( \
+void NAME##_push_start( \
 		NAME##_t* buffer, \
-		ENTRY_T entry \
+		ENTRY_T** entry \
+); \
+ \
+void NAME##_push_end( \
+		NAME##_t* buffer \
 );
 
 /*****************
@@ -117,13 +121,19 @@ void NAME##_pop( \
 } \
  \
  \
-void NAME##_push( \
+void NAME##_push_start( \
 		NAME##_t* buffer, \
-		ENTRY_T entry \
+		ENTRY_T** entry \
 ) \
 { \
 	assert( buffer->count < buffer->max_count ); \
-	buffer->entries[buffer->write_pos] = entry; \
+	(*entry) = &buffer->entries[buffer->write_pos]; \
+} \
+ \
+void NAME##_push_end( \
+		NAME##_t* buffer \
+) \
+{ \
 	buffer->write_pos = (buffer->write_pos+1) % buffer->max_count; \
 	buffer->count++; \
 }
