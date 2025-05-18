@@ -27,6 +27,8 @@ Additional objective: compute and plot average jitter and drift
 
 ## Target Objectives
 
+One or more of the following features:
+
 - Program saves frames at 10Hz and runs stable (glitches are allowed)
 - Image processing or frame compression
 - Continuous streaming or automatic periodic download of frames, so that the service never runs out of flash memory

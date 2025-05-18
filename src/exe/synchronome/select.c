@@ -148,7 +148,7 @@ static timeval_t current_time;
 		}
 
 /* Remark:
- * this function will cleanum old frames.
+ * this function will clean up old frames.
  * Consumers of the output_queue must
  * be fast enough processing selected frames,
  * before they will be cleaned up to prevent
