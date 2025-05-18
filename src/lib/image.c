@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 
 #define CAST_TO_BYTE_PTR(VOID_P) \
@@ -340,6 +341,7 @@ ret_t image_save_ppm(
 	}
 	FILE* fd = fopen( filename, "w+" );
 	if( fd == NULL ) {
+		log_error("'%s': %s\n", filename, strerror(errno));
 		return RET_FAILURE;
 	}
 	{
@@ -355,11 +357,13 @@ ret_t image_save_ppm(
 			size_t ret = fwrite( &((byte_t* )buffer)[i*3], 1, 3, fd );
 			if( ret != 3 ) {
 				fclose( fd );
+				log_error("'%s': %s\n", filename, strerror(errno));
 				return RET_FAILURE;
 			}
 		}
 	}
 	if( -1 ==fclose( fd ) ) {
+		log_error("'%s': %s\n", filename, strerror(errno));
 		return RET_FAILURE;
 	}
 	return RET_SUCCESS;
@@ -495,6 +499,7 @@ ret_t image_diff(
 )
 {
 	if( src_format.pixelformat != V4L2_PIX_FMT_YUYV ) {
+		log_error( "format not supported\n" );
 		return RET_FAILURE;
 	}
 	(*result) = 0;

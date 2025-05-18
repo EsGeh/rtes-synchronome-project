@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-set BASE_DIR (realpath (status dirname)"/..")
+set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set CONFIG "$BASE_DIR/local/config/remote.conf"
 set SRC_DIR "$BASE_DIR"
 
@@ -31,6 +31,8 @@ run_cmd ssh $REMOTE \
 run_cmd rsync \
 	--delete \
 	--recursive \
+	--exclude "local/" \
+	--exclude "build/" \
 	"$SRC_DIR/" \
 	"$REMOTE:$REMOTE_DIR/"
 

@@ -1,7 +1,11 @@
 #include "time.h"
+#include "global.h"
+#include "output.h"
 
 #include <time.h>
 #include <signal.h>
+#include <errno.h>
+#include <string.h>
 
 struct timespec start_time;
 
@@ -30,12 +34,25 @@ struct timespec time_measure_current_time(void)
 	return current_time_rel;
 }
 
-void time_repeat(
+long long int time_measure_current_time_us(void)
+{
+	timeval_t time = time_measure_current_time();
+	return time_us_from_timespec( &time );
+}
+
+ret_t time_add_timer(
 		void (*timer_callback)(int),
 		const USEC period_us
 )
 {
-  signal(SIGALRM, timer_callback);
+	struct sigaction sa;
+	memset( &sa, 0, sizeof(sa));
+	sa.sa_handler = timer_callback;
+	sigemptyset( &sa.sa_mask );
+	if( -1 == sigaction( SIGALRM, &sa, NULL ) ) {
+		log_error( "'sigaction': %s", strerror(errno) );
+		return RET_FAILURE;
+	}
 	// repeat running scheduler
 	// in regular intervals:
 	{
@@ -59,6 +76,7 @@ void time_repeat(
 				NULL
 		);
 	}
+	return RET_SUCCESS;
 }
 
 void time_sleep(
@@ -91,27 +109,67 @@ void nsec_to_timespec(
 	result->tv_nsec = ns % (1000 * 1000 * 1000);
 }
 
+void  time_normalize_timeval(
+		struct timespec* time
+)
+{
+	while( time->tv_nsec > NSEC_PER_SEC )
+	{
+		time->tv_sec ++;
+		time->tv_nsec -= NSEC_PER_SEC;
+	};
+	while( time->tv_nsec < 0 )
+	{
+		time->tv_sec --;
+		time->tv_nsec += NSEC_PER_SEC;
+	};
+}
+
 void time_delta(
 		const struct timespec *stop,
 		const struct timespec *start,
-		struct timespec *delta_t
+		struct timespec* delta
 )
 {
-	int dt_sec = stop->tv_sec - start->tv_sec;
-	int dt_nsec = stop->tv_nsec - start->tv_nsec;
+	delta->tv_sec = stop->tv_sec - start->tv_sec;
+	delta->tv_nsec = stop->tv_nsec - start->tv_nsec;
+	time_normalize_timeval(delta);
+}
 
-	while( dt_nsec > NSEC_PER_SEC )
-	{
-		dt_sec ++;
-		dt_nsec -= NSEC_PER_SEC;
-	};
-	while( dt_nsec < 0 )
-	{
-		dt_sec --;
-		dt_nsec += NSEC_PER_SEC;
-	};
-	delta_t->tv_sec = dt_sec;
-	delta_t->tv_nsec = dt_nsec;
+// calculate time sum:
+//   result = t0 + t1
+void time_add(
+		const struct timespec* t0,
+		const struct timespec* t1,
+		struct timespec* result
+)
+{
+	result->tv_sec = t0->tv_sec + t1->tv_sec;
+	result->tv_nsec = t0->tv_nsec + t1->tv_nsec;
+	time_normalize_timeval(result);
+}
+
+// calculate time sum:
+//   result = t0 + t1
+void time_add_us(
+		const struct timespec* t0,
+		const USEC t1_us,
+		struct timespec* result
+)
+{
+	struct timespec t1 = { 0, t1_us * 1000 };
+	time_add( t0, &t1, result );
+}
+
+void time_mul_i(
+		const struct timespec* t0,
+		const uint i,
+		struct timespec* result
+)
+{
+	result->tv_sec = t0->tv_sec * i;
+	result->tv_nsec = t0->tv_nsec * i;
+	time_normalize_timeval( result );
 }
 
 USEC time_us_from_timespec(
@@ -122,4 +180,13 @@ USEC time_us_from_timespec(
 	ret += (delta->tv_sec * 1000*1000);
 	ret += (delta->tv_nsec / 1000);
 	return ret;
+}
+
+void time_timespec_from_us(
+		const USEC usec,
+		struct timespec* time
+)
+{
+	(*time) = (struct timespec){ 0, usec * 1000 };
+	time_normalize_timeval( time );
 }
