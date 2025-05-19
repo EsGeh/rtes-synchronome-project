@@ -1,6 +1,5 @@
 #include "convert.h"
 
-#include "select_queue.h"
 #include "lib/image.h"
 #include "lib/output.h"
 #include "lib/global.h"

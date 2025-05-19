@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rgb_queue.h"
+#include "queues/rgb_queue.h"
 
 #include <semaphore.h>
 

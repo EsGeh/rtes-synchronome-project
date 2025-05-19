@@ -1,8 +1,8 @@
 #include "main.h"
 // buffers:
-#include "exe/synchronome/acq_queue.h"
-#include "exe/synchronome/select_queue.h"
-#include "exe/synchronome/rgb_queue.h"
+#include "exe/synchronome/queues/acq_queue.h"
+#include "exe/synchronome/queues/select_queue.h"
+#include "exe/synchronome/queues/rgb_queue.h"
 // services:
 #include "frame_acq.h"
 #include "lib/global.h"

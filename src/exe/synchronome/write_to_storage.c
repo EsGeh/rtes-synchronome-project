@@ -1,6 +1,6 @@
 #include "write_to_storage.h"
 
-#include "exe/synchronome/rgb_queue.h"
+#include "exe/synchronome/queues/rgb_queue.h"
 #include "lib/image.h"
 #include "lib/output.h"
 #include "lib/global.h"

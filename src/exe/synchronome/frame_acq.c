@@ -1,6 +1,5 @@
 #include "frame_acq.h"
 
-#include "exe/synchronome/acq_queue.h"
 #include "lib/camera.h"
 #include "lib/output.h"
 #include "lib/global.h"

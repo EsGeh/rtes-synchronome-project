@@ -1,7 +1,7 @@
 #pragma once
 
-#include "select_queue.h"
-#include "rgb_queue.h"
+#include "queues/select_queue.h"
+#include "queues/rgb_queue.h"
 
 #include <semaphore.h>
 

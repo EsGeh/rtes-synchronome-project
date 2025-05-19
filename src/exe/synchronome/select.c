@@ -1,6 +1,4 @@
 #include "exe/synchronome/select.h"
-#include "exe/synchronome/acq_queue.h"
-#include "exe/synchronome/select_queue.h"
 
 #include "lib/image.h"
 #include "lib/output.h"
@@ -319,8 +317,6 @@ ret_t select_get_frame_acc_count(
 	ASSERT( (*frame_acc_count) > 2 );
 	return RET_SUCCESS;
 }
-
-
 
 // cleanup obsolete old frames:
 void cleanup_frames(
