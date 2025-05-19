@@ -45,6 +45,7 @@ static const synchronome_args_t synchronome_def_args = {
 			.width = 320,
 			.height = 240,
 	},
+	.compress_bundle_size = 0,
 };
 
 static const log_config_t log_def_config= {
@@ -69,6 +70,8 @@ const  struct option synchronome_long_options[] = {
 	{ "clock-tick", required_argument, 0, 'c' },
 	{ "tick-thresh", required_argument, 0, 't' },
 	{ "max-frames", required_argument, 0, 'n' },
+	{ "compress", required_argument, 0, 0 },
+	// logging:
 	{ "verbose", no_argument, 0, 'v' },
 	{ "error-print", required_argument, 0, 0 },
 	{ "error-log", required_argument, 0, 0 },
@@ -384,7 +387,15 @@ int synchronome_parse_cmd_line_args(
 		switch( c ) {
 			case 0: {
 				struct option long_option = synchronome_long_options[option_index];
-				if( !strcmp("error-print", long_option.name) ) {
+				if( !strcmp("compress", long_option.name) ) {
+					char* next_tok;
+					args->compress_bundle_size = (bool )strtol(optarg, &next_tok, 10);
+					if( next_tok == optarg) {
+						log_error( "invalid argument for %s\n", long_option.name );
+						return 1;
+					}
+				}
+				else if( !strcmp("error-print", long_option.name) ) {
 					char* next_tok;
 					log_config->error_enable_print = (bool )strtol(optarg, &next_tok, 10);
 					if( next_tok == optarg) {
@@ -569,6 +580,10 @@ void synchronome_print_cmd_line_info(
 	printf(
 			"--max-frames|-n NUMBER: number of frames select (-1 means no limit). default: %d\n",
 			synchronome_def_args.max_frames
+	);
+	printf(
+			"--compress FRAMES_COUNT: compress into archives containing FRAMES_COUNT frames (0 means disabled). default: %d\n",
+			synchronome_def_args.compress_bundle_size
 	);
 	printf(
 			"--verbose|-v: show verbose messages (stdout + log)\n"

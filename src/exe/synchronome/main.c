@@ -84,6 +84,7 @@ typedef struct {
 typedef struct {
 	frame_size_t frame_size;
 	const char* output_dir;
+	bool other_services;
 } write_to_storage_parameters_t;
 
 typedef struct {
@@ -121,17 +122,13 @@ ret_t synchronome_init(
 ret_t synchronome_exit(void);
 
 ret_t synchronome_setup(
-		const pixel_format_t pixel_format,
-		const frame_size_t size,
-		const uint frame_buffer_count,
-		const frame_interval_t acq_interval,
-		const frame_interval_t clock_tick_interval,
-		const float tick_threshold,
-		const int max_frames,
-		const char* output_dir
+		const synchronome_args_t args,
+		const uint frame_buffer_count
 );
 
-ret_t synchronome_wait(void);
+ret_t synchronome_wait(
+		const synchronome_args_t args
+);
 
 void sequencer(int);
 void synchronome_cancel_all_services(void);
@@ -201,18 +198,12 @@ ret_t synchronome_run(
 	};
 	ret_t ret = RET_SUCCESS;
 	if( RET_SUCCESS != synchronome_setup(
-				args.pixel_format,
-				args.size,
-				frame_buffer_count,
-				args.acq_interval,
-				args.clock_tick_interval,
-				args.tick_threshold,
-				args.max_frames,
-				args.output_dir
+				args,
+				frame_buffer_count
 	) ) {
 		ret = RET_FAILURE;
 	};
-	if( RET_SUCCESS != synchronome_wait() ) {
+	if( RET_SUCCESS != synchronome_wait(args) ) {
 		ret = RET_FAILURE;
 	}
 	if( RET_SUCCESS !=  synchronome_exit() ) {
@@ -221,7 +212,9 @@ ret_t synchronome_run(
 	return ret;
 }
 
-ret_t synchronome_wait(void)
+ret_t synchronome_wait(
+		synchronome_args_t args
+)
 {
 	log_verbose( "MAIN: wait\n" );
 	ret_t ret = RET_SUCCESS;
@@ -233,11 +226,13 @@ ret_t synchronome_wait(void)
 	}
 	synchronome_cancel_all_services();
 
-	log_verbose( "MAIN: wait for compressor\n" );
-	if( RET_SUCCESS != thread_join_ret(
-				compressor_thread.td
-				)) {
-		ret = RET_FAILURE;
+	if( args.compress_bundle_size > 0 ) {
+		log_verbose( "MAIN: wait for compressor\n" );
+		if( RET_SUCCESS != thread_join_ret(
+					compressor_thread.td
+					)) {
+			ret = RET_FAILURE;
+		}
 	}
 	log_verbose( "MAIN: wait for writer\n" );
 	if( RET_SUCCESS != thread_join_ret(
@@ -352,18 +347,12 @@ ret_t synchronome_exit(void)
 }
 
 ret_t synchronome_setup(
-		const pixel_format_t pixel_format,
-		const frame_size_t size,
-		const uint frame_buffer_count,
-		const frame_interval_t acq_interval,
-		const frame_interval_t clock_tick_interval,
-		const float tick_threshold,
-		const int max_frames,
-		const char* output_dir
+		const synchronome_args_t args,
+		const uint frame_buffer_count
 )
 {
-	data.deadline_select_us = (float )acq_interval.numerator / (float )acq_interval.denominator * 1000 * 1000 / 2;
-	data.deadline_convert_us = (float )acq_interval.numerator / (float )acq_interval.denominator * 1000 * 1000 / 2;
+	data.deadline_select_us = (float )args.acq_interval.numerator / (float )args.acq_interval.denominator * 1000 * 1000 / 2;
+	data.deadline_convert_us = (float )args.acq_interval.numerator / (float )args.acq_interval.denominator * 1000 * 1000 / 2;
 	if( thread_get_cpu_count() < 4 ) {
 		log_error( "system provides less than 4 cpu cores\n" );
 		return RET_FAILURE;
@@ -372,19 +361,19 @@ ret_t synchronome_setup(
 			&data.camera,
 			"/dev/video0",
 			frame_buffer_count,
-			pixel_format,
-			size,
-			&acq_interval
+			args.pixel_format,
+			args.size,
+			&args.acq_interval
 	);
 	sleep(1);
-	USEC capture_deadline = acq_interval.numerator * 1000 * 1000 / acq_interval.denominator;
+	USEC capture_deadline = args.acq_interval.numerator * 1000 * 1000 / args.acq_interval.denominator;
 	// loosen the constraints a bit
 	// theoretically, we have to be strict.
 	// But the camera seems to take some more
 	// time for some frames and less on others.
 	// This is ok, as long as it evens out over time.
-	if( acq_interval.denominator > 1 ) {
-		capture_deadline = acq_interval.numerator * 1000 * 1000 / (acq_interval.denominator-1);
+	if( args.acq_interval.denominator > 1 ) {
+		capture_deadline = args.acq_interval.numerator * 1000 * 1000 / (args.acq_interval.denominator-1);
 	}
 	capture_deadline = 1000*1000;
 	API_RUN( thread_create(
@@ -406,10 +395,10 @@ ret_t synchronome_setup(
 			1
 	) );
 	select_parameters_t select_params = {
-		.acq_interval = (float )acq_interval.numerator / (float )acq_interval.denominator,
-		.clock_tick_interval = (float )clock_tick_interval.numerator / (float )clock_tick_interval.denominator,
-		.tick_threshold = tick_threshold,
-		.max_frames = max_frames,
+		.acq_interval = (float )args.acq_interval.numerator / (float )args.acq_interval.denominator,
+		.clock_tick_interval = (float )args.clock_tick_interval.numerator / (float )args.clock_tick_interval.denominator,
+		.tick_threshold = args.tick_threshold,
+		.max_frames = args.max_frames,
 	};
 	API_RUN( thread_create(
 			"select",
@@ -430,8 +419,9 @@ ret_t synchronome_setup(
 			2
 	));
 	write_to_storage_parameters_t write_to_storage_params = {
-		.frame_size = size,
-		.output_dir = output_dir,
+		.frame_size = args.size,
+		.output_dir = args.output_dir,
+		.other_services = (args.compress_bundle_size > 0),
 	};
 	API_RUN(thread_create(
 			"storage",
@@ -444,22 +434,24 @@ ret_t synchronome_setup(
 	));
 	const compressor_args_t compressor_params = {
 		.package_size = file_queue_count,
-		.shared_dir = output_dir,
-		.image_size = size,
+		.shared_dir = args.output_dir,
+		.image_size = args.size,
 	};
-	API_RUN(thread_create(
-			"compressor",
-			&compressor_thread.td,
-			compressor_thread_run,
-			(void* )&compressor_params,
-			SCHED_OTHER,
-			-1,
-			3
-	));
+	if( args.compress_bundle_size > 0 ) {
+		API_RUN(thread_create(
+				"compressor",
+				&compressor_thread.td,
+				compressor_thread_run,
+				(void* )&compressor_params,
+				SCHED_OTHER,
+				-1,
+				3
+		));
+	}
 	sleep(1);
 	time_add_timer(
 			sequencer,
-			1000*1000 * acq_interval.numerator / acq_interval.denominator
+			1000*1000 * args.acq_interval.numerator / args.acq_interval.denominator
 	);
 	return RET_SUCCESS;
 }
@@ -521,8 +513,8 @@ void* write_to_storage_thread_run(
 	write_to_storage_parameters_t* params = p;
 	write_to_storage_thread.ret = write_to_storage_run(
 			&data.rgb_queue,
-			&data.rgb_consumers_queue,
-			&data.rgb_consumers_done,
+			params->other_services ? &data.rgb_consumers_queue : NULL,
+			params->other_services ? &data.rgb_consumers_done : NULL,
 			params->frame_size,
 			params->output_dir
 	);
