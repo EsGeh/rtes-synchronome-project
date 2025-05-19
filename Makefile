@@ -1,4 +1,3 @@
-
 #########################
 # Variables
 #########################
@@ -46,6 +45,7 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/select.o \
 		$(OBJ_DIR)/convert.o \
 		$(OBJ_DIR)/write_to_storage.o \
+		$(OBJ_DIR)/compressor.o \
 		$(OBJ_DIR)/acq_queue.o \
 		$(OBJ_DIR)/select_queue.o \
 		$(OBJ_DIR)/rgb_queue.o \
@@ -55,7 +55,7 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/thread.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
-	$(CC) $(CFLAGS) -o $@ $^ -lm
+	$(CC) $(CFLAGS) -o $@ $^ -lm `pkg-config --cflags --libs libzip`
 
 $(OUT_DIR)/statistics: \
 		$(OBJ_DIR)/statistics.o \
@@ -173,6 +173,13 @@ $(OBJ_DIR)/write_to_storage.o: \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/thread.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/compressor.o: \
+		$(SRC_DIR)/exe/synchronome/compressor.c $(SRC_DIR)/exe/synchronome/compressor.h \
 		$(SRC_DIR)/lib/output.h \
 		$(SRC_DIR)/lib/global.h \
 		| init_dirs

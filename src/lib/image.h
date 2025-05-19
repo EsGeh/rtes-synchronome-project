@@ -36,6 +36,16 @@ ret_t image_save_ppm(
 		const uint height
 );
 
+ret_t image_save_ppm_to_ram(
+		const char* filename,
+		const char* comment,
+		const void* buffer,
+		const uint buffer_size,
+		const uint width,
+		const uint height,
+		FILE* file
+);
+
 ret_t image_convert_to_rgb(
 		const img_format_t src_format,
 		const void* src_buffer,

@@ -344,27 +344,50 @@ ret_t image_save_ppm(
 		log_error("'%s': %s\n", filename, strerror(errno));
 		return RET_FAILURE;
 	}
-	{
-		fprintf( fd, "P6\n" );
-		if( comment != NULL ) {
-			fprintf( fd, "#%s\n", comment );
-		}
-		fprintf( fd, "%d %d 255\n",
-				width,
-				height
-		);
-		for( uint i=0; i< width * height; i++ ) {
-			size_t ret = fwrite( &((byte_t* )buffer)[i*3], 1, 3, fd );
-			if( ret != 3 ) {
-				fclose( fd );
-				log_error("'%s': %s\n", filename, strerror(errno));
-				return RET_FAILURE;
-			}
-		}
+	if( RET_SUCCESS != image_save_ppm_to_ram(
+				filename,
+				comment,
+				buffer,
+				buffer_size,
+				width, height,
+				fd
+	)) {
+		fclose( fd );
+		return RET_FAILURE;
 	}
 	if( -1 ==fclose( fd ) ) {
 		log_error("'%s': %s\n", filename, strerror(errno));
 		return RET_FAILURE;
+	}
+	return RET_SUCCESS;
+}
+
+ret_t image_save_ppm_to_ram(
+		const char* filename,
+		const char* comment,
+		const void* buffer,
+		const uint buffer_size,
+		const uint width,
+		const uint height,
+		FILE* file
+)
+{
+	{
+		fprintf( file, "P6\n" );
+		if( comment != NULL ) {
+			fprintf( file, "#%s\n", comment );
+		}
+		fprintf( file, "%d %d 255\n",
+				width,
+				height
+		);
+		for( uint i=0; i< width * height; i++ ) {
+			size_t ret = fwrite( &((byte_t* )buffer)[i*3], 1, 3, file );
+			if( ret != 3 ) {
+				log_error("'%s': %s\n", filename, strerror(errno));
+				return RET_FAILURE;
+			}
+		}
 	}
 	return RET_SUCCESS;
 }

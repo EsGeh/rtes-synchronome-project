@@ -33,3 +33,5 @@ void rgb_queue_exit_frames( rgb_queue_t* queue )
 		FREE( queue->entries[i].frame.data );
 	}
 }
+
+DEF_SPSC_QUEUE(rgb_consumers_queue,rgb_entry_t*,DBG_LOG,ERR_LOG);
