@@ -7,15 +7,21 @@
 #include "lib/thread.h"
 
 
+#define SERVICE_NAME "convert"
+
+#define LOG_ERROR(fmt,...) log_error( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+#define LOG_VERBOSE(fmt,...) log_verbose( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+#define LOG_ERROR_STD_LIB(FUNC) LOG_ERROR("'" #FUNC "': %d - %s\n", errno, strerror(errno) )
+
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("error in '%s'\n", #FUNC_CALL ); \
+		LOG_ERROR("error in '%s'\n", #FUNC_CALL ); \
 		return RET_FAILURE; \
 	} \
 }
 
 // #define LOG_TIME(FMT,...)
-#define LOG_TIME(FMT,...) log_time( "convert %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+#define LOG_TIME(FMT,...) log_time( "%-20s %4lu.%06lu: " FMT, SERVICE_NAME, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
 
 
 ret_t convert_run(
@@ -31,7 +37,7 @@ ret_t convert_run(
 	while( true ) {
 		select_queue_read_start( input_queue );
 		if( select_queue_get_should_stop( input_queue ) ) {
-			log_info( "convert: stopping\n" );
+			LOG_VERBOSE( "stopping\n" );
 			break;
 		}
 		current_time = time_measure_current_time();
@@ -55,8 +61,8 @@ ret_t convert_run(
 					dst_entry->frame.data,
 					dst_entry->frame.size
 			) ) {
-				log_error("error in '%s'\n", "image_convert_to_rgb" ); \
-				return RET_FAILURE; \
+				LOG_ERROR("error in '%s'\n", "image_convert_to_rgb" );
+				return RET_FAILURE;
 			}
 			rgb_queue_push_end( rgb_queue );
 		}
@@ -74,7 +80,7 @@ ret_t convert_run(
 			);
 			USEC rt_us = time_us_from_timespec( &runtime );
 			if( rt_us > deadline_us  ) {
-				log_error( "convert: deadline failed %06luus > %06luus\n", rt_us , deadline_us );
+				LOG_ERROR( "deadline failed %06luus > %06luus\n", rt_us , deadline_us );
 				return RET_FAILURE;
 			}
 		}

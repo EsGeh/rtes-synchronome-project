@@ -11,11 +11,17 @@
 #include <string.h>
 
 
-#define LOG_TIME(FMT,...) log_time( "write_to_storage %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+#define SERVICE_NAME "write_to_storage"
+
+#define LOG_ERROR(fmt,...) log_error( "%-20s: " fmt, SERVICE_NAME , ## __VA_ARGS__ )
+#define LOG_VERBOSE(fmt,...) log_verbose( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+#define LOG_ERROR_STD_LIB(FUNC) LOG_ERROR("'" #FUNC "': %d - %s\n", errno, strerror(errno) )
+
+#define LOG_TIME(FMT,...) log_time( "%-20s %4lu.%06lu: " FMT, SERVICE_NAME, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
 
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("write_to_storage: error in '%s'\n", #FUNC_CALL ); \
+		log_error("error in '%s'\n", #FUNC_CALL ); \
 		return RET_FAILURE; \
 	} \
 }
@@ -28,7 +34,7 @@ ret_t write_to_storage_run(
 		const char* output_dir
 )
 {
-	thread_info( "write_to_storage" );
+	thread_info( SERVICE_NAME );
 	char output_path[STR_BUFFER_SIZE];
 	char timestamp_str[STR_BUFFER_SIZE];
 	int counter = 0;
@@ -36,7 +42,7 @@ ret_t write_to_storage_run(
 	while( true ) {
 		rgb_queue_read_start( rgb_queue );
 		if( rgb_queue_get_should_stop( rgb_queue ) ) {
-			log_verbose( "write_to_storage: stopping\n" );
+			LOG_VERBOSE( "stopping\n" );
 			break;
 		}
 		current_time = time_measure_current_time();

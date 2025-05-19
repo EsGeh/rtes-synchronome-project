@@ -42,13 +42,13 @@ typedef struct {
 
 #define SERVICE_NAME "compressor"
 
-#define LOG_ERROR(fmt,...) log_error( SERVICE_NAME " " fmt, ## __VA_ARGS__ )
-#define LOG_VERBOSE(fmt,...) log_verbose( SERVICE_NAME " " fmt, ## __VA_ARGS__ )
+#define LOG_ERROR(fmt,...) log_error( "%-20s: " fmt, SERVICE_NAME , ## __VA_ARGS__ )
+#define LOG_VERBOSE(fmt,...) log_verbose( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
 #define LOG_ERROR_STD_LIB(FUNC) LOG_ERROR("'" #FUNC "': %d - %s\n", errno, strerror(errno) )
 
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error(SERVICE_NAME ": error in '%s'\n", #FUNC_CALL ); \
+		LOG_ERROR( "error in '%s'\n", #FUNC_CALL ); \
 		compressor_cleanup(); \
 		return RET_FAILURE; \
 	} \

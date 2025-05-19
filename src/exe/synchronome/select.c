@@ -8,20 +8,6 @@
 #include "lib/thread.h"
 
 
-#define API_RUN( FUNC_CALL ) { \
-	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("error in '%s'\n", #FUNC_CALL ); \
-		return EXIT_FAILURE; \
-	} \
-}
-
-#define ASSERT( COND ) { \
-	if( !(COND) ) { \
-		log_error( "invalid parameters. condition failed: %s\n", #COND ); \
-		return RET_FAILURE; \
-	} \
-}
-
 const uint adjustment_inertia = 4;
 const uint sync_threshold = 4;
 
@@ -118,14 +104,36 @@ int tick_parser(
 
 static timeval_t current_time;
 
-#define VERBOSE_PRINT_FRAME(FMT,...) log_verbose( "select %4lu.%06lu, frame: %4lu.%06lu: " FMT, \
+#define SERVICE_NAME "select"
+
+#define LOG_ERROR(fmt,...) log_error( "%-10s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+
+#define ASSERT( COND ) { \
+	if( !(COND) ) { \
+		LOG_ERROR( "invalid parameters. condition failed: %s\n", #COND ); \
+		return RET_FAILURE; \
+	} \
+}
+
+#define API_RUN( FUNC_CALL ) { \
+	if( RET_SUCCESS != FUNC_CALL ) { \
+		LOG_ERROR("error in '%s'\n", #FUNC_CALL ); \
+		return EXIT_FAILURE; \
+	} \
+}
+
+#define VERBOSE_PRINT_FRAME(FMT,...) log_verbose( "%-20s %4lu.%06lu, frame: %4lu.%06lu: " FMT, SERVICE_NAME, \
 		current_time.tv_sec, current_time.tv_nsec/1000, \
 		frame_time.tv_sec, frame_time.tv_nsec/1000, ## __VA_ARGS__ )
 
-#define VERBOSE_PRINT(FMT,...) log_verbose( "select %4lu.%06lu: " FMT, \
+#define VERBOSE_PRINT(FMT,...) log_verbose( "%-20s %4lu.%06lu: " FMT, SERVICE_NAME, \
 		current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
 
-#define LOG_TIME(FMT,...) log_time( "select %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+#define LOG_WARNING_FRAME(FMT,...) log_warning( "%-20s %4lu.%06lu, frame %4lu.%06lu: " FMT, SERVICE_NAME, \
+		current_time.tv_sec, current_time.tv_nsec/1000, \
+		frame_time.tv_sec, frame_time.tv_nsec/1000, ## __VA_ARGS__ )
+
+#define LOG_TIME(FMT,...) log_time( "%-20s %4lu.%06lu: " FMT, SERVICE_NAME, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
 
 #define LOG_TIME_END() \
 		current_time = time_measure_current_time(); \
@@ -140,7 +148,7 @@ static timeval_t current_time;
 			); \
 			USEC rt_us = time_us_from_timespec( &runtime ); \
 			if( rt_us > deadline_us ) { \
-				log_error( "select: deadline failed %06luus > %06luus\n", rt_us , deadline_us ); \
+				LOG_ERROR( "deadline failed %06luus > %06luus\n", rt_us , deadline_us ); \
 				return RET_FAILURE; \
 			} \
 		}
@@ -164,7 +172,7 @@ ret_t select_run(
 		dump_frame_func_t dump_frame
 )
 {
-	thread_info( "select" );
+	thread_info( SERVICE_NAME );
 	current_time = time_measure_current_time();
 	// this val must be big enough
 	// that there is always at least 2
@@ -577,18 +585,14 @@ int tick_parser(
 		else {
 			// ERROR:
 			if( state->measured_tick_count > tick_count ) {
-				log_warning( "select %4lu.%3lu: superfluous TICKs: %d > %d!\n",
-					frame_time.tv_sec,
-					frame_time.tv_nsec /1000/1000,
+				LOG_WARNING_FRAME( "superfluous TICKs: %d > %d!\n",
 					state->measured_tick_count,
 					tick_count
 				);
 			}
 			else {
 				// missing detected ticks!
-				log_warning( "select %4lu.%3lu: missing TICKs: %d < %d!\n",
-					frame_time.tv_sec,
-					frame_time.tv_nsec/1000/1000,
+				LOG_WARNING_FRAME( "missing TICKs: %d < %d!\n",
 					state->measured_tick_count,
 					tick_count
 				);
