@@ -20,9 +20,11 @@ run_cmd -- pandoc \
 	--filter pandoc-plantuml \
 	--toc \
 	--number-sections \
+	--listings \
 	-o "'$OUTPUT_DIR/design.pdf'" \
 	"'utils/pandoc/pandoc_metadata.yaml'" \
 	0_requirements.md \
 	1_system-design.md \
-	2_scheduling-and-timing-analysis.md 
+	2_scheduling-and-timing-analysis.md \
+	3_conclusion.md
 run_cmd -- rm -r plantuml-images

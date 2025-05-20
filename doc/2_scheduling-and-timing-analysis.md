@@ -93,6 +93,9 @@ In order to proof hard real-time capabilities, a missed deadline in S1, S2 and S
 
 ## Drift
 
+The following diagrams visualize drift by plotting the fractional part of start times for each service.
+The diagram for the frame selection service shows, that the system indeed successfully detects external ticks and counteracts them by adjusting the frame numbering.
+
 ![frame_acq start time mod 1s](./imgs/diagrams/statistics/frame_acq_start.svg)
 
 ![select start time mod 1s](./imgs/diagrams/statistics/select_start.svg)
@@ -130,6 +133,8 @@ For the target/stretch goals Tc = 0.1s, we get:
 | T in s     | 1/30    | 1/30  | 0.1   | 0.1    |
 | C in s     | 0.068   | 0.002 | 0.001 | 0.017  |
 | U in %     | 204.08% | 4.52% | 1.12% | 17.13% |
+
+The obvious issue of S1 exceeding the maximum period of 1/3 seems to be rooted is rooted in a flawed runtime measuring strategy and doesn't appear in practice (as has been demonstrated above).
 
 ## References
 
