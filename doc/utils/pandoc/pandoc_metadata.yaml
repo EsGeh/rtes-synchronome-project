@@ -5,6 +5,7 @@ plantuml-format: svg
 papersize: a4
 titlepage: true
 titlepage-background: imgs/homelab-setup.jpg
+titlepage-rule-height: 0
 toc-own-page: true
 abstract: |
   This project is an exercise in realtime embedded engineering.
