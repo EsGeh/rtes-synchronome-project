@@ -1,6 +1,5 @@
 #include "frame_acq.h"
 
-#include "exe/synchronome/acq_queue.h"
 #include "lib/camera.h"
 #include "lib/output.h"
 #include "lib/global.h"
@@ -42,22 +41,28 @@ static frame_dumpster_t frame_dumpster;
  * Function Defs
 ********************/
 
+#define SERVICE_NAME "frame_acq"
+
+#define LOG_ERROR(fmt,...) log_error( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+#define LOG_VERBOSE(fmt,...) log_verbose( "%-20s: " fmt, SERVICE_NAME, ## __VA_ARGS__ )
+#define LOG_ERROR_STD_LIB(FUNC) LOG_ERROR("'" #FUNC "': %d - %s\n", errno, strerror(errno) )
+
 #define CAMERA_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("error in '%s'\n", #FUNC_CALL ); \
-		log_error("%s\n", camera_error() ); \
+		LOG_ERROR("error in '%s'\n", #FUNC_CALL ); \
+		LOG_ERROR("%s\n", camera_error() ); \
 		return RET_FAILURE; \
 	} \
 }
 
 #define API_RUN( FUNC_CALL ) { \
 	if( RET_SUCCESS != FUNC_CALL ) { \
-		log_error("error in '%s'\n", #FUNC_CALL ); \
+		LOG_ERROR("error in '%s'\n", #FUNC_CALL ); \
 		return RET_FAILURE; \
 	} \
 }
 
-#define LOG_TIME(FMT,...) log_time( "frame_acq %4lu.%06lu: " FMT, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
+#define LOG_TIME(FMT,...) log_time( "%-20s %4lu.%06lu: " FMT, SERVICE_NAME, current_time.tv_sec, current_time.tv_nsec/1000, ## __VA_ARGS__ )
 static timeval_t current_time;
 
 ret_t frame_acq_init(
@@ -107,15 +112,15 @@ ret_t frame_acq_run(
 		acq_queue_t* acq_queue
 )
 {
-	thread_info( "frame_acq" );
-	log_verbose( "frame_acq: deadline: %06luus", deadline_us  );
+	thread_info( SERVICE_NAME );
+	LOG_VERBOSE( "deadline: %06luus\n", deadline_us  );
 	while( true ) {
 		if( sem_wait_nointr( sem ) ) {
-			log_error( "frame_acq_run: 'sem_wait' failed: %s", strerror( errno ) );
+			LOG_ERROR( "'sem_wait' failed: %s\n", strerror( errno ) );
 			return RET_FAILURE;
 		}
 		if( (*stop) ) {
-			log_info( "frame_acc: stopping\n" );
+			LOG_VERBOSE( "stopping\n" );
 			break;
 		}
 		current_time = time_measure_current_time();
@@ -123,7 +128,7 @@ ret_t frame_acq_run(
 		LOG_TIME( "START\n" );
 		// return dumped frames back to camera:
 		{
-			log_verbose( "dumpster: read START\n" );
+			LOG_VERBOSE( "dumpster: read START\n" );
 			pthread_mutex_lock( &frame_dumpster.mutex );
 			while( frames_get_count(&frame_dumpster.frames) > 0 ) {
 				frame_buffer_t* frame = frames_get( &frame_dumpster.frames );
@@ -131,7 +136,7 @@ ret_t frame_acq_run(
 				frames_pop( &frame_dumpster.frames );
 			}
 			pthread_mutex_unlock( &frame_dumpster.mutex );
-			log_verbose( "dumpster: read STOP\n" );
+			LOG_VERBOSE( "dumpster: read STOP\n" );
 		}
 		current_time = time_measure_current_time();
 		// acquire next frame:
@@ -154,7 +159,7 @@ ret_t frame_acq_run(
 			);
 			USEC rt_us = time_us_from_timespec( &runtime );
 			if( rt_us > deadline_us ) {
-				log_error( "frame_acq: deadline failed %06luus > %06luus\n", rt_us , deadline_us );
+				LOG_ERROR( "deadline failed %06luus > %06luus\n", rt_us , deadline_us );
 				return RET_FAILURE;
 			}
 		}
@@ -166,14 +171,14 @@ void frame_acq_return_frame(
 		frame_buffer_t frame
 )
 {
-	log_verbose( "dumpster: add START\n" );
+	LOG_VERBOSE( "dumpster: add START\n" );
 	pthread_mutex_lock( &frame_dumpster.mutex );
 	frame_buffer_t* frame_dst = NULL;
 	frames_push_start(&frame_dumpster.frames, &frame_dst);
 	(*frame_dst) = frame;
 	frames_push_end(&frame_dumpster.frames);
 	pthread_mutex_unlock( &frame_dumpster.mutex );
-	log_verbose( "dumpster: add STOP\n" );
+	LOG_VERBOSE( "dumpster: add STOP\n" );
 }
 
 int set_camera_format(
@@ -212,7 +217,7 @@ int set_camera_format(
 			(float )selected_interval.numerator / (float )selected_interval.denominator > max_interval
 	)
 	{
-		log_error( "supported lowest camera interval is too long!: supported: %f, required: %f\n",
+		LOG_ERROR( "supported lowest camera interval is too long!: supported: %f, required: %f\n",
 			(float )selected_interval.numerator / (float )selected_interval.denominator,
 			max_interval
 		);

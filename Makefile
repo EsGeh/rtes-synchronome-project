@@ -1,4 +1,3 @@
-
 #########################
 # Variables
 #########################
@@ -46,6 +45,7 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/select.o \
 		$(OBJ_DIR)/convert.o \
 		$(OBJ_DIR)/write_to_storage.o \
+		$(OBJ_DIR)/compressor.o \
 		$(OBJ_DIR)/acq_queue.o \
 		$(OBJ_DIR)/select_queue.o \
 		$(OBJ_DIR)/rgb_queue.o \
@@ -55,7 +55,7 @@ $(OUT_DIR)/synchronome: \
 		$(OBJ_DIR)/thread.o \
 		$(OBJ_DIR)/output.o \
 		| init_dirs
-	$(CC) $(CFLAGS) -o $@ $^ -lm
+	$(CC) $(CFLAGS) -o $@ $^ -lm `pkg-config --cflags --libs libzip`
 
 $(OUT_DIR)/statistics: \
 		$(OBJ_DIR)/statistics.o \
@@ -108,9 +108,9 @@ $(OBJ_DIR)/synchronome_main.o: \
 		$(SRC_DIR)/exe/synchronome/select.h \
 		$(SRC_DIR)/exe/synchronome/convert.h \
 		$(SRC_DIR)/exe/synchronome/write_to_storage.h \
-		$(SRC_DIR)/exe/synchronome/acq_queue.h \
-		$(SRC_DIR)/exe/synchronome/select_queue.h \
-		$(SRC_DIR)/exe/synchronome/rgb_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/acq_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/select_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/rgb_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/time.h \
@@ -132,7 +132,7 @@ $(OBJ_DIR)/simple_capture.o: \
 
 $(OBJ_DIR)/frame_acq.o: \
 		$(SRC_DIR)/exe/synchronome/frame_acq.c $(SRC_DIR)/exe/synchronome/frame_acq.h \
-		$(SRC_DIR)/exe/synchronome/acq_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/acq_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/thread.h \
@@ -144,8 +144,8 @@ $(OBJ_DIR)/frame_acq.o: \
 
 $(OBJ_DIR)/select.o: \
 		$(SRC_DIR)/exe/synchronome/select.c $(SRC_DIR)/exe/synchronome/select.h \
-		$(SRC_DIR)/exe/synchronome/acq_queue.h \
-		$(SRC_DIR)/exe/synchronome/select_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/acq_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/select_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/ring_buffer.h \
 		$(SRC_DIR)/lib/image.h \
@@ -157,7 +157,7 @@ $(OBJ_DIR)/select.o: \
 
 $(OBJ_DIR)/convert.o: \
 		$(SRC_DIR)/exe/synchronome/convert.c $(SRC_DIR)/exe/synchronome/convert.h \
-		$(SRC_DIR)/exe/synchronome/select_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/select_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/time.h \
@@ -169,7 +169,7 @@ $(OBJ_DIR)/convert.o: \
 
 $(OBJ_DIR)/write_to_storage.o: \
 		$(SRC_DIR)/exe/synchronome/write_to_storage.c $(SRC_DIR)/exe/synchronome/write_to_storage.h \
-		$(SRC_DIR)/exe/synchronome/rgb_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/rgb_queue.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/thread.h \
@@ -178,8 +178,15 @@ $(OBJ_DIR)/write_to_storage.o: \
 		| init_dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(OBJ_DIR)/compressor.o: \
+		$(SRC_DIR)/exe/synchronome/compressor.c $(SRC_DIR)/exe/synchronome/compressor.h \
+		$(SRC_DIR)/lib/output.h \
+		$(SRC_DIR)/lib/global.h \
+		| init_dirs
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(OBJ_DIR)/acq_queue.o: \
-		$(SRC_DIR)/exe/synchronome/acq_queue.c $(SRC_DIR)/exe/synchronome/acq_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/acq_queue.c $(SRC_DIR)/exe/synchronome/queues/acq_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \
@@ -190,7 +197,7 @@ $(OBJ_DIR)/acq_queue.o: \
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/select_queue.o: \
-		$(SRC_DIR)/exe/synchronome/select_queue.c $(SRC_DIR)/exe/synchronome/select_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/select_queue.c $(SRC_DIR)/exe/synchronome/queues/select_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \
@@ -201,7 +208,7 @@ $(OBJ_DIR)/select_queue.o: \
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/rgb_queue.o: \
-		$(SRC_DIR)/exe/synchronome/rgb_queue.c $(SRC_DIR)/exe/synchronome/rgb_queue.h \
+		$(SRC_DIR)/exe/synchronome/queues/rgb_queue.c $(SRC_DIR)/exe/synchronome/queues/rgb_queue.h \
 		$(SRC_DIR)/lib/image.h \
 		$(SRC_DIR)/lib/camera.h \
 		$(SRC_DIR)/lib/thread.h \

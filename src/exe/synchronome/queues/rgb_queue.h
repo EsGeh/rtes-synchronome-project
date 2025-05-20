@@ -16,7 +16,9 @@ typedef struct {
 	rgb_frame_t frame;
 } rgb_entry_t;
 
-DECL_SPSC_QUEUE(rgb_queue,rgb_entry_t);
+DECL_SPSC_QUEUE(rgb_queue,rgb_entry_t)
 
 void rgb_queue_init_frames( rgb_queue_t* queue, const frame_size_t size);
 void rgb_queue_exit_frames( rgb_queue_t* queue );
+
+DECL_SPSC_QUEUE(rgb_consumers_queue,rgb_entry_t*)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib/camera.h"
-#include "acq_queue.h"
+#include "queues/acq_queue.h"
 
 #include <semaphore.h>
 

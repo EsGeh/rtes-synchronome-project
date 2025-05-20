@@ -1,6 +1,6 @@
 #pragma once
 
-#include "exe/synchronome/acq_queue.h"
+#include "exe/synchronome/queues/acq_queue.h"
 
 #include <semaphore.h>
 
