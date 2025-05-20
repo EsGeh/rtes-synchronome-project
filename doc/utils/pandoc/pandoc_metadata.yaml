@@ -1,0 +1,23 @@
+---
+title: 'Synchronome Project Design Documentation'
+author: Samuel Gfrörer
+plantuml-format: svg
+papersize: a4
+titlepage: true
+titlepage-background: imgs/homelab-setup.jpg
+toc-own-page: true
+abstract: |
+  This project is an exercise in realtime embedded engineering.
+  An embedded computer connected to a camera periodically takes pictures of a ticking clock and saves them to persistent memory (Flash).
+  The program outputs one image each second, each showing a still image of the seconds hand in one stationary position.
+  (or one image each 1/10th of a second if the clock displays 1/10ths of a second).
+  In order to achieve that, the process of taking/picking pictures needs to be carefully synchronized with the external clock.
+keywords:
+  - Synchronome
+  - Machine Vision
+  - Realtime
+  - Embedded Systems
+  - Concurrent Programming
+  - Camera
+  - Raspberry Pi
+---

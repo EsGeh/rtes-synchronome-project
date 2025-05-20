@@ -1,7 +1,9 @@
 
 /build/
 
-/doc/pdf/
+/doc/imgs/diagrams/statistics/
+
+# /doc/pdf/
 
 # clang
 /compile_commands.json

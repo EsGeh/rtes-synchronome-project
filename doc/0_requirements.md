@@ -1,6 +1,4 @@
-# Synchronome Project - Requirements
-
-This is a summary of the documents in <./doc/resources> given as requirements and grading criteria of the course.
+# Synchronome Project - Requirements ^[This is a summary of the documents in <./doc/resources> given as requirements and grading criteria of the course.]
 
 ## Minimal Objectives
 
@@ -26,6 +24,8 @@ Output: selection of camera frames for which the following conditions hold:
 Additional objective: compute and plot average jitter and drift
 
 ## Target Objectives
+
+**One or more** of the following features:
 
 - Program saves frames at 10Hz and runs stable (glitches are allowed)
 - Image processing or frame compression
