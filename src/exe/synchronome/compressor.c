@@ -73,19 +73,19 @@ ret_t compressor_run(
 	uint counter = 0;
 	uint package_counter = 0;
 	uint frame_acc_count = 0;
+	char timestamp_str[STR_BUFFER_SIZE];
 	while(true) {
 		rgb_consumers_queue_read_start( input_queue );
 		if( rgb_consumers_queue_get_should_stop( input_queue ) ) {
 			LOG_VERBOSE( "stop received\n" );
 			break;
 		}
-		counter++;
 		frame_acc_count++;
-		LOG_VERBOSE( "received %d\n", counter );
+		LOG_VERBOSE( "received %u\n", counter );
  		// open archive:
 		if( data.zip_archive == NULL )
 		{
-			snprintf( data.arch_filename, STR_BUFFER_SIZE, "%s/package%04d.zip", args.shared_dir, package_counter);
+			snprintf( data.arch_filename, STR_BUFFER_SIZE, "%s/package%04u.zip", args.shared_dir, package_counter);
 			LOG_VERBOSE( "creating archive: %s\n", data.arch_filename );
 			int err;
 			data.zip_archive = zip_open( data.arch_filename, ZIP_CREATE | ZIP_TRUNCATE | ZIP_CHECKCONS, &err );
@@ -105,7 +105,7 @@ ret_t compressor_run(
 			rgb_entry_t* frame = *rgb_consumers_queue_read_get( input_queue );
 			// add all accumulated images to archive:
 			char filename[STR_BUFFER_SIZE] = "";
-			snprintf( filename, STR_BUFFER_SIZE, "package%04d/img%04d.ppm", package_counter, counter );
+			snprintf( filename, STR_BUFFER_SIZE, "package%04u/image%04u.ppm", package_counter, counter );
 			LOG_VERBOSE( "adding file: %s\n", filename );
 
 			char* file_content = NULL;
@@ -116,9 +116,13 @@ ret_t compressor_run(
 				compressor_cleanup();
 				return RET_FAILURE;
 			}
+			snprintf(timestamp_str, STR_BUFFER_SIZE, "%lu.%lu",
+					frame->time.tv_sec,
+					frame->time.tv_nsec / 1000 / 1000
+			);
 			API_RUN( image_save_ppm_to_ram(
 						filename,
-						"test",
+						timestamp_str,
 						frame->frame.data,
 						frame->frame.size,
 						args.image_size.width,
@@ -155,6 +159,7 @@ ret_t compressor_run(
 			frame_acc_count = 0;
 		}
 		API_RUN( sem_post( done_processing ) );
+		counter++;
 	}
 	LOG_VERBOSE( "stopping\n" );
 	compressor_cleanup();
