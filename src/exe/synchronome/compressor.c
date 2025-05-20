@@ -76,7 +76,10 @@ ret_t compressor_run(
 	char timestamp_str[STR_BUFFER_SIZE];
 	while(true) {
 		rgb_consumers_queue_read_start( input_queue );
-		if( rgb_consumers_queue_get_should_stop( input_queue ) ) {
+		if(
+				rgb_consumers_queue_get_should_stop( input_queue )
+				&& rgb_consumers_queue_get_count( input_queue ) == 0
+		) {
 			LOG_VERBOSE( "stop received\n" );
 			break;
 		}

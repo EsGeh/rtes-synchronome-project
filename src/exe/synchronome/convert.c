@@ -36,7 +36,10 @@ ret_t convert_run(
 	timeval_t current_time;
 	while( true ) {
 		select_queue_read_start( input_queue );
-		if( select_queue_get_should_stop( input_queue ) ) {
+		if(
+				select_queue_get_should_stop( input_queue )
+				&& select_queue_get_count( input_queue ) == 0
+		) {
 			LOG_VERBOSE( "stopping\n" );
 			break;
 		}

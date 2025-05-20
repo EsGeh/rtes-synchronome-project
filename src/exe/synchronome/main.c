@@ -224,9 +224,29 @@ ret_t synchronome_wait(
 	)) {
 		ret = RET_FAILURE;
 	}
-	synchronome_cancel_all_services();
+	// stop frame_acq thread:
+	data.stop = true;
+	if( sem_post( &camera_thread.sem ) ) {
+		log_error( "synchronome_cancel_all_services: 'sem_post' failed: %s\n", strerror( errno ) );
+	}
+	// stop convert:
+	select_queue_set_should_stop( &data.select_queue );
+	log_verbose( "MAIN: wait for convert\n" );
+	if( RET_SUCCESS != thread_join_ret(
+				convert_thread.td
+				)) {
+		ret = RET_FAILURE;
+	}
 
+	rgb_queue_set_should_stop( &data.rgb_queue );
+	log_verbose( "MAIN: wait for writer\n" );
+	if( RET_SUCCESS != thread_join_ret(
+				write_to_storage_thread.td
+				)) {
+		ret = RET_FAILURE;
+	}
 	if( args.compress_bundle_size > 0 ) {
+		rgb_consumers_queue_set_should_stop( &data.rgb_consumers_queue );
 		log_verbose( "MAIN: wait for compressor\n" );
 		if( RET_SUCCESS != thread_join_ret(
 					compressor_thread.td
@@ -234,24 +254,13 @@ ret_t synchronome_wait(
 			ret = RET_FAILURE;
 		}
 	}
-	log_verbose( "MAIN: wait for writer\n" );
-	if( RET_SUCCESS != thread_join_ret(
-				write_to_storage_thread.td
-				)) {
-		ret = RET_FAILURE;
-	}
-	log_verbose( "MAIN: wait for convert\n" );
-	if( RET_SUCCESS != thread_join_ret(
-				convert_thread.td
-				)) {
-		ret = RET_FAILURE;
-	}
 	log_verbose( "MAIN: wait for camera\n" );
 	if( RET_SUCCESS != thread_join_ret(
 				camera_thread.td
 				)) {
 		ret = RET_FAILURE;
 	}
+	log_stop();
 	log_verbose( "MAIN: wait for log\n" );
 	if( RET_SUCCESS != thread_join_ret(
 				log_thread.td
@@ -265,18 +274,9 @@ ret_t synchronome_wait(
 void synchronome_stop(void)
 {
 	log_verbose( "synchronome_stop\n" );
-	log_verbose( "synchronome_stop: stopping\n" );
 	acq_queue_set_should_stop( &data.acq_queue ); // <- stop "select"
-}
-
-void synchronome_cancel_all_services(void)
-{
-	log_verbose( "synchronome_cancel_all_services\n" );
-	data.stop = true; // <- stop frame_acq:
-	log_stop();
-	rgb_consumers_queue_set_should_stop( &data.rgb_consumers_queue );
-	select_queue_set_should_stop( &data.select_queue );
-	rgb_queue_set_should_stop( &data.rgb_queue );
+	// stop frame_acq thread:
+	data.stop = true;
 	if( sem_post( &camera_thread.sem ) ) {
 		log_error( "synchronome_cancel_all_services: 'sem_post' failed: %s\n", strerror( errno ) );
 	}

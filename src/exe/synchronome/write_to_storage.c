@@ -41,7 +41,10 @@ ret_t write_to_storage_run(
 	timeval_t current_time;
 	while( true ) {
 		rgb_queue_read_start( rgb_queue );
-		if( rgb_queue_get_should_stop( rgb_queue ) ) {
+		if(
+				rgb_queue_get_should_stop( rgb_queue )
+				&& rgb_queue_get_count( rgb_queue ) == 0
+		) {
 			LOG_VERBOSE( "stopping\n" );
 			break;
 		}
