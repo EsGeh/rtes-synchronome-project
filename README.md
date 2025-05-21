@@ -21,7 +21,7 @@ For details about grading and requirements for passing this course, see `./doc/0
 ![homelab synchronome setup ("it's so berlin")](./doc/imgs/homelab-setup.jpg)
 
 The System has been demonstrated to run successful in case of the external clock being a 1Hz analog clock as well as the eternal clock being a 10Hz stopwatch with a digital display.
-See [./example_output/](./example_output/).
+See [./doc/example_output/](./doc/example_output/).
 
 # Documentation
 
