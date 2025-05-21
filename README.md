@@ -11,6 +11,17 @@ The program outputs one image each second, each showing a still image of the sec
 (or one image each 1/10th of a second if the clock displays 1/10ths of a second).
 In order to achieve that, the process of taking/picking pictures needs to be carefully synchronized with the external clock.
 
+Keywords:
+
+- Synchronome
+- Machine Vision
+- Realtime
+- Embedded Systems
+- Concurrent Programming
+- Camera
+- V4L2
+- Raspberry Pi
+
 ![frame acquisition](./doc/imgs/diagrams/2_frame-acquisition.svg)
 
 This project is the [fourth part](https://www.coursera.org/learn/real-time-project-embedded-systems) of the [Realtime Embedded Systems Specialization](https://www.coursera.org/specializations/real-time-embedded-systems) by the *University of Colorado Boulder* via Coursera.
@@ -30,8 +41,11 @@ Extended documentation:
 - [Requirements](./doc/0_requirements.md)
 - [System Design](./doc/1_system-design.md)
 - [Scheduling & Timing Analysis](./doc/2_scheduling-and-timing-analysis.md)
+- [Conclusion](./doc/3_conclusion.md)
 
-Generate .PDF documentation:
+[Final documentation in PDF format](./doc/pdf/design.pdf)
+
+Generate/update .PDF documentation:
 
     $ ./scripts/create_doc.fish
     $ ls doc/pdf/
