@@ -1,8 +1,5 @@
 # Synchronome Project
 
-*REMARK*:
-This project is under rapid development.
-Some functionality might still be missing or incomplete.
 Important milestones are marked via git tags.
 
 ![system block diagram](./doc/imgs/diagrams/1_block-diagram.svg)
@@ -22,6 +19,9 @@ According to the [course description](https://www.coursera.org/learn/real-time-p
 For details about grading and requirements for passing this course, see `./doc/0_requirements.md`.
 
 ![homelab synchronome setup ("it's so berlin")](./doc/imgs/homelab-setup.jpg)
+
+The System has been demonstrated to run successful in case of the external clock being a 1Hz analog clock as well as the eternal clock being a 10Hz stopwatch with a digital display.
+See [./example_output/](./example_output/).
 
 # Documentation
 
