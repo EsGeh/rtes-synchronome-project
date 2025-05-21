@@ -18,7 +18,7 @@ for service in frame_acq select convert write_to_storage
 		set title (string replace --all "_" " " "$service start time")
 		set output_file "$service"'_start'
 		set ylabel 'time in fractions of s'
-		run_cmd -- cat "$DOC_DIR/synchronome.log" \
+		run_cmd -- cat "$DOC_DIR/example_output/synchronome.log" \
 			\| awk -f "$SCRIPTS_DIR/statistics/get_start.awk" $service \
 			\| gnuplot \
 				-e "'outputfile=\'$OUTPUT_DIR/$output_file.$format\''" \
@@ -28,7 +28,7 @@ for service in frame_acq select convert write_to_storage
 				-c $SCRIPTS_DIR/statistics/plot.plt
 		set title (string replace --all "_" " " "$service runtime")
 		set output_file "$service"'_runtime'
-		run_cmd -- cat "$DOC_DIR/synchronome.log" \
+		run_cmd -- cat "$DOC_DIR/example_output/synchronome.log" \
 			\| awk -f "$SCRIPTS_DIR/statistics/get_runtime.awk" $service \
 			\| gnuplot \
 				-e "'outputfile=\'$OUTPUT_DIR/$output_file.$format\''" \

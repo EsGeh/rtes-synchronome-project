@@ -2,12 +2,16 @@
 
 The Program has successfully been tested running on the specified platform (Linux + Raspberry Pi Model 4B + C270 HD Webcam) at a resolution of 320x240 for Ta = (1/3)s & Tc = 1s and Ta = (1/30)s & Tc = (1/10)s.
 
+Example output and logfiles are in the `./doc/examples/` directory.
+
+![Screenshot of saved images for 1Hz](./imgs/screenshot_1Hz.png)
+
+![Screenshot of saved images for 10Hz](./imgs/screenshot_10Hz.png)
+
 ## Results and Outlook
 
 - File I/O to the Flash drive is the main bottleneck
 - Logging and tracing to the file system introduces competetion for the file system. Decoupling logging into a seperate thread is decisive to prevent erratic blocking of real-time services when logging
-
-IMAGES HERE
 
 # References
 
