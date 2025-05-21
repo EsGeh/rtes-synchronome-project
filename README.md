@@ -34,6 +34,10 @@ For details about grading and requirements for passing this course, see `./doc/0
 The System has been demonstrated to run successful in case of the external clock being a 1Hz analog clock as well as the eternal clock being a 10Hz stopwatch with a digital display.
 See [./doc/example_output/](./doc/example_output/).
 
+![Screenshot of saved images for 1Hz](./doc/imgs/screenshot_1Hz.png)
+
+![Screenshot of saved images for 10Hz](./doc/imgs/screenshot_10Hz.png)
+
 # Documentation
 
 Extended documentation:
