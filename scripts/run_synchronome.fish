@@ -4,12 +4,13 @@ set BASE_DIR (realpath --relative-base (pwd) (status dirname)/..)
 set SCRIPTS_DIR "$BASE_DIR/scripts"
 set CONFIG debug
 set BIN_DIR "$BASE_DIR/build/$CONFIG"
-set OUTPUT_DIR "$BASE_DIR/local/output/synchronome"
 
 
 source "$SCRIPTS_DIR/utils.fish"
 
-run_cmd -- mkdir --parents "'$OUTPUT_DIR'"
+run_cmd -- mkdir --parents \
+	"'$BASE_DIR/local/output/capture'" \
+	"'$BASE_DIR/local/output/synchronome'"
 
 begin
 	set --local CMD "$BIN_DIR/synchronome"

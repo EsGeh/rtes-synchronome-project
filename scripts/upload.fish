@@ -28,11 +28,10 @@ end
 run_cmd ssh $REMOTE \
 	mkdir --parents "$REMOTE_DIR"
 
-run_cmd rsync \
-	--delete \
-	--recursive \
-	--exclude "local/" \
-	--exclude "build/" \
+run_cmd rsync -a --delete \
+	--exclude "/local/" \
+	--exclude "/build/" \
+	--exclude "/doc/" \
 	"$SRC_DIR/" \
 	"$REMOTE:$REMOTE_DIR/"
 
