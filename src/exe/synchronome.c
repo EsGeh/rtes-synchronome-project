@@ -389,7 +389,7 @@ int synchronome_parse_cmd_line_args(
 				struct option long_option = synchronome_long_options[option_index];
 				if( !strcmp("compress", long_option.name) ) {
 					char* next_tok;
-					args->compress_bundle_size = (bool )strtol(optarg, &next_tok, 10);
+					args->compress_bundle_size = strtol(optarg, &next_tok, 10);
 					if( next_tok == optarg) {
 						log_error( "invalid argument for %s\n", long_option.name );
 						return 1;

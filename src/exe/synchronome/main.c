@@ -433,7 +433,7 @@ ret_t synchronome_setup(
 			3	
 	));
 	const compressor_args_t compressor_params = {
-		.package_size = file_queue_count,
+		.package_size = args.compress_bundle_size,
 		.shared_dir = args.output_dir,
 		.image_size = args.size,
 	};
