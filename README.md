@@ -84,6 +84,12 @@ You may now build and run the program there.
     $ mkdir --parents local/config
     $ cp .example-remote.conf ./local/config/remote.conf
 
+## Example Output Data and Video Presentation
+
+[Example output and presentation videos](https://mega.nz/folder/Mv1CFIwb#YeMZx9Xx379m9Xpm1zPW_g).
+
+In order for the documentation and diagrams to be generated, `./local/example_output` must contain a file named `synchronome.log`, which can be obtained from the example output data (eg from the 10Hz test run).
+
 ## Developer Notes
 
 Auto run tests before every commit:
